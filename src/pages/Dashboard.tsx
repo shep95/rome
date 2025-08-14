@@ -1,13 +1,15 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { SecureMessaging } from '@/components/SecureMessaging';
+import { NavigationSidebar } from '@/components/NavigationSidebar';
+import { MainContent } from '@/components/MainContent';
 import { LogOut } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState('messages');
 
   // Redirect unauthenticated users to home
   useEffect(() => {
@@ -18,8 +20,8 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
+      <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
       </div>
     );
   }
@@ -29,23 +31,28 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background relative">
-      <div className="absolute top-4 right-4 z-10">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex relative">
+      {/* Sign Out Button - Top Right */}
+      <div className="absolute top-4 right-4 z-20">
         <Button
           onClick={signOut}
           variant="outline"
           size="sm"
-          className="gap-2"
+          className="gap-2 bg-black/20 backdrop-blur-xl border-white/10 text-white hover:bg-white/10"
         >
           <LogOut className="h-4 w-4" />
           Sign Out
         </Button>
       </div>
       
-      {/* Dashboard content with secure messaging */}
-      <div className="h-full">
-        <SecureMessaging />
-      </div>
+      {/* Navigation Sidebar */}
+      <NavigationSidebar 
+        activeSection={activeSection} 
+        onSectionChange={setActiveSection} 
+      />
+      
+      {/* Main Content */}
+      <MainContent activeSection={activeSection} />
     </div>
   );
 };
