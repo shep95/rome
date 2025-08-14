@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -16,20 +17,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    code: ''
+    username: ''
   });
+  const [loading, setLoading] = useState(false);
+  const { signIn, signUp } = useAuth();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual authentication with Supabase
-    // For now, just simulate successful auth
-    console.log('Auth form submitted:', { type: activeTab, ...formData });
-    onSuccess();
-    onClose();
+    setLoading(true);
+
+    try {
+      let result;
+      if (activeTab === 'signup') {
+        result = await signUp(formData.email, formData.password, formData.username);
+      } else {
+        result = await signIn(formData.email, formData.password);
+      }
+
+      if (!result.error) {
+        onSuccess();
+        onClose();
+        setFormData({ email: '', password: '', username: '' });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -77,6 +93,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {activeTab === 'signup' && (
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-sm font-medium text-foreground">
+                Username
+              </Label>
+              <Input
+                id="username"
+                type="text"
+                value={formData.username}
+                onChange={(e) => handleInputChange('username', e.target.value)}
+                className="bg-background/50 border-border/40 focus:border-primary"
+                placeholder="Choose a username"
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium text-foreground">
               Email
@@ -102,38 +134,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               className="bg-background/50 border-border/40 focus:border-primary"
-              placeholder="Enter your password"
+              placeholder={activeTab === 'signup' ? 'Create a password (min 6 characters)' : 'Enter your password'}
               required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="code" className="text-sm font-medium text-foreground">
-              Four Digit Code
-            </Label>
-            <Input
-              id="code"
-              type="text"
-              value={formData.code}
-              onChange={(e) => handleInputChange('code', e.target.value)}
-              className="bg-background/50 border-border/40 focus:border-primary"
-              placeholder="Enter 4-digit code"
-              maxLength={4}
-              pattern="\d{4}"
-              required
+              minLength={6}
             />
           </div>
 
           <Button
             type="submit"
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5"
+            disabled={loading}
           >
-            {activeTab === 'login' ? 'Sign In' : 'Create Account'}
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {activeTab === 'login' ? 'Signing In...' : 'Creating Account...'}
+              </>
+            ) : (
+              activeTab === 'login' ? 'Sign In' : 'Create Account'
+            )}
           </Button>
         </form>
 
         <div className="text-center text-sm text-muted-foreground mt-4">
-          Military grade encryption ensures your data stays secure
+          {activeTab === 'signup' ? 
+            'Check your email for a confirmation link after signing up' :
+            'Military grade encryption ensures your data stays secure'
+          }
         </div>
       </DialogContent>
     </Dialog>
