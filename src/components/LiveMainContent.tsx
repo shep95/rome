@@ -173,7 +173,8 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
   const handleTabChange = (tab: 'conversations' | 'groups' | 'secure-files') => {
     if (tab === 'secure-files' && isSecureFilesLocked) {
-      // Show security lock for secure files only
+      // Don't change tab yet, just show the security lock
+      // The lock will handle changing the tab after successful unlock
       return;
     }
     setSelectedTab(tab);
@@ -256,7 +257,14 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 <span className="hidden sm:inline">Groups</span>
               </button>
               <button
-                onClick={() => handleTabChange('secure-files')}
+                onClick={() => {
+                  if (isSecureFilesLocked) {
+                    // This will trigger the SecurityLock to show
+                    setSelectedTab('secure-files');
+                  } else {
+                    handleTabChange('secure-files');
+                  }
+                }}
                 className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
                   selectedTab === 'secure-files'
                     ? 'bg-primary text-primary-foreground shadow-md'
