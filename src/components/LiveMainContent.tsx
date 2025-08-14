@@ -62,6 +62,16 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     if (savedBackground) {
       setBackgroundImage(savedBackground);
     }
+
+    // Listen for wallpaper changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'rome-background-image') {
+        setBackgroundImage(e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [user]);
 
   // App lock when switching tabs - REMOVED

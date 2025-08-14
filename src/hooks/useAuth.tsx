@@ -50,6 +50,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (profile.avatar_url) {
                   localStorage.setItem('rome-profile-image', profile.avatar_url);
                 }
+                // Restore wallpaper if it exists
+                if (profile.wallpaper_url) {
+                  localStorage.setItem('rome-background-image', profile.wallpaper_url);
+                }
                 // Store username for quick access
                 if (profile.username) {
                   localStorage.setItem('rome-username', profile.username);
@@ -66,6 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Clear stored data when user logs out
           localStorage.removeItem('userSecurityCode');
           localStorage.removeItem('rome-profile-image');
+          localStorage.removeItem('rome-background-image');
           localStorage.removeItem('rome-username');
           localStorage.removeItem('rome-display-name');
         }
@@ -94,6 +99,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (profile) {
             if (profile.avatar_url) {
               localStorage.setItem('rome-profile-image', profile.avatar_url);
+            }
+            if (profile.wallpaper_url) {
+              localStorage.setItem('rome-background-image', profile.wallpaper_url);
             }
             if (profile.username) {
               localStorage.setItem('rome-username', profile.username);
@@ -289,6 +297,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.removeItem('securityCode');
       localStorage.removeItem('userSecurityCode');
       localStorage.removeItem('rome-profile-image');
+      localStorage.removeItem('rome-background-image');
       
       // Clear secure storage
       await SecurityUtils.clearSecureStorage();

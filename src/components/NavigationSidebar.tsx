@@ -1,11 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Phone, Settings, Inbox, Info, Heart } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  MessageCircle, 
+  Phone, 
+  Settings, 
+  Inbox, 
+  Info, 
+  Heart,
+  Camera,
+  Upload,
+  ImageIcon
+} from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 import { CallHistory } from './CallHistory';
 import { AboutUs } from './AboutUs';
-import { useAuth } from '@/hooks/useAuth';
 
 interface NavigationSidebarProps {
   activeSection: string;
@@ -19,9 +32,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   messageRequestCount = 0
 }) => {
   const { user } = useAuth();
+  const { uploadAvatar, uploadWallpaper, isUploading } = useFileUpload();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCallHistoryOpen, setIsCallHistoryOpen] = useState(false);
   const [isAboutUsOpen, setIsAboutUsOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const wallpaperInputRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // Load profile data from localStorage and update when user changes
@@ -43,6 +60,24 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [user]); // Re-run when user changes
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const url = await uploadAvatar(file);
+      if (url) {
+        setProfileImage(url);
+      }
+    }
+  };
+
+  const handleWallpaperUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      await uploadWallpaper(file);
+      // The wallpaper will be applied automatically through localStorage
+    }
+  };
 
   const handleSettingsClick = () => {
     setIsSettingsOpen(true);
@@ -134,17 +169,22 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             >
               <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
-            {profileImage ? (
-              <img 
-                src={profileImage} 
-                alt="Profile" 
-                className="w-6 h-6 sm:w-8 sm:h-8 object-cover rounded-lg border border-border"
-              />
-            ) : (
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-xs">
-                {getUserInitial()}
-              </div>
-            )}
+            <div 
+              onClick={() => setIsProfileModalOpen(true)}
+              className="cursor-pointer"
+            >
+              {profileImage ? (
+                <img 
+                  src={profileImage} 
+                  alt="Profile" 
+                  className="w-6 h-6 sm:w-8 sm:h-8 object-cover rounded-lg border border-border"
+                />
+              ) : (
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-xs">
+                  {getUserInitial()}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -187,7 +227,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               <Phone className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
               <span className="text-sm font-medium">Calls</span>
             </Button>
-            
             
             <Button
               onClick={() => onSectionChange('inbox')}
@@ -244,7 +283,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           
           {/* Profile Section */}
           <div className="mt-auto pt-6 lg:pt-8">
-            <div className="flex items-center">
+            <div 
+              className="flex items-center cursor-pointer hover:bg-primary/5 p-2 rounded-lg transition-colors"
+              onClick={() => setIsProfileModalOpen(true)}
+            >
               {profileImage ? (
                 <img 
                   src={profileImage} 
@@ -266,6 +308,74 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Profile Modal */}
+      <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Profile Settings</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            <div className="flex flex-col items-center space-y-4">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={profileImage || ''} />
+                <AvatarFallback className="text-2xl">
+                  {getUserInitial()}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="text-center">
+                <p className="font-medium">{user?.email?.split('@')[0] || 'User'}</p>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
+              </div>
+              
+              <div className="space-y-3">
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                  disabled={isUploading}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="flex items-center gap-2"
+                >
+                  <Camera className="h-4 w-4" />
+                  {isUploading ? 'Uploading...' : 'Change Photo'}
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                <h3 className="font-medium">App Wallpaper</h3>
+                <input
+                  ref={wallpaperInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleWallpaperUpload}
+                  className="hidden"
+                  disabled={isUploading}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => wallpaperInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="flex items-center gap-2"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  {isUploading ? 'Uploading...' : 'Change Wallpaper'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Modals */}
       <SettingsModal 
