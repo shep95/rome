@@ -24,23 +24,88 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Store user security code when user signs in
-        if (session?.user?.user_metadata?.security_code) {
-          localStorage.setItem('userSecurityCode', session.user.user_metadata.security_code);
+        // Load and persist user profile data
+        if (session?.user) {
+          // Store user security code when user signs in
+          if (session.user.user_metadata?.security_code) {
+            localStorage.setItem('userSecurityCode', session.user.user_metadata.security_code);
+          }
+          
+          // Load user profile from database
+          setTimeout(async () => {
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
+              
+              if (profile) {
+                // Restore profile image if it exists
+                if (profile.avatar_url) {
+                  localStorage.setItem('rome-profile-image', profile.avatar_url);
+                }
+                // Store username for quick access
+                if (profile.username) {
+                  localStorage.setItem('rome-username', profile.username);
+                }
+                if (profile.display_name) {
+                  localStorage.setItem('rome-display-name', profile.display_name);
+                }
+              }
+            } catch (error) {
+              console.error('Error loading user profile:', error);
+            }
+          }, 0);
+        } else {
+          // Clear stored data when user logs out
+          localStorage.removeItem('userSecurityCode');
+          localStorage.removeItem('rome-profile-image');
+          localStorage.removeItem('rome-username');
+          localStorage.removeItem('rome-display-name');
         }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check for existing session and load profile data
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Load profile data if user is already logged in
+      if (session?.user) {
+        if (session.user.user_metadata?.security_code) {
+          localStorage.setItem('userSecurityCode', session.user.user_metadata.security_code);
+        }
+        
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          
+          if (profile) {
+            if (profile.avatar_url) {
+              localStorage.setItem('rome-profile-image', profile.avatar_url);
+            }
+            if (profile.username) {
+              localStorage.setItem('rome-username', profile.username);
+            }
+            if (profile.display_name) {
+              localStorage.setItem('rome-display-name', profile.display_name);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading initial profile:', error);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();

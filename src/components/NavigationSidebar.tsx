@@ -24,11 +24,25 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const [isAboutUsOpen, setIsAboutUsOpen] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  // Load profile image from localStorage
+  // Load profile data from localStorage and update when user changes
   useEffect(() => {
-    const savedProfile = localStorage.getItem('rome-profile-image');
-    if (savedProfile) setProfileImage(savedProfile);
-  }, []);
+    const loadProfileData = () => {
+      const savedProfile = localStorage.getItem('rome-profile-image');
+      if (savedProfile) setProfileImage(savedProfile);
+    };
+    
+    loadProfileData();
+    
+    // Listen for storage changes to update profile in real-time
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'rome-profile-image') {
+        setProfileImage(e.newValue);
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [user]); // Re-run when user changes
 
   const handleSettingsClick = () => {
     setIsSettingsOpen(true);

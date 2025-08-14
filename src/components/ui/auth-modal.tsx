@@ -236,14 +236,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             </Label>
             <Input
               id="code"
-              type="text"
+              type="password"
               value={formData.code}
               onChange={(e) => handleInputChange('code', e.target.value.replace(/\D/g, '').slice(0, 4))}
-              className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50 text-center text-lg tracking-widest"
+              className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50 text-center text-lg tracking-widest font-mono"
               placeholder="••••"
               required
               maxLength={4}
               pattern="[0-9]{4}"
+              autoComplete="off"
             />
             <p className="text-xs text-white/60">
               {activeTab === 'signup' ? 'Create a 4-digit code for secure access' : 'Enter your 4-digit security code'}

@@ -107,14 +107,15 @@ export const SecurityLock = ({
               <Input
                 key={index}
                 id={`digit-${index}`}
-                type="text"
+                type="password"
                 inputMode="numeric"
                 maxLength={1}
                 value={digit}
                 onChange={(e) => handleDigitChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                className="w-12 h-12 text-center text-lg font-semibold"
+                className="w-12 h-12 text-center text-lg font-semibold font-mono"
                 autoFocus={index === 0}
+                autoComplete="off"
               />
             ))}
           </div>
