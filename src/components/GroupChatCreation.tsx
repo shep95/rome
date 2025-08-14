@@ -99,13 +99,14 @@ export const GroupChatCreation = ({ isOpen, onClose, onGroupCreated }: GroupChat
 
       onGroupCreated();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating group chat:', error);
       toast({
         title: "Error",
-        description: "Failed to create group chat",
+        description: `Failed to create group chat: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
+      // Don't close the dialog or reset form on error
     }
   };
 
