@@ -14,6 +14,136 @@ export type Database = {
   }
   public: {
     Tables: {
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          joined_at: string
+          left_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          created_by: string
+          encrypted_metadata: string | null
+          id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          encrypted_metadata?: string | null
+          id?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          encrypted_metadata?: string | null
+          id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          encrypted_content: string
+          id: string
+          message_type: string | null
+          sender_id: string
+          sequence_number: number
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          encrypted_content: string
+          id?: string
+          message_type?: string | null
+          sender_id: string
+          sequence_number: number
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          encrypted_content?: string
+          id?: string
+          message_type?: string | null
+          sender_id?: string
+          sequence_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      one_time_prekeys: {
+        Row: {
+          created_at: string
+          id: string
+          key_id: number
+          private_key: string
+          public_key: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_id: number
+          private_key: string
+          public_key: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_id?: number
+          private_key?: string
+          public_key?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -44,12 +174,159 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          action: string
+          count: number
+          expires_at: string
+          id: string
+          identifier: string
+          window_start: string
+        }
+        Insert: {
+          action: string
+          count?: number
+          expires_at: string
+          id?: string
+          identifier: string
+          window_start?: string
+        }
+        Update: {
+          action?: string
+          count?: number
+          expires_at?: string
+          id?: string
+          identifier?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      user_keys: {
+        Row: {
+          created_at: string
+          id: string
+          identity_key_private: string
+          identity_key_public: string
+          signed_prekey_id: number
+          signed_prekey_private: string
+          signed_prekey_public: string
+          signed_prekey_signature: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          identity_key_private: string
+          identity_key_public: string
+          signed_prekey_id: number
+          signed_prekey_private: string
+          signed_prekey_public: string
+          signed_prekey_signature: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          identity_key_private?: string
+          identity_key_public?: string
+          signed_prekey_id?: number
+          signed_prekey_private?: string
+          signed_prekey_public?: string
+          signed_prekey_signature?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_security: {
+        Row: {
+          backup_codes: string[] | null
+          created_at: string
+          device_fingerprints: Json | null
+          failed_login_attempts: number | null
+          id: string
+          last_login_at: string | null
+          locked_until: string | null
+          mfa_enabled: boolean | null
+          totp_secret: string | null
+          updated_at: string
+        }
+        Insert: {
+          backup_codes?: string[] | null
+          created_at?: string
+          device_fingerprints?: Json | null
+          failed_login_attempts?: number | null
+          id: string
+          last_login_at?: string | null
+          locked_until?: string | null
+          mfa_enabled?: boolean | null
+          totp_secret?: string | null
+          updated_at?: string
+        }
+        Update: {
+          backup_codes?: string[] | null
+          created_at?: string
+          device_fingerprints?: Json | null
+          failed_login_attempts?: number | null
+          id?: string
+          last_login_at?: string | null
+          locked_until?: string | null
+          mfa_enabled?: boolean | null
+          totp_secret?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      webauthn_credentials: {
+        Row: {
+          backup_eligible: boolean | null
+          backup_state: boolean | null
+          counter: number
+          created_at: string
+          credential_id: string
+          device_type: string
+          id: string
+          last_used_at: string | null
+          public_key: string
+          transports: string[] | null
+          user_id: string
+        }
+        Insert: {
+          backup_eligible?: boolean | null
+          backup_state?: boolean | null
+          counter?: number
+          created_at?: string
+          credential_id: string
+          device_type: string
+          id?: string
+          last_used_at?: string | null
+          public_key: string
+          transports?: string[] | null
+          user_id: string
+        }
+        Update: {
+          backup_eligible?: boolean | null
+          backup_state?: boolean | null
+          counter?: number
+          created_at?: string
+          credential_id?: string
+          device_type?: string
+          id?: string
+          last_used_at?: string | null
+          public_key?: string
+          transports?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_rate_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
