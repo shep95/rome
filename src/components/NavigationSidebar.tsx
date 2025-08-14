@@ -32,18 +32,18 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const avatarColor = user?.email ? getAvatarColor(user.email) : 'bg-gray-500';
 
   return (
-    <div className="w-16 bg-black/20 backdrop-blur-xl border-r border-white/10 flex flex-col items-center py-4 hover:w-48 transition-all duration-300 group overflow-hidden">
+    <div className="w-16 bg-card/80 backdrop-blur-xl border-r border-border flex flex-col items-center py-4 hover:w-48 transition-all duration-300 group overflow-hidden">
       {/* Header with ROME title and profile */}
       <div className="flex items-center justify-between w-full px-3 mb-8">
         <div className="flex items-center space-x-3">
           {/* ROME Logo/Title */}
-          <div className="text-white font-bold text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="text-foreground font-bold text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             ROME
           </div>
         </div>
         
         {/* Profile Picture - Square Rounded */}
-        <div className={`w-8 h-8 ${avatarColor} rounded-lg flex items-center justify-center text-white text-sm font-medium flex-shrink-0`}>
+        <div className={`w-8 h-8 ${avatarColor} rounded-lg flex items-center justify-center text-foreground text-sm font-medium flex-shrink-0`}>
           {user?.email?.[0]?.toUpperCase() || 'U'}
         </div>
       </div>
@@ -60,8 +60,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               onClick={() => onSectionChange(item.id)}
               className={`flex items-center space-x-3 w-full p-3 rounded-lg transition-all duration-200 ${
                 isActive 
-                  ? 'bg-white/20 text-white' 
-                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                  ? 'bg-primary/20 text-primary' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               }`}
             >
               <Icon className="w-5 h-5 flex-shrink-0" />

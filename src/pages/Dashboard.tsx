@@ -20,8 +20,8 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen w-full bg-background flex items-center justify-center">
+        <div className="text-foreground">Loading...</div>
       </div>
     );
   }
@@ -31,14 +31,14 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex relative">
+    <div className="min-h-screen w-full bg-background flex relative">
       {/* Sign Out Button - Top Right */}
       <div className="absolute top-4 right-4 z-20">
         <Button
           onClick={signOut}
           variant="outline"
           size="sm"
-          className="gap-2 bg-black/20 backdrop-blur-xl border-white/10 text-white hover:bg-white/10"
+          className="gap-2 bg-card/80 backdrop-blur-xl border-border text-foreground hover:bg-card"
         >
           <LogOut className="h-4 w-4" />
           Sign Out
