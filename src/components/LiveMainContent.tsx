@@ -49,8 +49,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
   const [isGroupCreationOpen, setIsGroupCreationOpen] = useState(false);
   const [isSecureFilesLocked, setIsSecureFilesLocked] = useState(true);
-  const [isAppLocked, setIsAppLocked] = useState(false);
-  const [lastActiveTab, setLastActiveTab] = useState('conversations');
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -65,15 +63,11 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     }
   }, [user]);
 
-  // App lock when switching tabs
-  useEffect(() => {
-    if (selectedTab !== lastActiveTab && lastActiveTab !== '') {
-      setIsAppLocked(true);
-    }
-    setLastActiveTab(selectedTab);
-  }, [selectedTab]);
+  // App lock when switching tabs - REMOVED
+  // This was causing the 4-digit code prompt for all tabs
+  // Now only secure files will require the code
 
-  // Lock secure files when clicking off
+  // Lock secure files when clicking off the tab
   useEffect(() => {
     if (selectedTab !== 'secure-files') {
       setIsSecureFilesLocked(true);
@@ -179,7 +173,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
   const handleTabChange = (tab: 'conversations' | 'groups' | 'secure-files') => {
     if (tab === 'secure-files' && isSecureFilesLocked) {
-      // Don't change tab, let the unlock handle it
+      // Show security lock for secure files only
       return;
     }
     setSelectedTab(tab);
@@ -188,10 +182,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   const handleSecureFilesUnlock = () => {
     setIsSecureFilesLocked(false);
     setSelectedTab('secure-files');
-  };
-
-  const handleAppUnlock = () => {
-    setIsAppLocked(false);
   };
 
   const handleNewMessage = () => {
@@ -446,11 +436,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
         onUnlock={handleSecureFilesUnlock}
         title="Secure Files Access"
         description="Enter your 4-digit code to access secure files"
-      />
-
-      <AppLock
-        isLocked={isAppLocked}
-        onUnlock={handleAppUnlock}
       />
     </>
   );

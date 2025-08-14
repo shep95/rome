@@ -60,6 +60,7 @@ export const SecurityLock = ({
 
     if (enteredCode === correctCode) {
       onUnlock();
+      setCode(['', '', '', '']); // Clear the code after successful unlock
     } else {
       setIsShaking(true);
       setCode(['', '', '', '']);
