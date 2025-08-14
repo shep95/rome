@@ -49,14 +49,14 @@ export const SpotlightButton: React.FC<SpotlightButtonProps> = ({ onSignUpClick 
   const [activeIndex, setActiveIndex] = useState(-1);
 
   const navItems = [
-    { icon: Github, label: 'GitHub', action: () => window.open('https://github.com', '_blank') },
-    { icon: MessageCircle, label: 'Discord', action: () => window.open('https://discord.com', '_blank') },
+    { icon: Github, label: 'GitHub', action: () => window.open('https://github.com/shep95/rome', '_blank') },
+    { icon: MessageCircle, label: 'Discord', action: () => window.open('https://discord.gg/2JpT4XSbHQ', '_blank') },
     { icon: UserPlus, label: 'Sign Up / Login', action: onSignUpClick },
   ];
 
   return (
-    <nav className="relative flex items-center px-2 py-3 bg-background/90 backdrop-blur-sm rounded-md shadow-lg border border-border/20">
-      <div 
+    <nav className="relative flex items-center px-2 py-3 bg-background/90 backdrop-blur-sm rounded-md shadow-lg border border-border/20 w-fit">
+      <div
         className="absolute top-0 h-[2px] bg-primary transition-all duration-400 ease-in-out"
         style={{
           left: `${activeIndex * 64 + 16}px`,

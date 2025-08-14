@@ -64,8 +64,10 @@ export function BackgroundPaths({
     return (
         <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background">
             {/* Top Navigation */}
-            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-20">
-                <SpotlightButton onSignUpClick={onSignUpClick} />
+            <div className="absolute top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-20 px-4 w-full max-w-sm">
+                <div className="flex justify-center">
+                    <SpotlightButton onSignUpClick={onSignUpClick} />
+                </div>
             </div>
 
             <div className="absolute inset-0">
@@ -73,14 +75,14 @@ export function BackgroundPaths({
                 <FloatingPaths position={-1} />
             </div>
 
-            <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">
+            <div className="relative z-10 container mx-auto px-4 md:px-6 text-center mt-16 sm:mt-20">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 2 }}
                     className="max-w-4xl mx-auto"
                 >
-                    <h1 className="text-5xl sm:text-7xl md:text-8xl font-bold mb-8 tracking-tighter">
+                    <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 sm:mb-8 tracking-tighter">
                         {words.map((word, wordIndex) => (
                             <span
                                 key={wordIndex}
@@ -113,7 +115,7 @@ export function BackgroundPaths({
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1, duration: 1 }}
-                        className="text-xl sm:text-2xl md:text-3xl font-medium text-muted-foreground mb-8"
+                        className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium text-muted-foreground mb-8 px-4"
                     >
                         Military Grade Secured Messaging App
                     </motion.div>

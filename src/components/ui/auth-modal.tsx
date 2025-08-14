@@ -8,9 +8,10 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [formData, setFormData] = useState({
     email: '',
@@ -24,13 +25,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle authentication logic here
+    // TODO: Implement actual authentication with Supabase
+    // For now, just simulate successful auth
     console.log('Auth form submitted:', { type: activeTab, ...formData });
+    onSuccess();
+    onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-background/95 backdrop-blur-xl border border-border/20 shadow-2xl">
+      <DialogContent className="sm:max-w-md bg-background/95 backdrop-blur-xl border border-border/20 shadow-2xl mx-4 max-w-[90vw]">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-foreground">
