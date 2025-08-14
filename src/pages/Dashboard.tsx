@@ -31,7 +31,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background flex flex-col md:flex-row">
+    <div className="min-h-screen w-full bg-background">
       {/* Sign Out Button - Top Right */}
       <div className="absolute top-2 right-2 md:top-4 md:right-4 z-50">
         <Button
@@ -52,7 +52,7 @@ const Dashboard = () => {
       />
       
       {/* Main Content */}
-      <div className="flex-1 pt-16 md:pt-0 md:ml-20">
+      <div className="pt-20 md:pt-0 md:ml-20 min-h-screen">
         <MainContent activeSection={activeSection} />
       </div>
     </div>
