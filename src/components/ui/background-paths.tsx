@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { SpotlightButton } from "@/components/ui/spotlight-button";
 
 function FloatingPaths({ position }: { position: number }) {
     const paths = Array.from({ length: 36 }, (_, i) => ({
@@ -50,15 +50,24 @@ function FloatingPaths({ position }: { position: number }) {
     );
 }
 
+interface BackgroundPathsProps {
+    title?: string;
+    onSignUpClick?: () => void;
+}
+
 export function BackgroundPaths({
     title = "Background Paths",
-}: {
-    title?: string;
-}) {
+    onSignUpClick,
+}: BackgroundPathsProps) {
     const words = title.split(" ");
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-background">
+        <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background">
+            {/* Top Navigation */}
+            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-20">
+                <SpotlightButton onSignUpClick={onSignUpClick} />
+            </div>
+
             <div className="absolute inset-0">
                 <FloatingPaths position={1} />
                 <FloatingPaths position={-1} />
@@ -100,30 +109,14 @@ export function BackgroundPaths({
                         ))}
                     </h1>
 
-                    <div
-                        className="inline-block group relative bg-gradient-to-b from-primary/10 to-primary/5 
-                        p-px rounded-2xl backdrop-blur-lg 
-                        overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1, duration: 1 }}
+                        className="text-xl sm:text-2xl md:text-3xl font-medium text-muted-foreground mb-8"
                     >
-                        <Button
-                            variant="ghost"
-                            className="rounded-[1.15rem] px-8 py-6 text-lg font-semibold backdrop-blur-md 
-                            bg-background/95 hover:bg-background/100 
-                            text-foreground transition-all duration-300 
-                            group-hover:-translate-y-0.5 border border-primary/10
-                            hover:shadow-md hover:shadow-primary/20"
-                        >
-                            <span className="opacity-90 group-hover:opacity-100 transition-opacity">
-                                Discover Excellence
-                            </span>
-                            <span
-                                className="ml-3 opacity-70 group-hover:opacity-100 group-hover:translate-x-1.5 
-                                transition-all duration-300"
-                            >
-                                →
-                            </span>
-                        </Button>
-                    </div>
+                        Military Grade Secured Messaging App
+                    </motion.div>
                 </motion.div>
             </div>
         </div>
