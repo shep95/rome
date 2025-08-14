@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,13 @@ export const MainContent: React.FC<MainContentProps> = ({ activeSection }) => {
   const [secureCode, setSecureCode] = useState('');
   const [isSecureFileModalOpen, setIsSecureFileModalOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'conversations' | 'groups' | 'secure-files'>('conversations');
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+
+  // Load background image from localStorage
+  useEffect(() => {
+    const savedBackground = localStorage.getItem('rome-background-image');
+    if (savedBackground) setBackgroundImage(savedBackground);
+  }, []);
 
   // Mock data
   const conversations = [
@@ -84,48 +91,48 @@ export const MainContent: React.FC<MainContentProps> = ({ activeSection }) => {
   return (
     <div className="flex-1 flex bg-background">
       {/* Left Panel - Message Categories */}
-      <div className="w-80 bg-card/80 backdrop-blur-xl border-r border-border flex flex-col">
+      <div className="w-full md:w-80 lg:w-96 bg-card/80 backdrop-blur-xl border-r border-border flex flex-col md:relative absolute md:z-0 z-10 md:translate-x-0 translate-x-0">
         {/* Tab Navigation */}
-        <div className="p-4 border-b border-border">
+        <div className="p-3 md:p-4 border-b border-border">
           <div className="flex space-x-1 bg-muted/20 rounded-lg p-1">
             <button
               onClick={() => setSelectedTab('conversations')}
-              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-2 px-2 md:px-3 rounded-md text-xs md:text-sm font-medium transition-all ${
                 selectedTab === 'conversations'
                   ? 'bg-primary/20 text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <MessageCircle className="w-4 h-4" />
-              <span>Chats</span>
+              <MessageCircle className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Chats</span>
             </button>
             <button
               onClick={() => setSelectedTab('groups')}
-              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-2 px-2 md:px-3 rounded-md text-xs md:text-sm font-medium transition-all ${
                 selectedTab === 'groups'
                   ? 'bg-primary/20 text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Users className="w-4 h-4" />
-              <span>Groups</span>
+              <Users className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Groups</span>
             </button>
             <button
               onClick={openSecureFiles}
-              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-2 px-2 md:px-3 rounded-md text-xs md:text-sm font-medium transition-all ${
                 selectedTab === 'secure-files'
                   ? 'bg-primary/20 text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Shield className="w-4 h-4" />
-              <span>Secure Files</span>
+              <Shield className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Secure Files</span>
             </button>
           </div>
         </div>
 
         {/* Content Area */}
-        <ScrollArea className="flex-1 p-4">
+        <ScrollArea className="flex-1 p-3 md:p-4">
           {selectedTab === 'conversations' && (
             <div className="space-y-2">
               <div className="flex items-center justify-between mb-4">
@@ -244,11 +251,22 @@ export const MainContent: React.FC<MainContentProps> = ({ activeSection }) => {
       </div>
 
       {/* Right Panel - Chat Area */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center text-foreground">
-          <Shield className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-xl font-semibold mb-2">Select a conversation</h3>
-          <p className="text-muted-foreground">Choose a conversation to start secure messaging</p>
+      <div 
+        className="hidden md:flex flex-1 items-center justify-center relative"
+        style={{
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {backgroundImage && (
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+        )}
+        <div className="text-center text-foreground relative z-10">
+          <Shield className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg md:text-xl font-semibold mb-2">Select a conversation</h3>
+          <p className="text-muted-foreground text-sm md:text-base">Choose a conversation to start secure messaging</p>
         </div>
       </div>
 

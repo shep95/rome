@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import { MessageCircle, Phone, Settings } from 'lucide-react';
+import { SettingsModal } from './SettingsModal';
 import { useAuth } from '@/hooks/useAuth';
 
 interface NavigationSidebarProps {
@@ -12,66 +14,116 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   onSectionChange 
 }) => {
   const { user } = useAuth();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  const navItems = [
-    { id: 'messages', icon: MessageCircle, label: 'Messages' },
-    { id: 'calls', icon: Phone, label: 'Calls' },
-    { id: 'settings', icon: Settings, label: 'Settings' },
-  ];
+  // Load profile image from localStorage
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('rome-profile-image');
+    if (savedProfile) setProfileImage(savedProfile);
+  }, []);
 
-  // Generate a simple avatar background color based on user email
-  const getAvatarColor = (email: string) => {
-    const colors = [
-      'bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500',
-      'bg-pink-500', 'bg-indigo-500', 'bg-yellow-500', 'bg-teal-500'
-    ];
-    const index = email.charCodeAt(0) % colors.length;
-    return colors[index];
+  const handleSettingsClick = () => {
+    setIsSettingsOpen(true);
   };
 
-  const avatarColor = user?.email ? getAvatarColor(user.email) : 'bg-gray-500';
+  const getUserInitial = () => {
+    return user?.email?.charAt(0).toUpperCase() || 'U';
+  };
 
   return (
-    <div className="w-16 bg-card/80 backdrop-blur-xl border-r border-border flex flex-col items-center py-4 hover:w-48 transition-all duration-300 group overflow-hidden">
-      {/* Header with ROME title and profile */}
-      <div className="flex items-center justify-between w-full px-3 mb-8">
-        <div className="flex items-center space-x-3">
-          {/* ROME Logo/Title */}
-          <div className="text-foreground font-bold text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            ROME
+    <>
+      <div className="group fixed left-2 md:left-4 top-2 md:top-4 bottom-2 md:bottom-4 z-30 flex flex-col">
+        {/* Main Navigation */}
+        <div className="w-12 md:w-16 group-hover:w-32 md:group-hover:w-48 bg-background/80 backdrop-blur-xl border border-border rounded-xl md:rounded-2xl p-2 md:p-4 transition-all duration-300 overflow-hidden">
+          {/* Logo/Brand */}
+          <div className="flex items-center mb-4 md:mb-8">
+            <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xs md:text-sm">
+              R
+            </div>
+            <div className="ml-2 md:ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              <h1 className="text-foreground font-bold text-sm md:text-lg">ROME</h1>
+            </div>
           </div>
-        </div>
-        
-        {/* Profile Picture - Square Rounded */}
-        <div className={`w-8 h-8 ${avatarColor} rounded-lg flex items-center justify-center text-foreground text-sm font-medium flex-shrink-0`}>
-          {user?.email?.[0]?.toUpperCase() || 'U'}
-        </div>
-      </div>
-
-      {/* Navigation Items */}
-      <nav className="flex flex-col space-y-2 w-full px-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSection === item.id;
           
-          return (
-            <button
-              key={item.id}
-              onClick={() => onSectionChange(item.id)}
-              className={`flex items-center space-x-3 w-full p-3 rounded-lg transition-all duration-200 ${
-                isActive 
-                  ? 'bg-primary/20 text-primary' 
+          {/* Navigation Items */}
+          <nav className="space-y-2 md:space-y-3">
+            <Button
+              onClick={() => onSectionChange('messages')}
+              variant={activeSection === 'messages' ? 'default' : 'ghost'}
+              className={`w-full justify-start p-2 md:p-3 h-auto ${
+                activeSection === 'messages'
+                  ? 'bg-primary/20 text-primary hover:bg-primary/30'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               }`}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                {item.label}
+              <MessageCircle className="w-4 h-4 md:w-5 md:h-5 min-w-[16px] md:min-w-[20px]" />
+              <span className="ml-2 md:ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-xs md:text-sm">
+                Messages
               </span>
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+            </Button>
+            
+            <Button
+              onClick={() => onSectionChange('calls')}
+              variant={activeSection === 'calls' ? 'default' : 'ghost'}
+              className={`w-full justify-start p-2 md:p-3 h-auto ${
+                activeSection === 'calls'
+                  ? 'bg-primary/20 text-primary hover:bg-primary/30'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              }`}
+            >
+              <Phone className="w-4 h-4 md:w-5 md:h-5 min-w-[16px] md:min-w-[20px]" />
+              <span className="ml-2 md:ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-xs md:text-sm">
+                Calls
+              </span>
+            </Button>
+            
+            <Button
+              onClick={handleSettingsClick}
+              variant={activeSection === 'settings' ? 'default' : 'ghost'}
+              className={`w-full justify-start p-2 md:p-3 h-auto ${
+                activeSection === 'settings'
+                  ? 'bg-primary/20 text-primary hover:bg-primary/30'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              }`}
+            >
+              <Settings className="w-4 h-4 md:w-5 md:h-5 min-w-[16px] md:min-w-[20px]" />
+              <span className="ml-2 md:ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-xs md:text-sm">
+                Settings
+              </span>
+            </Button>
+          </nav>
+          
+          {/* Profile Section */}
+          <div className="mt-auto pt-4 md:pt-8">
+            <div className="flex items-center">
+              {profileImage ? (
+                <img 
+                  src={profileImage} 
+                  alt="Profile" 
+                  className="w-6 h-6 md:w-8 md:h-8 object-cover rounded-lg border border-border"
+                />
+              ) : (
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-xs md:text-sm">
+                  {getUserInitial()}
+                </div>
+              )}
+              <div className="ml-2 md:ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                <p className="text-foreground font-medium text-xs md:text-sm truncate">
+                  {user?.email?.split('@')[0] || 'User'}
+                </p>
+                <p className="text-muted-foreground text-[10px] md:text-xs">Online</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+      />
+    </>
   );
 };
