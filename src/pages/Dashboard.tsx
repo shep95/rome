@@ -31,9 +31,9 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background flex relative">
+    <div className="min-h-screen w-full bg-background flex flex-col md:flex-row">
       {/* Sign Out Button - Top Right */}
-      <div className="absolute top-2 right-2 md:top-4 md:right-4 z-20">
+      <div className="absolute top-2 right-2 md:top-4 md:right-4 z-50">
         <Button
           onClick={signOut}
           variant="outline"
@@ -52,7 +52,7 @@ const Dashboard = () => {
       />
       
       {/* Main Content */}
-      <div className="flex-1 ml-14 md:ml-20 lg:ml-20">
+      <div className="flex-1 pt-16 md:pt-0 md:ml-20">
         <MainContent activeSection={activeSection} />
       </div>
     </div>

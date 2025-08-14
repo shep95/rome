@@ -89,11 +89,11 @@ export const MainContent: React.FC<MainContentProps> = ({ activeSection }) => {
   }
 
   return (
-    <div className="flex-1 flex bg-background">
+    <div className="flex-1 flex flex-col md:flex-row bg-background h-screen md:h-auto overflow-hidden">
       {/* Left Panel - Message Categories */}
-      <div className="w-full md:w-80 lg:w-96 bg-card/80 backdrop-blur-xl border-r border-border flex flex-col md:relative absolute md:z-0 z-10 md:translate-x-0 translate-x-0">
+      <div className="w-full md:w-80 lg:w-96 bg-card/80 backdrop-blur-xl border-b md:border-r md:border-b-0 border-border flex flex-col max-h-full">
         {/* Tab Navigation */}
-        <div className="p-3 md:p-4 border-b border-border">
+        <div className="p-2 md:p-4 border-b border-border flex-shrink-0">
           <div className="flex space-x-1 bg-muted/20 rounded-lg p-1">
             <button
               onClick={() => setSelectedTab('conversations')}
