@@ -36,6 +36,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             localStorage.setItem('userSecurityCode', session.user.user_metadata.security_code);
           }
           
+          // Try to restore from backup first
+          const backupData = sessionStorage.getItem(`rome-backup-${session.user.email}`);
+          if (backupData) {
+            try {
+              const parsed = JSON.parse(backupData);
+              if (parsed.profileImage) localStorage.setItem('rome-profile-image', parsed.profileImage);
+              if (parsed.backgroundImage) localStorage.setItem('rome-background-image', parsed.backgroundImage);
+              if (parsed.username) localStorage.setItem('rome-username', parsed.username);
+              if (parsed.displayName) localStorage.setItem('rome-display-name', parsed.displayName);
+            } catch (e) {
+              console.log('Could not restore from backup:', e);
+            }
+          }
+          
           // Load user profile from database
           setTimeout(async () => {
             try {
@@ -67,12 +81,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
           }, 0);
         } else {
-          // Clear stored data when user logs out
+          // Clear stored data when user logs out - but keep profile data in backup
           localStorage.removeItem('userSecurityCode');
-          localStorage.removeItem('rome-profile-image');
-          localStorage.removeItem('rome-background-image');
-          localStorage.removeItem('rome-username');
-          localStorage.removeItem('rome-display-name');
+          // Don't clear profile images and wallpapers - they're backed up
         }
       }
     );
@@ -87,6 +98,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (session?.user) {
         if (session.user.user_metadata?.security_code) {
           localStorage.setItem('userSecurityCode', session.user.user_metadata.security_code);
+        }
+        
+        // Try to restore from backup first
+        const backupData = sessionStorage.getItem(`rome-backup-${session.user.email}`);
+        if (backupData) {
+          try {
+            const parsed = JSON.parse(backupData);
+            if (parsed.profileImage) localStorage.setItem('rome-profile-image', parsed.profileImage);
+            if (parsed.backgroundImage) localStorage.setItem('rome-background-image', parsed.backgroundImage);
+            if (parsed.username) localStorage.setItem('rome-username', parsed.username);
+            if (parsed.displayName) localStorage.setItem('rome-display-name', parsed.displayName);
+          } catch (e) {
+            console.log('Could not restore from backup:', e);
+          }
         }
         
         try {
@@ -293,11 +318,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
-      // Clear all local storage data first
+      // Store critical user data before clearing
+      const criticalData = {
+        profileImage: localStorage.getItem('rome-profile-image'),
+        backgroundImage: localStorage.getItem('rome-background-image'),
+        username: localStorage.getItem('rome-username'),
+        displayName: localStorage.getItem('rome-display-name'),
+        userEmail: user?.email
+      };
+      
+      // Store in a separate backup location
+      if (criticalData.userEmail) {
+        sessionStorage.setItem(`rome-backup-${criticalData.userEmail}`, JSON.stringify(criticalData));
+      }
+      
+      // Clear security-related data only (keep profile data)
       localStorage.removeItem('securityCode');
       localStorage.removeItem('userSecurityCode');
-      localStorage.removeItem('rome-profile-image');
-      localStorage.removeItem('rome-background-image');
       
       // Clear secure storage
       await SecurityUtils.clearSecureStorage();
@@ -323,7 +360,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Clear local state even if signOut fails
       setSession(null);
       setUser(null);
-      localStorage.clear();
       
       toast({
         title: "Signed out",

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfilePersistence } from '@/hooks/useProfilePersistence';
 import { useAppLock } from '@/hooks/useAppLock';
 import { Button } from '@/components/ui/button';
 import { NavigationSidebar } from '@/components/NavigationSidebar';
@@ -11,6 +12,7 @@ import { LogOut } from 'lucide-react';
 const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
   const { isLocked, unlockApp } = useAppLock();
+  useProfilePersistence(); // Auto-save profile data
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('messages');
   const [messageRequestCount, setMessageRequestCount] = useState(0);
