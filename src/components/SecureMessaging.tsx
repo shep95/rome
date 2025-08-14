@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Shield, Send, Users, Lock } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Shield, Send, Users, Lock, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Message {
@@ -19,7 +20,8 @@ interface Message {
 
 interface Conversation {
   id: string;
-  type: 'direct' | 'group';
+  name?: string;
+  type: 'direct' | 'group' | 'secure';
   participants: string[];
   last_message?: string;
 }
@@ -32,6 +34,8 @@ export const SecureMessaging = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [newContactEmail, setNewContactEmail] = useState('');
+  const [newConversationName, setNewConversationName] = useState('');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -80,6 +84,7 @@ export const SecureMessaging = () => {
           conversation_id,
           conversations (
             id,
+            name,
             type,
             created_at
           )
@@ -90,7 +95,8 @@ export const SecureMessaging = () => {
       if (participantData) {
         const convos: Conversation[] = participantData.map(p => ({
           id: p.conversations.id,
-          type: p.conversations.type as 'direct' | 'group',
+          name: p.conversations.name,
+          type: p.conversations.type as 'direct' | 'group' | 'secure',
           participants: [],
           last_message: ''
         }));
@@ -201,6 +207,62 @@ export const SecureMessaging = () => {
     }
   };
 
+  const createSecureConversation = async () => {
+    if (!newConversationName.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Name required",
+        description: "Please enter a name for the secure conversation."
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Create secure conversation
+      const { data: conversationData, error: conversationError } = await supabase
+        .from('conversations')
+        .insert({
+          name: newConversationName.trim(),
+          type: 'secure',
+          created_by: user?.id
+        })
+        .select()
+        .single();
+
+      if (conversationError) throw conversationError;
+
+      // Add current user as participant
+      const { error: participantError } = await supabase
+        .from('conversation_participants')
+        .insert({
+          conversation_id: conversationData.id,
+          user_id: user?.id,
+          role: 'admin'
+        });
+
+      if (participantError) throw participantError;
+
+      setNewConversationName('');
+      setIsCreateDialogOpen(false);
+      loadConversations();
+      toast({
+        title: "Secure conversation created",
+        description: `${newConversationName} has been created with passcode protection.`
+      });
+
+    } catch (error: any) {
+      console.error('Create secure conversation error:', error);
+      toast({
+        variant: "destructive",
+        title: "Failed to create conversation",
+        description: error.message
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
 
@@ -248,6 +310,52 @@ export const SecureMessaging = () => {
             <h2 className="font-semibold">Secure Messages</h2>
           </div>
           
+          
+          {/* Create new secure conversation */}
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline"
+                className="w-full mb-2"
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Secure Chat
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Secure Conversation</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Input
+                    placeholder="Enter conversation name"
+                    value={newConversationName}
+                    onChange={(e) => setNewConversationName(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={createSecureConversation}
+                    disabled={isLoading || !newConversationName.trim()}
+                    className="flex-1"
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Create
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsCreateDialogOpen(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
           {/* Start new conversation */}
           <div className="space-y-2">
             <Input
@@ -269,7 +377,7 @@ export const SecureMessaging = () => {
         </div>
 
         {/* Conversations list */}
-        <ScrollArea className="h-[calc(100vh-200px)]">
+        <ScrollArea className="h-[calc(100vh-280px)]">
           {conversations.map((conversation) => (
             <div
               key={conversation.id}
@@ -284,10 +392,12 @@ export const SecureMessaging = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm">
-                    {conversation.type === 'direct' ? 'Direct Message' : 'Group Chat'}
+                    {conversation.name || 
+                     (conversation.type === 'direct' ? 'Direct Message' : 
+                      conversation.type === 'secure' ? 'Secure Chat' : 'Group Chat')}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">
-                    End-to-end encrypted
+                    {conversation.type === 'secure' ? 'Passcode protected' : 'End-to-end encrypted'}
                   </div>
                 </div>
               </div>
