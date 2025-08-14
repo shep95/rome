@@ -28,13 +28,12 @@ import { toast } from 'sonner';
 interface SecurePost {
   id: string;
   user_id: string;
-  content: string;
-  file_path?: string;
-  file_name?: string;
-  file_type?: string;
-  file_size?: number;
+  content_type: string;
   created_at: string;
-  updated_at: string;
+  encrypted_key: string;
+  file_path: string;
+  file_size: number;
+  filename: string;
 }
 
 interface SecureFilesProps {
@@ -138,11 +137,11 @@ export const SecureFiles: React.FC<SecureFilesProps> = ({ isLocked, onUnlock }) 
         .from('secure_files')
         .insert({
           user_id: user.id,
-          content: newPostContent.trim(),
-          file_path: filePath,
-          file_name: fileName,
-          file_type: fileType,
-          file_size: fileSize
+          content_type: fileType || 'text/plain',
+          file_path: filePath || `text_${Date.now()}.txt`,
+          filename: fileName || 'text_post.txt',
+          file_size: fileSize || newPostContent.length,
+          encrypted_key: btoa(newPostContent.trim()) // Simple base64 encoding for now
         });
 
       if (error) throw error;
@@ -164,8 +163,24 @@ export const SecureFiles: React.FC<SecureFilesProps> = ({ isLocked, onUnlock }) 
     if (!post.file_path) return;
 
     try {
+      // For text posts, create a downloadable text file
+      if (post.content_type === 'text/plain') {
+        const content = atob(post.encrypted_key); // Decode base64
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = post.filename || 'text_post.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return;
+      }
+
+      // For actual files
       const { data, error } = await supabase.storage
-        .from('secure-files')
+        .from('avatars') // Using existing bucket for now
         .download(post.file_path);
 
       if (error) throw error;
@@ -173,7 +188,7 @@ export const SecureFiles: React.FC<SecureFilesProps> = ({ isLocked, onUnlock }) 
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = post.file_name || 'download';
+      a.download = post.filename || 'download';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -191,6 +206,7 @@ export const SecureFiles: React.FC<SecureFilesProps> = ({ isLocked, onUnlock }) 
     if (fileType.startsWith('video/')) return <Video className="w-5 h-5" />;
     if (fileType.startsWith('audio/')) return <Music className="w-5 h-5" />;
     if (fileType.includes('zip') || fileType.includes('rar')) return <Archive className="w-5 h-5" />;
+    if (fileType === 'text/plain') return <FileText className="w-5 h-5" />;
     
     return <File className="w-5 h-5" />;
   };
@@ -266,23 +282,24 @@ export const SecureFiles: React.FC<SecureFilesProps> = ({ isLocked, onUnlock }) 
               </Button>
             </div>
           ) : (
-            posts.map((post) => (
-              <Card key={post.id} className="bg-card/50 border-border">
-                <CardContent className="p-4">
-                  {/* Post content */}
-                  {post.content && (
-                    <p className="text-foreground mb-3 whitespace-pre-wrap">{post.content}</p>
-                  )}
-                  
-                  {/* File preview */}
-                  {post.file_path && (
+            posts.map((post) => {
+              const content = post.content_type === 'text/plain' ? atob(post.encrypted_key) : '';
+              return (
+                <Card key={post.id} className="bg-card/50 border-border">
+                  <CardContent className="p-4">
+                    {/* Post content */}
+                    {content && (
+                      <p className="text-foreground mb-3 whitespace-pre-wrap">{content}</p>
+                    )}
+                    
+                    {/* File preview */}
                     <div className="mb-3">
                       <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
                         <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground">
-                          {getFileIcon(post.file_type)}
+                          {getFileIcon(post.content_type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-foreground font-medium truncate">{post.file_name}</h4>
+                          <h4 className="text-foreground font-medium truncate">{post.filename}</h4>
                           <p className="text-sm text-muted-foreground">{formatFileSize(post.file_size)}</p>
                         </div>
                         <Button 
@@ -295,21 +312,19 @@ export const SecureFiles: React.FC<SecureFilesProps> = ({ isLocked, onUnlock }) 
                         </Button>
                       </div>
                     </div>
-                  )}
-                  
-                  {/* Post metadata */}
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    <span>{formatDate(post.created_at)}</span>
-                    {post.file_path && (
+                    
+                    {/* Post metadata */}
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>{formatDate(post.created_at)}</span>
                       <Badge variant="secondary" className="text-xs">
-                        File Attached
+                        Secure File
                       </Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </div>
       </ScrollArea>

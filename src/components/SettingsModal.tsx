@@ -24,7 +24,7 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'appearance' | 'profile' | 'security'>('appearance');
+  const [activeTab, setActiveTab] = useState<'appearance' | 'profile' | 'security' | 'shortcuts'>('appearance');
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [screenshotProtection, setScreenshotProtection] = useState(false);
@@ -214,6 +214,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 <Shield className="w-5 h-5" />
                 <span>Security</span>
               </button>
+              
+              <button
+                onClick={() => setActiveTab('shortcuts')}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all ${
+                  activeTab === 'shortcuts'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <Settings className="w-5 h-5" />
+                <span>Shortcuts</span>
+              </button>
             </nav>
           </div>
 
@@ -379,6 +391,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       </ul>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            )}
+
+            {activeTab === 'shortcuts' && (
+              <Card className="bg-card/50 border-border">
+                <CardHeader>
+                  <CardTitle className="text-foreground flex items-center space-x-2">
+                    <Settings className="w-5 h-5" />
+                    <span>Keyboard Shortcuts</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg border border-border">
+                      <div>
+                        <h4 className="text-foreground font-medium">Lock App</h4>
+                        <p className="text-muted-foreground text-sm">Instantly lock the app and require 4-digit code to unlock</p>
+                      </div>
+                      <div className="bg-primary/10 px-3 py-1 rounded border border-primary/20">
+                        <span className="text-primary font-mono text-sm">Shift + L</span>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}

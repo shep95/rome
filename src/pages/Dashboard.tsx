@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppLock } from '@/hooks/useAppLock';
 import { Button } from '@/components/ui/button';
 import { NavigationSidebar } from '@/components/NavigationSidebar';
 import { LiveMainContent } from '@/components/LiveMainContent';
+import { AppLock } from '@/components/SecurityLock';
 import { LogOut } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
+  const { isLocked, unlockApp } = useAppLock();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('messages');
   const [messageRequestCount, setMessageRequestCount] = useState(0);
@@ -32,19 +35,21 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background">
-      {/* Sign Out Button - Top Right */}
-      <div className="absolute top-2 right-2 md:top-4 md:right-4 z-50">
-        <Button
-          onClick={signOut}
-          variant="outline"
-          size="sm"
-          className="gap-1 md:gap-2 bg-card/80 backdrop-blur-xl border-border text-foreground hover:bg-card text-xs md:text-sm px-2 md:px-3"
-        >
-          <LogOut className="h-3 w-3 md:h-4 md:w-4" />
-          <span className="hidden sm:inline">Sign Out</span>
-        </Button>
-      </div>
+    <>
+      <AppLock isLocked={isLocked} onUnlock={unlockApp} />
+      <div className="min-h-screen w-full bg-background">
+        {/* Sign Out Button - Top Right */}
+        <div className="absolute top-2 right-2 md:top-4 md:right-4 z-50">
+          <Button
+            onClick={signOut}
+            variant="outline"
+            size="sm"
+            className="gap-1 md:gap-2 bg-card/80 backdrop-blur-xl border-border text-foreground hover:bg-card text-xs md:text-sm px-2 md:px-3"
+          >
+            <LogOut className="h-3 w-3 md:h-4 md:w-4" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </Button>
+        </div>
       
       {/* Navigation Sidebar */}
       <NavigationSidebar 
@@ -62,6 +67,7 @@ const Dashboard = () => {
         />
       </div>
     </div>
+    </>
   );
 };
 
