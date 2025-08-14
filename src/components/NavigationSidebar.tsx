@@ -83,15 +83,15 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       </div>
 
       {/* Desktop Navigation - Sidebar */}
-      <div className="hidden md:block group fixed left-4 top-4 bottom-4 z-30">
-        <div className="w-16 group-hover:w-48 bg-background/80 backdrop-blur-xl border border-border rounded-2xl p-4 transition-all duration-300 overflow-hidden h-full flex flex-col">
+      <div className="hidden md:block fixed left-4 top-4 bottom-4 z-30">
+        <div className="w-64 bg-background/80 backdrop-blur-xl border border-border rounded-2xl p-6 h-full flex flex-col">
           {/* Logo/Brand */}
-          <div className="flex items-center justify-center group-hover:justify-start mb-8">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-bold text-sm">
+          <div className="flex items-center mb-8">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-bold text-sm">
               RO
             </div>
-            <div className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-              <h1 className="text-foreground font-bold text-lg">ROME</h1>
+            <div className="ml-3">
+              <h1 className="text-foreground font-bold text-xl">ROME</h1>
             </div>
           </div>
           
@@ -100,70 +100,58 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             <Button
               onClick={() => onSectionChange('messages')}
               variant="ghost"
-              className={`w-full h-12 p-0 transition-all duration-300 ${
+              className={`w-full h-12 justify-start px-4 transition-all duration-300 ${
                 activeSection === 'messages'
                   ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                   : 'text-foreground hover:text-primary hover:bg-primary/10'
               }`}
             >
-              <div className="flex items-center justify-center group-hover:justify-start w-full h-full px-3">
-                <MessageCircle className="w-5 h-5 min-w-[20px]" />
-                <span className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-sm">
-                  Messages
-                </span>
-              </div>
+              <MessageCircle className="w-5 h-5 mr-3" />
+              <span className="text-sm font-medium">Messages</span>
             </Button>
             
             <Button
               onClick={() => onSectionChange('calls')}
               variant="ghost"
-              className={`w-full h-12 p-0 transition-all duration-300 ${
+              className={`w-full h-12 justify-start px-4 transition-all duration-300 ${
                 activeSection === 'calls'
                   ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                   : 'text-foreground hover:text-primary hover:bg-primary/10'
               }`}
             >
-              <div className="flex items-center justify-center group-hover:justify-start w-full h-full px-3">
-                <Phone className="w-5 h-5 min-w-[20px]" />
-                <span className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-sm">
-                  Calls
-                </span>
-              </div>
+              <Phone className="w-5 h-5 mr-3" />
+              <span className="text-sm font-medium">Calls</span>
             </Button>
             
             <Button
               onClick={handleSettingsClick}
               variant="ghost"
-              className={`w-full h-12 p-0 transition-all duration-300 ${
+              className={`w-full h-12 justify-start px-4 transition-all duration-300 ${
                 activeSection === 'settings'
                   ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                   : 'text-foreground hover:text-primary hover:bg-primary/10'
               }`}
             >
-              <div className="flex items-center justify-center group-hover:justify-start w-full h-full px-3">
-                <Settings className="w-5 h-5 min-w-[20px]" />
-                <span className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-sm">
-                  Settings
-                </span>
-              </div>
+              <Settings className="w-5 h-5 mr-3" />
+              <span className="text-sm font-medium">Settings</span>
             </Button>
           </nav>
           
           {/* Profile Section */}
           <div className="mt-auto pt-8">
-            <div className="flex items-center justify-center group-hover:justify-start">
+            <div className="flex items-center">
               {profileImage ? (
                 <img 
                   src={profileImage} 
                   alt="Profile" 
-                  className="w-8 h-8 object-cover rounded-lg border border-border"
+                  className="w-10 h-10 object-cover rounded-lg border border-border"
                 />
               ) : (
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-sm">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-sm">
                   {getUserInitial()}
                 </div>
               )}
-              <div className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              <div className="ml-3">
                 <p className="text-foreground font-medium text-sm truncate">
                   {user?.email?.split('@')[0] || 'User'}
                 </p>

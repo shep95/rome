@@ -52,7 +52,7 @@ const Dashboard = () => {
       />
       
       {/* Main Content */}
-      <div className="pt-20 md:pt-0 md:ml-20 min-h-screen">
+      <div className="pt-20 md:pt-0 md:ml-72 min-h-screen">
         <LiveMainContent activeSection={activeSection} />
       </div>
     </div>
