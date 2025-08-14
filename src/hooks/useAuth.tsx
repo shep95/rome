@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,14 +23,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
     );
 
-    // Get initial session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -57,25 +57,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) {
+        if (error.message.includes('already registered')) {
+          toast({
+            variant: "destructive",
+            title: "Account already exists",
+            description: "Please sign in instead or use a different email."
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Sign up failed",
+            description: error.message
+          });
+        }
+      } else {
         toast({
-          title: "Sign up failed",
-          description: error.message,
-          variant: "destructive"
+          title: "Check your email",
+          description: "We've sent you a confirmation link to complete your registration."
         });
-        return { error };
       }
 
-      toast({
-        title: "Check your email",
-        description: "We've sent you a confirmation link to complete your registration."
-      });
-
-      return { error: null };
+      return { error };
     } catch (error: any) {
       toast({
+        variant: "destructive",
         title: "Sign up failed",
-        description: error.message,
-        variant: "destructive"
+        description: error.message
       });
       return { error };
     }
@@ -89,25 +96,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) {
-        toast({
-          title: "Sign in failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        return { error };
+        if (error.message.includes('Invalid login credentials')) {
+          toast({
+            variant: "destructive",
+            title: "Invalid credentials",
+            description: "Please check your email and password."
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Sign in failed",
+            description: error.message
+          });
+        }
       }
 
-      toast({
-        title: "Welcome back!",
-        description: "You've been signed in successfully."
-      });
-
-      return { error: null };
+      return { error };
     } catch (error: any) {
       toast({
+        variant: "destructive",
         title: "Sign in failed",
-        description: error.message,
-        variant: "destructive"
+        description: error.message
       });
       return { error };
     }
@@ -118,13 +127,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await supabase.auth.signOut();
       toast({
         title: "Signed out",
-        description: "You've been signed out successfully."
+        description: "You have been successfully signed out."
       });
     } catch (error: any) {
       toast({
+        variant: "destructive",
         title: "Sign out failed",
-        description: error.message,
-        variant: "destructive"
+        description: error.message
       });
     }
   };
