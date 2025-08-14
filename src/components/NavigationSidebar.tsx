@@ -86,9 +86,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       <div className="hidden md:block group fixed left-4 top-4 bottom-4 z-30">
         <div className="w-16 group-hover:w-48 bg-background/80 backdrop-blur-xl border border-border rounded-2xl p-4 transition-all duration-300 overflow-hidden h-full flex flex-col">
           {/* Logo/Brand */}
-          <div className="flex items-center mb-8">
+          <div className="flex items-center justify-center mb-8">
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-bold text-sm">
-              R
+              RO
             </div>
             <div className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
               <h1 className="text-foreground font-bold text-lg">ROME</h1>

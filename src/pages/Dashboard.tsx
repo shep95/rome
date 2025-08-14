@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { NavigationSidebar } from '@/components/NavigationSidebar';
-import { MainContent } from '@/components/MainContent';
+import { LiveMainContent } from '@/components/LiveMainContent';
 import { LogOut } from 'lucide-react';
 
 const Dashboard = () => {
@@ -53,7 +53,7 @@ const Dashboard = () => {
       
       {/* Main Content */}
       <div className="pt-20 md:pt-0 md:ml-20 min-h-screen">
-        <MainContent activeSection={activeSection} />
+        <LiveMainContent activeSection={activeSection} />
       </div>
     </div>
   );

@@ -51,27 +51,69 @@ export type Database = {
       }
       conversations: {
         Row: {
+          auto_delete_after: unknown | null
+          avatar_url: string | null
           created_at: string
           created_by: string
           encrypted_metadata: string | null
           id: string
+          name: string | null
+          settings: Json | null
           type: string
           updated_at: string
         }
         Insert: {
+          auto_delete_after?: unknown | null
+          avatar_url?: string | null
           created_at?: string
           created_by: string
           encrypted_metadata?: string | null
           id?: string
+          name?: string | null
+          settings?: Json | null
           type: string
           updated_at?: string
         }
         Update: {
+          auto_delete_after?: unknown | null
+          avatar_url?: string | null
           created_at?: string
           created_by?: string
           encrypted_metadata?: string | null
           id?: string
+          name?: string | null
+          settings?: Json | null
           type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      message_requests: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          message: string
+          status: string
+          to_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          message: string
+          status?: string
+          to_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          message?: string
+          status?: string
+          to_user_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -201,6 +243,39 @@ export type Database = {
         }
         Relationships: []
       }
+      secure_files: {
+        Row: {
+          content_type: string
+          created_at: string
+          encrypted_key: string
+          file_path: string
+          file_size: number
+          filename: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          encrypted_key: string
+          file_path: string
+          file_size: number
+          filename: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          encrypted_key?: string
+          file_path?: string
+          file_size?: number
+          filename?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_keys: {
         Row: {
           created_at: string
@@ -320,7 +395,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_search: {
+        Row: {
+          avatar_url: string | null
+          display_name: string | null
+          email: string | null
+          id: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_expired_rate_limits: {
