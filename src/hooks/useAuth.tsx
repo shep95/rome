@@ -28,6 +28,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Store user security code when user signs in
+        if (session?.user?.user_metadata?.security_code) {
+          localStorage.setItem('userSecurityCode', session.user.user_metadata.security_code);
+        }
       }
     );
 
@@ -215,19 +220,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
+      // Clear all local storage data first
+      localStorage.removeItem('securityCode');
+      localStorage.removeItem('userSecurityCode');
+      localStorage.removeItem('rome-profile-image');
+      
       // Clear secure storage
       await SecurityUtils.clearSecureStorage();
       
-      await supabase.auth.signOut();
+      // Force clear the session state immediately
+      setSession(null);
+      setUser(null);
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        // Even if there's an error, we've cleared local state
+      }
+      
       toast({
         title: "Signed out",
         description: "You have been successfully signed out."
       });
     } catch (error: any) {
+      console.error('Sign out error:', error);
+      // Clear local state even if signOut fails
+      setSession(null);
+      setUser(null);
+      localStorage.clear();
+      
       toast({
-        variant: "destructive",
-        title: "Sign out failed",
-        description: error.message
+        title: "Signed out",
+        description: "You have been signed out locally."
       });
     }
   };

@@ -56,7 +56,12 @@ export const SecurityLock = ({
 
   const verifyCode = (codeToVerify: string[]) => {
     const enteredCode = codeToVerify.join('');
-    const correctCode = localStorage.getItem('securityCode') || '1234';
+    // Try multiple sources for the security code
+    const storedCode = localStorage.getItem('securityCode');
+    const userMetaCode = localStorage.getItem('userSecurityCode');
+    const correctCode = storedCode || userMetaCode || '1234';
+
+    console.log('Entered code:', enteredCode, 'Expected code:', correctCode);
 
     if (enteredCode === correctCode) {
       onUnlock();
