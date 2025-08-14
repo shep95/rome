@@ -8,8 +8,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, username?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, username?: string, code?: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string, code?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, username?: string) => {
+  const signUp = async (email: string, password: string, username?: string, code?: string) => {
     try {
       // Check rate limiting
       const clientIP = SecurityUtils.getClientIP();
@@ -65,6 +65,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           description: "Please choose a stronger password with at least 12 characters, including uppercase, lowercase, numbers, and special characters."
         });
         return { error: { message: "Password too weak" } };
+      }
+
+      // Validate 4-digit code
+      if (!code || code.length !== 4 || !/^\d{4}$/.test(code)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid security code",
+          description: "Please enter a 4-digit numeric security code."
+        });
+        return { error: { message: "Invalid code" } };
       }
 
       // Check password against breach database
@@ -91,7 +101,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           data: {
             username: username || email.split('@')[0],
             display_name: username || email.split('@')[0],
-            device_fingerprint: deviceInfo.fingerprint
+            device_fingerprint: deviceInfo.fingerprint,
+            security_code: code
           }
         }
       });
@@ -131,7 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, code?: string) => {
     try {
       // Check rate limiting
       const clientIP = SecurityUtils.getClientIP();
@@ -144,6 +155,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           description: `Account temporarily locked. ${rateCheck.remainingAttempts} attempts remaining.`
         });
         return { error: { message: "Rate limited" } };
+      }
+
+      // Validate 4-digit code
+      if (!code || code.length !== 4 || !/^\d{4}$/.test(code)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid security code",
+          description: "Please enter your 4-digit security code."
+        });
+        return { error: { message: "Invalid code" } };
       }
 
       const { error } = await supabase.auth.signInWithPassword({
