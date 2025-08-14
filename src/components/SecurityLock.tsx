@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 interface SecurityLockProps {
   isOpen: boolean;
   onUnlock: () => void;
+  onCancel?: () => void;
   title?: string;
   description?: string;
 }
@@ -15,6 +16,7 @@ interface SecurityLockProps {
 export const SecurityLock = ({ 
   isOpen, 
   onUnlock, 
+  onCancel,
   title = "Security Check",
   description = "Enter your 4-digit code to continue"
 }: SecurityLockProps) => {
@@ -64,9 +66,11 @@ export const SecurityLock = ({
     console.log('Entered code:', enteredCode, 'Expected code:', correctCode);
 
     if (enteredCode === correctCode) {
+      console.log('Code verified successfully, calling onUnlock');
       onUnlock();
       setCode(['', '', '', '']); // Clear the code after successful unlock
     } else {
+      console.log('Code verification failed');
       setIsShaking(true);
       setCode(['', '', '', '']);
       setTimeout(() => setIsShaking(false), 500);
@@ -84,7 +88,7 @@ export const SecurityLock = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
+    <Dialog open={isOpen} onOpenChange={onCancel ? () => onCancel() : () => {}}>
       <DialogContent 
         className={cn(
           "sm:max-w-md",
@@ -120,14 +124,25 @@ export const SecurityLock = ({
             ))}
           </div>
           
-          <Button
-            onClick={handleSubmit}
-            disabled={!code.every(digit => digit !== '')}
-            className="w-full"
-          >
-            <Lock className="mr-2 h-4 w-4" />
-            Unlock
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleSubmit}
+              disabled={!code.every(digit => digit !== '')}
+              className="flex-1"
+            >
+              <Lock className="mr-2 h-4 w-4" />
+              Unlock
+            </Button>
+            {onCancel && (
+              <Button
+                variant="outline"
+                onClick={onCancel}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -49,6 +49,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
   const [isGroupCreationOpen, setIsGroupCreationOpen] = useState(false);
   const [isSecureFilesLocked, setIsSecureFilesLocked] = useState(true);
+  const [showSecurityLock, setShowSecurityLock] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -173,16 +174,21 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
   const handleTabChange = (tab: 'conversations' | 'groups' | 'secure-files') => {
     if (tab === 'secure-files' && isSecureFilesLocked) {
-      // Don't change tab yet, just show the security lock
-      // The lock will handle changing the tab after successful unlock
+      setShowSecurityLock(true);
       return;
     }
     setSelectedTab(tab);
   };
 
   const handleSecureFilesUnlock = () => {
+    console.log('Security unlock called, switching to secure-files tab');
     setIsSecureFilesLocked(false);
     setSelectedTab('secure-files');
+    setShowSecurityLock(false);
+  };
+
+  const handleSecurityCancel = () => {
+    setShowSecurityLock(false);
   };
 
   const handleNewMessage = () => {
@@ -440,8 +446,9 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
       />
 
       <SecurityLock
-        isOpen={selectedTab === 'secure-files' && isSecureFilesLocked}
+        isOpen={showSecurityLock}
         onUnlock={handleSecureFilesUnlock}
+        onCancel={handleSecurityCancel}
         title="Secure Files Access"
         description="Enter your 4-digit code to access secure files"
       />
