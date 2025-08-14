@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { SecureMessaging } from '@/components/SecureMessaging';
 import { LogOut } from 'lucide-react';
 
 const Dashboard = () => {
@@ -41,8 +42,10 @@ const Dashboard = () => {
         </Button>
       </div>
       
-      {/* Dashboard content with background gradient */}
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5" />
+      {/* Dashboard content with secure messaging */}
+      <div className="h-full">
+        <SecureMessaging />
+      </div>
     </div>
   );
 };
