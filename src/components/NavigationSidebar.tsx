@@ -100,10 +100,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             <Button
               onClick={() => onSectionChange('messages')}
               variant={activeSection === 'messages' ? 'default' : 'ghost'}
-              className={`w-full justify-start p-3 h-auto ${
+              className={`w-full justify-center group-hover:justify-start p-3 h-auto ${
                 activeSection === 'messages'
-                  ? 'bg-primary/20 text-primary hover:bg-primary/30'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10 bg-muted/20'
               }`}
             >
               <MessageCircle className="w-5 h-5 min-w-[20px]" />
@@ -115,10 +115,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             <Button
               onClick={() => onSectionChange('calls')}
               variant={activeSection === 'calls' ? 'default' : 'ghost'}
-              className={`w-full justify-start p-3 h-auto ${
+              className={`w-full justify-center group-hover:justify-start p-3 h-auto ${
                 activeSection === 'calls'
-                  ? 'bg-primary/20 text-primary hover:bg-primary/30'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10 bg-muted/20'
               }`}
             >
               <Phone className="w-5 h-5 min-w-[20px]" />
@@ -130,10 +130,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             <Button
               onClick={handleSettingsClick}
               variant={activeSection === 'settings' ? 'default' : 'ghost'}
-              className={`w-full justify-start p-3 h-auto ${
+              className={`w-full justify-center group-hover:justify-start p-3 h-auto ${
                 activeSection === 'settings'
-                  ? 'bg-primary/20 text-primary hover:bg-primary/30'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10 bg-muted/20'
               }`}
             >
               <Settings className="w-5 h-5 min-w-[20px]" />
