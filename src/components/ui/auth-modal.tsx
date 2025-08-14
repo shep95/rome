@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Loader2, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,14 +22,68 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     code: ''
   });
   const [loading, setLoading] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [usernameCheckTimeout, setUsernameCheckTimeout] = useState<NodeJS.Timeout | null>(null);
   const { signIn, signUp } = useAuth();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Check username availability when username changes
+    if (field === 'username' && activeTab === 'signup') {
+      if (usernameCheckTimeout) {
+        clearTimeout(usernameCheckTimeout);
+      }
+      
+      if (value.length >= 3) {
+        setUsernameStatus('checking');
+        const timeout = setTimeout(() => {
+          checkUsernameAvailability(value);
+        }, 500); // Debounce for 500ms
+        setUsernameCheckTimeout(timeout);
+      } else {
+        setUsernameStatus('idle');
+      }
+    }
   };
+
+  const checkUsernameAvailability = async (username: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username.toLowerCase())
+        .maybeSingle();
+
+      if (error) {
+        console.error('Username check error:', error);
+        setUsernameStatus('idle');
+        return;
+      }
+
+      setUsernameStatus(data ? 'taken' : 'available');
+    } catch (error) {
+      console.error('Username check error:', error);
+      setUsernameStatus('idle');
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (usernameCheckTimeout) {
+        clearTimeout(usernameCheckTimeout);
+      }
+    };
+  }, [usernameCheckTimeout]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if username is taken before submitting signup
+    if (activeTab === 'signup' && usernameStatus === 'taken') {
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -43,6 +98,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         onSuccess();
         onClose();
         setFormData({ email: '', password: '', username: '', code: '' });
+        setUsernameStatus('idle');
       }
     } finally {
       setLoading(false);
@@ -99,14 +155,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               <Label htmlFor="username" className="text-sm font-medium text-white">
                 Username
               </Label>
-              <Input
-                id="username"
-                type="text"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50"
-                placeholder="Choose a username"
-              />
+              <div className="relative">
+                <Input
+                  id="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => handleInputChange('username', e.target.value)}
+                  className={`bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50 pr-10 ${
+                    usernameStatus === 'available' ? 'border-green-400/50' : 
+                    usernameStatus === 'taken' ? 'border-red-400/50' : ''
+                  }`}
+                  placeholder="Choose a username"
+                  minLength={3}
+                />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  {usernameStatus === 'checking' && (
+                    <Loader2 className="h-4 w-4 animate-spin text-white/50" />
+                  )}
+                  {usernameStatus === 'available' && (
+                    <Check className="h-4 w-4 text-green-400" />
+                  )}
+                  {usernameStatus === 'taken' && (
+                    <AlertCircle className="h-4 w-4 text-red-400" />
+                  )}
+                </div>
+              </div>
+              {formData.username.length >= 3 && (
+                <p className={`text-xs ${
+                  usernameStatus === 'available' ? 'text-green-400' :
+                  usernameStatus === 'taken' ? 'text-red-400' :
+                  usernameStatus === 'checking' ? 'text-white/60' : 'text-white/60'
+                }`}>
+                  {usernameStatus === 'checking' && 'Checking availability...'}
+                  {usernameStatus === 'available' && '✓ Username is available'}
+                  {usernameStatus === 'taken' && '✗ Username is already taken'}
+                </p>
+              )}
+              {formData.username.length > 0 && formData.username.length < 3 && (
+                <p className="text-xs text-white/60">
+                  Username must be at least 3 characters
+                </p>
+              )}
             </div>
           )}
 
@@ -163,8 +252,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
           <Button
             type="submit"
-            className="w-full bg-white/20 hover:bg-white/30 text-white font-medium py-2.5 backdrop-blur-sm border border-white/10"
-            disabled={loading}
+            className="w-full bg-white/20 hover:bg-white/30 text-white font-medium py-2.5 backdrop-blur-sm border border-white/10 disabled:opacity-50"
+            disabled={loading || (activeTab === 'signup' && (usernameStatus === 'taken' || usernameStatus === 'checking'))}
           >
             {loading ? (
               <>
