@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Phone, Settings, Inbox } from 'lucide-react';
+import { MessageCircle, Phone, Settings, Inbox, Info, Heart } from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 import { CallHistory } from './CallHistory';
+import { AboutUs } from './AboutUs';
 import { useAuth } from '@/hooks/useAuth';
 
 interface NavigationSidebarProps {
@@ -20,6 +21,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const { user } = useAuth();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCallHistoryOpen, setIsCallHistoryOpen] = useState(false);
+  const [isAboutUsOpen, setIsAboutUsOpen] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // Load profile image from localStorage
@@ -34,6 +36,14 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   const handleCallsClick = () => {
     setIsCallHistoryOpen(true);
+  };
+
+  const handleAboutUsClick = () => {
+    setIsAboutUsOpen(true);
+  };
+
+  const handleDonationsClick = () => {
+    window.open('https://donate.stripe.com/fZu14p2SI677bve3Ttfw403', '_blank');
   };
 
   const getUserInitial = () => {
@@ -85,6 +95,22 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                   {messageRequestCount}
                 </Badge>
               )}
+            </Button>
+            <Button
+              onClick={handleAboutUsClick}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground p-2"
+            >
+              <Info className="w-3 h-3 sm:w-4 sm:h-4" />
+            </Button>
+            <Button
+              onClick={handleDonationsClick}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground p-2"
+            >
+              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
             <Button
               onClick={handleSettingsClick}
@@ -171,6 +197,24 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             </Button>
             
             <Button
+              onClick={handleAboutUsClick}
+              variant="ghost"
+              className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
+            >
+              <Info className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+              <span className="text-sm font-medium">About Us</span>
+            </Button>
+            
+            <Button
+              onClick={handleDonationsClick}
+              variant="ghost"
+              className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
+            >
+              <Heart className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+              <span className="text-sm font-medium">Donations</span>
+            </Button>
+            
+            <Button
               onClick={handleSettingsClick}
               variant="ghost"
               className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
@@ -218,6 +262,11 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       <CallHistory
         isOpen={isCallHistoryOpen}
         onClose={() => setIsCallHistoryOpen(false)}
+      />
+      
+      <AboutUs
+        isOpen={isAboutUsOpen}
+        onClose={() => setIsAboutUsOpen(false)}
       />
     </>
   );
