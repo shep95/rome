@@ -10,6 +10,7 @@ const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('messages');
+  const [messageRequestCount, setMessageRequestCount] = useState(0);
 
   // Redirect unauthenticated users to home
   useEffect(() => {
@@ -48,12 +49,17 @@ const Dashboard = () => {
       {/* Navigation Sidebar */}
       <NavigationSidebar 
         activeSection={activeSection} 
-        onSectionChange={setActiveSection} 
+        onSectionChange={setActiveSection}
+        messageRequestCount={messageRequestCount}
       />
       
       {/* Main Content */}
       <div className="pt-20 md:pt-0 md:ml-72 min-h-screen">
-        <LiveMainContent activeSection={activeSection} />
+        <LiveMainContent 
+          activeSection={activeSection}
+          messageRequestCount={messageRequestCount}
+          onMessageRequestCountChange={setMessageRequestCount}
+        />
       </div>
     </div>
   );

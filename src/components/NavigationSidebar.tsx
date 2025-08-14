@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Phone, Settings } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { MessageCircle, Phone, Settings, Inbox } from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 import { useAuth } from '@/hooks/useAuth';
 
 interface NavigationSidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
+  messageRequestCount?: number;
 }
 
 export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ 
   activeSection, 
-  onSectionChange 
+  onSectionChange,
+  messageRequestCount = 0
 }) => {
   const { user } = useAuth();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -121,6 +124,27 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             >
               <Phone className="w-5 h-5 mr-3" />
               <span className="text-sm font-medium">Calls</span>
+            </Button>
+            
+            <Button
+              onClick={() => onSectionChange('inbox')}
+              variant="ghost"
+              className={`w-full h-12 justify-start px-4 transition-all duration-300 relative ${
+                activeSection === 'inbox'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10'
+              }`}
+            >
+              <Inbox className="w-5 h-5 mr-3" />
+              <span className="text-sm font-medium">Inbox</span>
+              {messageRequestCount > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute top-2 right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs font-bold"
+                >
+                  {messageRequestCount}
+                </Badge>
+              )}
             </Button>
             
             <Button

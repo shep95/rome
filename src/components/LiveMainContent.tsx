@@ -21,6 +21,8 @@ import { SecureMessaging } from './SecureMessaging';
 
 interface LiveMainContentProps {
   activeSection: string;
+  messageRequestCount: number;
+  onMessageRequestCountChange: (count: number) => void;
 }
 
 interface Conversation {
@@ -38,9 +40,9 @@ interface Conversation {
   };
 }
 
-export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection }) => {
+export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection, messageRequestCount, onMessageRequestCountChange }) => {
   const { user } = useAuth();
-  const [selectedTab, setSelectedTab] = useState<'conversations' | 'groups' | 'secure-files' | 'inbox'>('conversations');
+  const [selectedTab, setSelectedTab] = useState<'conversations' | 'groups' | 'secure-files'>('conversations');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [groupChats, setGroupChats] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -48,7 +50,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection 
   const [isGroupCreationOpen, setIsGroupCreationOpen] = useState(false);
   const [isSecureFilesLocked, setIsSecureFilesLocked] = useState(true);
   const [isAppLocked, setIsAppLocked] = useState(false);
-  const [messageRequestCount, setMessageRequestCount] = useState(0);
   const [lastActiveTab, setLastActiveTab] = useState('conversations');
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
 
@@ -176,7 +177,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection 
     }
   };
 
-  const handleTabChange = (tab: 'conversations' | 'groups' | 'secure-files' | 'inbox') => {
+  const handleTabChange = (tab: 'conversations' | 'groups' | 'secure-files') => {
     if (tab === 'secure-files' && isSecureFilesLocked) {
       // Don't change tab, let the unlock handle it
       return;
@@ -200,6 +201,17 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection 
   const handleNewGroup = () => {
     setIsGroupCreationOpen(true);
   };
+
+  if (activeSection === 'inbox') {
+    return (
+      <div className="flex flex-col bg-background min-h-screen p-6">
+        <MessageRequests 
+          requestCount={messageRequestCount}
+          onRequestCountChange={onMessageRequestCountChange}
+        />
+      </div>
+    );
+  }
 
   if (activeSection !== 'messages') {
     return (
@@ -263,25 +275,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection 
               >
                 <Shield className="w-4 h-4" />
                 <span className="hidden sm:inline">Secure Files</span>
-              </button>
-              <button
-                onClick={() => handleTabChange('inbox')}
-                className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all relative ${
-                  selectedTab === 'inbox'
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'text-foreground hover:text-primary hover:bg-primary/10'
-                }`}
-              >
-                <Inbox className="w-4 h-4" />
-                <span className="hidden sm:inline">Inbox</span>
-                {messageRequestCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs font-bold"
-                  >
-                    {messageRequestCount}
-                  </Badge>
-                )}
               </button>
             </div>
           </div>
@@ -411,13 +404,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection 
                   </p>
                 </div>
               </div>
-            )}
-
-            {selectedTab === 'inbox' && (
-              <MessageRequests 
-                requestCount={messageRequestCount}
-                onRequestCountChange={setMessageRequestCount}
-              />
             )}
           </ScrollArea>
         </div>
