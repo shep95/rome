@@ -477,6 +477,10 @@ export type Database = {
         Args: { _name: string; _other_user_id: string }
         Returns: string
       }
+      user_can_access_file: {
+        Args: { file_path: string }
+        Returns: boolean
+      }
       user_is_conversation_participant: {
         Args: { conversation_id: string; user_id: string }
         Returns: boolean
