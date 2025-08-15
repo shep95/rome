@@ -87,10 +87,6 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       
       if (shouldProtect) {
         console.log('Screenshot protection activated for user or conversations');
-        toast({
-          title: "Security Active",
-          description: "Screenshot protection is enabled for this conversation.",
-        });
         return true;
       }
       return false;
