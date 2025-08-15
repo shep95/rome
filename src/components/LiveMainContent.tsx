@@ -11,11 +11,13 @@ import {
   Users, 
   Shield, 
   Plus, 
-  Inbox
+  Inbox,
+  Settings
 } from 'lucide-react';
 import { UserSearchDropdown } from './UserSearchDropdown';
 import { GroupChatCreation } from './GroupChatCreation';
 import { SecureMessaging } from './SecureMessaging';
+import { GroupChatSettings } from './GroupChatSettings';
 
 interface LiveMainContentProps {
   activeSection: string;
@@ -31,6 +33,7 @@ interface Conversation {
   last_message?: string;
   updated_at: string;
   unread_count?: number;
+  created_by?: string;
   other_user?: {
     username?: string;
     display_name?: string;
@@ -47,6 +50,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
   const [isGroupCreationOpen, setIsGroupCreationOpen] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [selectedGroupForSettings, setSelectedGroupForSettings] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -196,7 +200,8 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
               type: conv.type as 'group',
               name: conv.name || 'Unnamed Group',
               avatar_url: conv.avatar_url,
-              updated_at: conv.updated_at
+              updated_at: conv.updated_at,
+              created_by: conv.created_by
             };
             
             console.log('Adding group chat:', groupChat);
@@ -404,22 +409,42 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all ${
                   selectedConversation === group.id ? 'ring-2 ring-primary bg-primary/10' : ''
                 }`}
-                onClick={() => setSelectedConversation(group.id)}
               >
                 <CardContent className="p-3">
                   <div className="flex items-center space-x-3">
-                    <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
+                    <Avatar 
+                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0"
+                      onClick={() => setSelectedConversation(group.id)}
+                    >
                       <AvatarImage src={group.avatar_url} className="rounded-lg object-cover" />
                       <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
                         <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
+                    <div 
+                      className="flex-1 min-w-0 cursor-pointer"
+                      onClick={() => setSelectedConversation(group.id)}
+                    >
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm font-medium text-foreground truncate pr-2">{group.name}</h4>
-                        <span className="text-xs text-muted-foreground flex-shrink-0">
-                          {new Date(group.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-muted-foreground flex-shrink-0">
+                            {new Date(group.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {group.created_by === user?.id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 hover:bg-primary/20"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedGroupForSettings(group.id);
+                              }}
+                            >
+                              <Settings className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -470,6 +495,21 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           loadConversations(); // Reload conversations after creating a group
         }}
       />
+
+      {/* Group Settings Modal */}
+      {selectedGroupForSettings && (
+        <GroupChatSettings
+          isOpen={!!selectedGroupForSettings}
+          onClose={() => setSelectedGroupForSettings(null)}
+          conversationId={selectedGroupForSettings}
+          conversationName={groupChats.find(g => g.id === selectedGroupForSettings)?.name || ''}
+          conversationAvatar={groupChats.find(g => g.id === selectedGroupForSettings)?.avatar_url}
+          onUpdate={() => {
+            loadConversations();
+            setSelectedGroupForSettings(null);
+          }}
+        />
+      )}
     </div>
   );
 };
