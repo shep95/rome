@@ -95,32 +95,31 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     if (!user) return;
 
     try {
-      // Get user's participation data with last_read_at timestamps
       const { data: participantData } = await supabase
         .from('conversation_participants')
-        .select('conversation_id, last_read_at')
+        .select('conversation_id')
         .eq('user_id', user.id)
         .is('left_at', null);
 
       if (!participantData) return;
 
+      const conversationIds = participantData.map(p => p.conversation_id);
       const newUnreadCounts: {[key: string]: number} = {};
 
-      // For each conversation, count messages newer than last_read_at
-      for (const participant of participantData) {
+      // For each conversation, count unread messages
+      for (const convId of conversationIds) {
         const { count } = await supabase
           .from('messages')
           .select('*', { count: 'exact', head: true })
-          .eq('conversation_id', participant.conversation_id)
-          .neq('sender_id', user.id) // Messages not sent by current user
-          .gt('created_at', participant.last_read_at || '1970-01-01'); // Messages after last read
+          .eq('conversation_id', convId)
+          .neq('sender_id', user.id); // Messages not sent by current user
 
-        newUnreadCounts[participant.conversation_id] = count || 0;
+        newUnreadCounts[convId] = count || 0;
       }
 
       setUnreadCounts(newUnreadCounts);
 
-      // Calculate totals based on conversation types
+      // Calculate totals
       let directTotal = 0;
       let groupTotal = 0;
 
@@ -152,42 +151,22 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   }, [selectedConversation]);
 
   // Mark conversation as read and update counts
-  const markConversationAsRead = async (conversationId: string) => {
-    if (!user) return;
+  const markConversationAsRead = (conversationId: string) => {
+    const currentUnread = unreadCounts[conversationId] || 0;
     
-    try {
-      // Update last_read_at in database to current timestamp
-      const { error } = await supabase
-        .from('conversation_participants')
-        .update({ last_read_at: new Date().toISOString() })
-        .eq('conversation_id', conversationId)
-        .eq('user_id', user.id);
+    // Update unread counts
+    setUnreadCounts(prev => ({
+      ...prev,
+      [conversationId]: 0
+    }));
 
-      if (error) {
-        console.error('Error marking conversation as read:', error);
-        return;
-      }
-
-      const currentUnread = unreadCounts[conversationId] || 0;
-      
-      // Update local state
-      setUnreadCounts(prev => ({
-        ...prev,
-        [conversationId]: 0
-      }));
-
-      // Update totals
-      const isGroupChat = groupChats.some(group => group.id === conversationId);
-      
-      if (isGroupChat) {
-        setGroupUnreadTotal(prev => Math.max(0, prev - currentUnread));
-      } else {
-        setDirectUnreadTotal(prev => Math.max(0, prev - currentUnread));
-      }
-
-      console.log(`Marked conversation ${conversationId} as read`);
-    } catch (error) {
-      console.error('Error in markConversationAsRead:', error);
+    // Update totals
+    const isGroupChat = groupChats.some(group => group.id === conversationId);
+    
+    if (isGroupChat) {
+      setGroupUnreadTotal(prev => Math.max(0, prev - currentUnread));
+    } else {
+      setDirectUnreadTotal(prev => Math.max(0, prev - currentUnread));
     }
   };
 
