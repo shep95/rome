@@ -34,8 +34,21 @@ const Dashboard = () => {
     }
   }, [user]);
 
+  // Listen for message request events to reload count
+  useEffect(() => {
+    const handleMessageRequestEvent = () => {
+      if (user) {
+        loadMessageRequestCount();
+      }
+    };
+
+    window.addEventListener('messageRequestSent', handleMessageRequestEvent);
+    return () => window.removeEventListener('messageRequestSent', handleMessageRequestEvent);
+  }, [user]);
+
   const loadMessageRequestCount = async () => {
     try {
+      // Only count incoming pending requests for the notification badge
       const { data } = await supabase
         .from('message_requests')
         .select('id')

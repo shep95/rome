@@ -78,6 +78,9 @@ export const UserSearchDropdown = ({ isOpen, onClose }: UserSearchDropdownProps)
         description: `Your message request has been sent to ${selectedUser.display_name || selectedUser.username}`,
       });
 
+      // Trigger inbox reload to show the sent request
+      window.dispatchEvent(new CustomEvent('messageRequestSent'));
+
       setMessage('');
       setShowMessageDialog(false);
       setSelectedUser(null);

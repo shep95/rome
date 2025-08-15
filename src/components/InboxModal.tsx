@@ -11,9 +11,11 @@ import { useToast } from '@/hooks/use-toast';
 interface MessageRequest {
   id: string;
   from_user_id: string;
+  to_user_id: string;
   message: string;
   status: 'pending' | 'accepted' | 'declined';
   created_at: string;
+  is_incoming?: boolean;
   profiles: {
     username: string;
     display_name: string;
@@ -41,16 +43,28 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
     }
   }, [isOpen]);
 
+  // Listen for message request sent events
+  useEffect(() => {
+    const handleMessageRequestSent = () => {
+      if (isOpen) {
+        loadMessageRequests();
+      }
+    };
+
+    window.addEventListener('messageRequestSent', handleMessageRequestSent);
+    return () => window.removeEventListener('messageRequestSent', handleMessageRequestSent);
+  }, [isOpen]);
+
   const loadMessageRequests = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get message requests
+      // Get both incoming and outgoing message requests
       const { data: requestsData, error: requestsError } = await supabase
         .from('message_requests')
         .select('*')
-        .eq('to_user_id', user.id)
+        .or(`to_user_id.eq.${user.id},from_user_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (requestsError) throw requestsError;
@@ -58,22 +72,30 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
       // Get profile data for each request
       const requestsWithProfiles = await Promise.all(
         (requestsData || []).map(async (request) => {
+          // For incoming requests, get sender profile
+          // For outgoing requests, get recipient profile
+          const profileUserId = request.to_user_id === user.id ? request.from_user_id : request.to_user_id;
+          
           const { data: profile } = await supabase
             .from('profiles')
             .select('username, display_name, avatar_url')
-            .eq('id', request.from_user_id)
+            .eq('id', profileUserId)
             .single();
 
           return {
             ...request,
+            is_incoming: request.to_user_id === user.id,
             profiles: profile || { username: '', display_name: '', avatar_url: '' }
-          } as MessageRequest;
+          } as MessageRequest & { is_incoming: boolean };
         })
       );
 
       setRequests(requestsWithProfiles);
-      const pendingCount = requestsWithProfiles.filter(req => req.status === 'pending').length;
-      onRequestCountChange(pendingCount);
+      // Only count incoming pending requests for notification badge
+      const incomingPendingCount = requestsWithProfiles.filter(
+        req => req.is_incoming && req.status === 'pending'
+      ).length;
+      onRequestCountChange(incomingPendingCount);
     } catch (error) {
       console.error('Error loading message requests:', error);
     } finally {
@@ -216,8 +238,10 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
     return message.length > maxLength ? message.substring(0, maxLength) + '...' : message;
   };
 
-  const pendingRequests = requests.filter(req => req.status === 'pending');
-  const otherRequests = requests.filter(req => req.status !== 'pending');
+  const incomingPending = requests.filter(req => req.is_incoming && req.status === 'pending');
+  const outgoingPending = requests.filter(req => !req.is_incoming && req.status === 'pending');
+  const incomingPast = requests.filter(req => req.is_incoming && req.status !== 'pending');
+  const outgoingPast = requests.filter(req => !req.is_incoming && req.status !== 'pending');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -225,8 +249,8 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Inbox
-            {pendingRequests.length > 0 && (
-              <Badge variant="destructive">{pendingRequests.length} pending</Badge>
+            {incomingPending.length > 0 && (
+              <Badge variant="destructive">{incomingPending.length} pending</Badge>
             )}
           </DialogTitle>
         </DialogHeader>
@@ -238,7 +262,7 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
         ) : (
           <ScrollArea className="max-h-[60vh]">
             <div className="space-y-3">
-              {pendingRequests.length === 0 && otherRequests.length === 0 ? (
+              {requests.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <div className="text-4xl mb-2">📥</div>
                   <p>No message requests found</p>
@@ -246,11 +270,11 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
                 </div>
               ) : (
                 <>
-                  {/* Pending Requests */}
-                  {pendingRequests.length > 0 && (
+                  {/* Incoming Pending Requests */}
+                  {incomingPending.length > 0 && (
                     <div className="space-y-3">
-                      <h3 className="text-sm font-medium text-muted-foreground">Pending Requests</h3>
-                      {pendingRequests.map((request) => (
+                      <h3 className="text-sm font-medium text-muted-foreground">Incoming Requests</h3>
+                      {incomingPending.map((request) => (
                         <div key={request.id} className="bg-card p-4 rounded-lg border border-primary/20 shadow-sm">
                           <div className="flex items-start gap-3">
                             <Avatar className="h-12 w-12">
@@ -321,12 +345,65 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
                     </div>
                   )}
 
-                  {/* Past Requests */}
-                  {otherRequests.length > 0 && (
+                  {/* Outgoing Pending Requests */}
+                  {outgoingPending.length > 0 && (
                     <div className="space-y-3">
-                      {pendingRequests.length > 0 && <div className="border-t pt-3" />}
+                      {incomingPending.length > 0 && <div className="border-t pt-3" />}
+                      <h3 className="text-sm font-medium text-muted-foreground">Sent Requests</h3>
+                      {outgoingPending.map((request) => (
+                        <div key={request.id} className="bg-card/50 p-4 rounded-lg border border-orange-200 dark:border-orange-800 shadow-sm">
+                          <div className="flex items-start gap-3">
+                            <Avatar className="h-12 w-12">
+                              <AvatarImage src={request.profiles.avatar_url} />
+                              <AvatarFallback className="bg-orange-100 dark:bg-orange-900">
+                                {request.profiles.display_name?.[0] || request.profiles.username?.[0] || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-2">
+                                <div>
+                                  <p className="font-medium text-foreground">
+                                    {request.profiles.display_name || request.profiles.username}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    @{request.profiles.username}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatDate(request.created_at)}
+                                  </span>
+                                  <Badge variant="outline" className="flex items-center gap-1 border-orange-200 text-orange-600 dark:border-orange-800 dark:text-orange-400">
+                                    <Clock className="h-3 w-3" />
+                                    Awaiting Response
+                                  </Badge>
+                                </div>
+                              </div>
+                              
+                              <div className="bg-orange-50 dark:bg-orange-950 p-3 rounded-md">
+                                <p className="text-sm text-foreground">
+                                  {truncateMessage(request.message)}
+                                </p>
+                              </div>
+                              
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Message sent and waiting for {request.profiles.display_name || request.profiles.username} to respond
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Past Requests (Both Incoming and Outgoing) */}
+                  {(incomingPast.length > 0 || outgoingPast.length > 0) && (
+                    <div className="space-y-3">
+                      {(incomingPending.length > 0 || outgoingPending.length > 0) && <div className="border-t pt-3" />}
                       <h3 className="text-sm font-medium text-muted-foreground">Past Requests</h3>
-                      {otherRequests.map((request) => (
+                      {[...incomingPast, ...outgoingPast]
+                        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                        .map((request) => (
                         <div key={request.id} className="bg-muted/30 p-4 rounded-lg border opacity-70">
                           <div className="flex items-start gap-3">
                             <Avatar className="h-10 w-10">
@@ -337,9 +414,14 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
-                                <p className="font-medium text-sm">
-                                  {request.profiles.display_name || request.profiles.username}
-                                </p>
+                                <div>
+                                  <p className="font-medium text-sm">
+                                    {request.profiles.display_name || request.profiles.username}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {request.is_incoming ? 'Sent to you' : 'You sent'}
+                                  </p>
+                                </div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-muted-foreground">
                                     {formatDate(request.created_at)}
