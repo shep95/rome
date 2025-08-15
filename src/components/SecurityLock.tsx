@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Shield, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SecurityLockProps {
   isOpen: boolean;
@@ -60,26 +61,42 @@ export const SecurityLock = ({
     }
   };
 
-  const verifyCode = (codeToVerify: string[]) => {
+  const verifyCode = async (codeToVerify: string[]) => {
     const enteredCode = codeToVerify.join('');
     
-    // For demo purposes, accept any 4-digit code
-    // In production, you'd want proper security validation
-    if (enteredCode.length === 4 && /^\d{4}$/.test(enteredCode)) {
-      console.log('Code verified successfully, calling onUnlock');
-      onUnlock();
-      setCode(['', '', '', '']); // Clear the code after successful unlock
-      setAttempts(0);
-    } else {
-      console.log('Code verification failed');
+    try {
+      // Get the user's actual security code from Supabase auth
+      const { data: { user } } = await supabase.auth.getUser();
+      const userSecurityCode = user?.user_metadata?.security_code;
+      
+      console.log('Entered code:', enteredCode, 'User security code:', userSecurityCode);
+      
+      if (enteredCode === userSecurityCode) {
+        console.log('Code verified successfully, calling onUnlock');
+        onUnlock();
+        setCode(['', '', '', '']); // Clear the code after successful unlock
+        setAttempts(0);
+      } else {
+        console.log('Code verification failed');
+        setAttempts(prev => prev + 1);
+        setIsShaking(true);
+        
+        // Don't clear immediately to avoid the loop - give user feedback first
+        setTimeout(() => {
+          setCode(['', '', '', '']);
+          setIsShaking(false);
+          // Focus first input
+          const firstInput = document.getElementById('digit-0');
+          firstInput?.focus();
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Error verifying security code:', error);
       setAttempts(prev => prev + 1);
       setIsShaking(true);
-      
-      // Don't clear immediately to avoid the loop - give user feedback first
       setTimeout(() => {
         setCode(['', '', '', '']);
         setIsShaking(false);
-        // Focus first input
         const firstInput = document.getElementById('digit-0');
         firstInput?.focus();
       }, 1000);
