@@ -306,7 +306,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           </div>
           
           {/* Conversation List */}
-          <ScrollArea className="flex-1 p-3 md:p-4">
+          <ScrollArea className="flex-1 p-3 md:p-4 custom-scrollbar">
             <div className="space-y-2">
               {selectedTab === 'conversations' && conversations.map((conv) => (
                 <Card 
@@ -409,7 +409,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           </div>
 
           {/* Content Area */}
-          <ScrollArea className="flex-1 p-3 md:p-4">
+          <ScrollArea className="flex-1 p-3 md:p-4 custom-scrollbar">
             {selectedTab === 'conversations' && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-4">

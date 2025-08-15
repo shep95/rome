@@ -406,7 +406,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden">
       {/* Chat Header */}
       <div className="p-4 border-b border-border bg-card/50">
         <h3 className="font-semibold text-foreground">
@@ -417,7 +417,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-4 space-y-4 relative"
+        className="flex-1 overflow-y-auto p-4 space-y-4 relative custom-scrollbar max-h-[calc(100vh-200px)]"
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',
@@ -497,7 +497,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                                   <img 
                                     src={message.file_url!} 
                                     alt={message.file_name || 'Image'}
-                                    className="max-w-full rounded-lg max-h-64 object-cover cursor-pointer"
+                                    className="max-w-full w-full rounded-lg max-h-64 object-cover cursor-pointer block"
+                                    style={{ maxWidth: '100%', height: 'auto' }}
                                     onClick={() => window.open(message.file_url!, '_blank')}
                                     onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
                                   />
@@ -514,7 +515,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                                   <video 
                                     src={message.file_url!}
                                     controls
-                                    className="max-w-full rounded-lg max-h-64"
+                                    className="max-w-full w-full rounded-lg max-h-64 block"
+                                    style={{ maxWidth: '100%', height: 'auto' }}
                                     onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
                                   />
                                   <div className="flex gap-3 text-xs">
