@@ -120,7 +120,7 @@ export const useFileUpload = () => {
     }
   };
 
-  const uploadFile = async (file: File, bucketName: string = 'secure-files'): Promise<string | null> => {
+  const uploadFile = async (file: File, bucketName: string = 'secure-files', options?: { silent?: boolean }): Promise<string | null> => {
     if (!user) {
       toast({
         variant: "destructive",
@@ -146,10 +146,12 @@ export const useFileUpload = () => {
         .from(bucketName)
         .getPublicUrl(fileName);
 
-      toast({
-        title: "Success",
-        description: "File uploaded successfully"
-      });
+      if (!options?.silent) {
+        toast({
+          title: "Success",
+          description: "File uploaded successfully"
+        });
+      }
 
       return publicUrl;
     } catch (error: any) {

@@ -102,13 +102,20 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           console.log('Profile not found for sender:', msg.sender_id);
         }
         
+        // Prepare signed URL for secure-files if needed
+        let fileUrl: string | undefined = (msg.file_url as string | undefined) || undefined;
+        if (fileUrl && fileUrl.includes('/secure-files/')) {
+          const signed = await getSignedUrlForSecureFiles(fileUrl);
+          if (signed) fileUrl = signed;
+        }
+
         return {
           id: msg.id,
           content: decodeMessage(msg.encrypted_content),
           sender_id: msg.sender_id,
           created_at: msg.created_at,
           message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
-          file_url: (msg.file_url as string | undefined) || undefined,
+          file_url: fileUrl,
           file_name: (msg.file_name as string | undefined) || undefined,
           file_size: (msg.file_size as number | undefined) || undefined,
           sender_profile: senderProfile
@@ -136,6 +143,34 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       }
     } catch (error) {
       console.log('No wallpaper found for user');
+    }
+  };
+
+  // Generate a signed URL for private 'secure-files' bucket
+  const getSignedUrlForSecureFiles = async (urlOrPath: string): Promise<string | null> => {
+    try {
+      let path = urlOrPath;
+      if (urlOrPath.startsWith('http')) {
+        const marker = '/secure-files/';
+        const idx = urlOrPath.indexOf(marker);
+        if (idx !== -1) {
+          path = urlOrPath.substring(idx + marker.length);
+        } else {
+          return null;
+        }
+      }
+      const { data, error } = await supabase
+        .storage
+        .from('secure-files')
+        .createSignedUrl(path, 60 * 60);
+      if (error) {
+        console.error('Error creating signed URL:', error);
+        return null;
+      }
+      return data?.signedUrl || null;
+    } catch (e) {
+      console.error('Signed URL generation failed:', e);
+      return null;
     }
   };
 
@@ -183,7 +218,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       // Handle file upload if there are selected files
       if (selectedFiles.length > 0) {
         const file = selectedFiles[0].file; // Take first file for now
-        const uploadedUrl = await uploadFile(file, 'secure-files');
+        const uploadedUrl = await uploadFile(file, 'secure-files', { silent: true });
         
         if (uploadedUrl) {
           fileUrl = uploadedUrl;
@@ -459,8 +494,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                               );
                             }
                           })()}
-                          {/* Always show the message content if it exists and is different from filename */}
-                          {message.content && message.content.trim() && message.content !== message.file_name && (
+                          {/* Always show the message content if it exists */}
+                          {message.content && message.content.trim() && (
                             <p className="text-sm leading-relaxed break-words">{message.content}</p>
                           )}
                         </div>
