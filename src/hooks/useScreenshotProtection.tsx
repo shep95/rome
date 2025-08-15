@@ -6,10 +6,15 @@ import { useToast } from '@/hooks/use-toast';
 export const useScreenshotProtection = (enabled: boolean = true) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [isEnabled, setIsEnabled] = useState(() => {
+    // Check if user has explicitly disabled it, otherwise default to enabled
+    const stored = localStorage.getItem('rome-screenshot-protection');
+    return stored !== null ? stored === 'true' : true; // Default to true
+  });
   const [protectionActive, setProtectionActive] = useState(false);
 
   useEffect(() => {
-    if (!enabled || typeof window === 'undefined') return;
+    if (!enabled || !isEnabled || typeof window === 'undefined') return;
 
     let style: HTMLStyleElement | null = null;
     let cleanupFunctions: Array<() => void> = [];
@@ -316,5 +321,12 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       // Clean up body styles
       document.body.style.filter = 'none';
     };
-  }, [enabled, user, protectionActive, toast]);
+  }, [enabled, isEnabled, user, protectionActive, toast]);
+
+  const toggleProtection = (enable: boolean) => {
+    setIsEnabled(enable);
+    localStorage.setItem('rome-screenshot-protection', enable.toString());
+  };
+
+  return { isEnabled, toggleProtection };
 };

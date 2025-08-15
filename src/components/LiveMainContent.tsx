@@ -318,9 +318,9 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 >
                   <CardContent className="p-3">
                     <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={conv.avatar_url} />
-                        <AvatarFallback>
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
+                        <AvatarImage src={conv.avatar_url} className="rounded-lg object-cover" />
+                        <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
                           {conv.name?.[0] || 'U'}
                         </AvatarFallback>
                       </Avatar>
@@ -345,10 +345,10 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 >
                   <CardContent className="p-3">
                     <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={group.avatar_url} />
-                        <AvatarFallback>
-                          <Users className="w-5 h-5" />
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
+                        <AvatarImage src={group.avatar_url} className="rounded-lg object-cover" />
+                        <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
+                          <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                         </AvatarFallback>
                       </Avatar>
                           <div className="flex-1 min-w-0">
@@ -438,9 +438,9 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                     >
                       <CardContent className="p-3">
                         <div className="flex items-center space-x-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={conv.avatar_url} />
-                            <AvatarFallback>
+                          <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
+                            <AvatarImage src={conv.avatar_url} className="rounded-lg object-cover" />
+                            <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
                               {conv.name?.[0] || 'U'}
                             </AvatarFallback>
                           </Avatar>
