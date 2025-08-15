@@ -292,9 +292,9 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     const newFiles: FilePreview[] = [];
     
     Array.from(files).forEach(file => {
-      // Check file size (300MB limit)
-      if (file.size > 300 * 1024 * 1024) {
-        alert(`File ${file.name} is too large. Maximum size is 300MB.`);
+      // Check file size (800MB limit)
+      if (file.size > 800 * 1024 * 1024) {
+        alert(`File ${file.name} is too large. Maximum size is 800MB.`);
         return;
       }
 

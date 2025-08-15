@@ -83,10 +83,10 @@ export const SecureFiles: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (300MB limit)
-    const maxSize = 300 * 1024 * 1024; // 300MB in bytes
+    // Check file size (800MB limit)
+    const maxSize = 800 * 1024 * 1024; // 800MB in bytes
     if (file.size > maxSize) {
-      toast.error('File size must be less than 300MB');
+      toast.error('File size must be less than 800MB');
       return;
     }
 
@@ -525,7 +525,7 @@ export const SecureFiles: React.FC = () => {
             
             {/* File Upload */}
             <div className="space-y-2">
-              <Label className="text-foreground">File Upload (Optional, Max 300MB)</Label>
+              <Label className="text-foreground">File Upload (Optional, Max 800MB)</Label>
               
               {selectedFile ? (
                 <div className="space-y-3">
@@ -577,7 +577,7 @@ export const SecureFiles: React.FC = () => {
                     className="w-full bg-background/50 border-border border-dashed"
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    Choose File (Max 300MB)
+                    Choose File (Max 800MB)
                   </Button>
                 </div>
               )}
