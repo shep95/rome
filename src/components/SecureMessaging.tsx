@@ -345,6 +345,24 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     }
   };
 
+  const getFileExtFromUrl = (url?: string) => {
+    if (!url) return '';
+    try {
+      const pathname = new URL(url).pathname;
+      const match = pathname.match(/\.([a-zA-Z0-9]+)$/);
+      return match ? match[1].toLowerCase() : '';
+    } catch {
+      const match = url.match(/\.([a-zA-Z0-9]+)(\?|$)/);
+      return match ? match[1].toLowerCase() : '';
+    }
+  };
+
+  const makeDownloadUrl = (url: string, filename?: string) => {
+    const sep = url.includes('?') ? '&' : '?';
+    const dl = filename ? `download=${encodeURIComponent(filename)}` : 'download';
+    return `${url}${sep}${dl}`;
+  };
+
   if (!conversationId) {
     return (
       <div 
@@ -438,55 +456,62 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                       {message.file_url ? (
                         <div className="space-y-2">
                           {(() => {
-                            console.log('Message debug:', {
-                              file_name: message.file_name,
-                              file_url: message.file_url,
-                              content: message.content,
-                              message_type: message.message_type
-                            });
-                            
-                            // Check if it's an image file
-                            const isImage = message.file_name && message.file_name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
-                            const isVideo = message.file_name && message.file_name.toLowerCase().match(/\.(mp4|webm|ogg|avi|mov)$/i);
-                            
-                            console.log('File type detection:', { isImage, isVideo });
-                            
+                            const extFromName = message.file_name?.split('.').pop()?.toLowerCase();
+                            const ext = extFromName || getFileExtFromUrl(message.file_url || '');
+                            const isImage = !!ext && /(jpg|jpeg|png|gif|webp|svg)$/i.test(ext);
+                            const isVideo = !!ext && /(mp4|webm|ogg|avi|mov)$/i.test(ext);
+                            const downloadHref = makeDownloadUrl(message.file_url!, message.file_name || undefined);
+
                             if (isImage) {
                               return (
-                                <img 
-                                  src={message.file_url} 
-                                  alt={message.file_name}
-                                  className="max-w-full rounded-lg max-h-64 object-cover cursor-pointer"
-                                  onClick={() => window.open(message.file_url, '_blank')}
-                                  onError={(e) => {
-                                    console.error('Image failed to load:', message.file_url);
-                                    e.currentTarget.style.display = 'none';
-                                  }}
-                                />
+                                <div className="space-y-2">
+                                  <img 
+                                    src={message.file_url!} 
+                                    alt={message.file_name || 'Image'}
+                                    className="max-w-full rounded-lg max-h-64 object-cover cursor-pointer"
+                                    onClick={() => window.open(message.file_url!, '_blank')}
+                                    onError={(e) => {
+                                      console.error('Image failed to load:', message.file_url);
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                  <div className="flex gap-3 text-xs">
+                                    <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
+                                      Download
+                                    </a>
+                                  </div>
+                                </div>
                               );
                             } else if (isVideo) {
                               return (
-                                <video 
-                                  src={message.file_url}
-                                  controls
-                                  className="max-w-full rounded-lg max-h-64"
-                                />
+                                <div className="space-y-2">
+                                  <video 
+                                    src={message.file_url!}
+                                    controls
+                                    className="max-w-full rounded-lg max-h-64"
+                                  />
+                                  <div className="flex gap-3 text-xs">
+                                    <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
+                                      Download
+                                    </a>
+                                  </div>
+                                </div>
                               );
                             } else {
                               return (
                                 <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
-                                  <File className="h-8 w-8 text-muted-foreground" />
+                                  <File className="h-8 w-8 text-white/80" />
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate">{message.file_name || 'Unknown file'}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'File'}
+                                    <p className="text-sm font-medium truncate">File</p>
+                                    <p className="text-xs text-white/70">
+                                      {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'Attachment'}
                                     </p>
                                   </div>
                                   <a 
-                                    href={message.file_url} 
+                                    href={downloadHref} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="text-xs text-primary hover:underline"
+                                    className="text-xs underline text-white/80 hover:text-white"
                                   >
                                     Download
                                   </a>
@@ -494,8 +519,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                               );
                             }
                           })()}
-                          {/* Always show the message content if it exists */}
-                          {message.content && message.content.trim() && (
+                          {/* Show caption if not equal to filename */}
+                          {message.content && message.content.trim() && message.content !== message.file_name && (
                             <p className="text-sm leading-relaxed break-words">{message.content}</p>
                           )}
                         </div>
