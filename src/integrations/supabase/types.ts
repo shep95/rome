@@ -477,6 +477,10 @@ export type Database = {
         Args: { _name: string; _other_user_id: string }
         Returns: string
       }
+      create_group_conversation: {
+        Args: { _auto_delete_after?: unknown; _name: string; _settings?: Json }
+        Returns: string
+      }
       user_can_access_file: {
         Args: { file_path: string }
         Returns: boolean

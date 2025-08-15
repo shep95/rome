@@ -55,39 +55,25 @@ export const GroupChatCreation = ({ isOpen, onClose, onGroupCreated }: GroupChat
       
       console.log('Creating group chat for user:', user.id);
 
-      // Create conversation - use auth.uid() for RLS compatibility
-      const { data: conversation, error: convError } = await supabase
-        .from('conversations')
-        .insert({
-          name: groupName,
-          type: 'group',
-          created_by: user.id,
-          settings: {
-            allowScreenshots: settings.allowScreenshots,
-            allowMessaging: settings.allowMessaging,
-            autoDeleteEnabled: settings.autoDeleteEnabled
-          },
-          auto_delete_after: settings.autoDeleteEnabled ? 
-            (settings.autoDeleteInterval === '1day' ? '1 day' :
-             settings.autoDeleteInterval === '1week' ? '7 days' :
-             settings.autoDeleteInterval === '2weeks' ? '14 days' :
-             settings.autoDeleteInterval === '1month' ? '30 days' : null) : null
-        })
-        .select()
-        .maybeSingle();
+      // Create conversation via RPC to bypass RLS safely
+      const interval = settings.autoDeleteEnabled ? (
+        settings.autoDeleteInterval === '1day' ? '1 day' :
+        settings.autoDeleteInterval === '1week' ? '7 days' :
+        settings.autoDeleteInterval === '2weeks' ? '14 days' :
+        settings.autoDeleteInterval === '1month' ? '30 days' : null
+      ) : null;
 
-      if (convError) throw convError;
+      const { data: convId, error: rpcError } = await supabase.rpc('create_group_conversation', {
+        _name: groupName,
+        _settings: {
+          allowScreenshots: settings.allowScreenshots,
+          allowMessaging: settings.allowMessaging,
+          autoDeleteEnabled: settings.autoDeleteEnabled
+        },
+        _auto_delete_after: interval
+      });
 
-      // Add creator as participant
-      const { error: participantError } = await supabase
-        .from('conversation_participants')
-        .insert({
-          conversation_id: conversation.id,
-          user_id: user.id,
-          role: 'admin'
-        });
-
-      if (participantError) throw participantError;
+      if (rpcError) throw rpcError;
 
       toast({
         title: "Group chat created!",
