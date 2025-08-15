@@ -263,14 +263,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 <span className="hidden sm:inline">Groups</span>
               </button>
               <button
-                onClick={() => {
-                  if (isSecureFilesLocked) {
-                    // This will trigger the SecurityLock to show
-                    setSelectedTab('secure-files');
-                  } else {
-                    handleTabChange('secure-files');
-                  }
-                }}
+                onClick={() => handleTabChange('secure-files')}
                 className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
                   selectedTab === 'secure-files'
                     ? 'bg-primary text-primary-foreground shadow-md'
@@ -392,6 +385,25 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                     </Card>
                   ))
                 )}
+              </div>
+            )}
+
+            {selectedTab === 'secure-files' && isSecureFilesLocked && (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
+                  <h3 className="text-foreground font-semibold mb-2">Secure Files</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Click to unlock your encrypted file storage
+                  </p>
+                  <Button 
+                    onClick={() => setShowSecurityLock(true)}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Unlock Secure Files
+                  </Button>
+                </div>
               </div>
             )}
 
