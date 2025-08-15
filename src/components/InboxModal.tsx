@@ -201,47 +201,64 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
             });
           } else {
             console.log('Creating new conversation...');
+            console.log('Request object:', request);
+            console.log('Current user:', user);
+            
             // Create conversation
+            const conversationData = {
+              type: 'direct',
+              created_by: request.from_user_id,
+              name: `${request.profiles.display_name || request.profiles.username}`
+            };
+            console.log('About to create conversation with data:', conversationData);
+            
             const { data: conversation, error: convError } = await supabase
               .from('conversations')
-              .insert({
-                type: 'direct',
-                created_by: request.from_user_id,
-                name: `${request.profiles.display_name || request.profiles.username}`
-              })
+              .insert(conversationData)
               .select()
               .single();
 
             if (convError) {
               console.error('Error creating conversation:', convError);
+              console.error('Conversation data that failed:', conversationData);
               throw convError;
             }
 
-            console.log('Conversation created:', conversation);
-            console.log('Adding participants...');
+            if (!conversation) {
+              console.error('No conversation returned despite no error');
+              throw new Error('Conversation creation failed - no data returned');
+            }
+
+            console.log('Conversation created successfully:', conversation);
             
             // Add both users as participants
-            const { error: participantError } = await supabase
+            const participantData = [
+              {
+                conversation_id: conversation.id,
+                user_id: request.from_user_id,
+                role: 'member'
+              },
+              {
+                conversation_id: conversation.id,
+                user_id: user.id,
+                role: 'member'
+              }
+            ];
+            
+            console.log('About to add participants:', participantData);
+            
+            const { data: participantResult, error: participantError } = await supabase
               .from('conversation_participants')
-              .insert([
-                {
-                  conversation_id: conversation.id,
-                  user_id: request.from_user_id,
-                  role: 'member'
-                },
-                {
-                  conversation_id: conversation.id,
-                  user_id: user.id,
-                  role: 'member'
-                }
-              ]);
+              .insert(participantData)
+              .select();
 
             if (participantError) {
               console.error('Error adding participants:', participantError);
+              console.error('Participant data that failed:', participantData);
               throw participantError;
             }
             
-            console.log('Participants added successfully');
+            console.log('Participants added successfully:', participantResult);
             
             toast({
               title: "Request accepted!",
@@ -250,14 +267,10 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
           }
           
           // Force reload conversations by triggering multiple events
+          console.log('Triggering conversation reload events...');
           window.dispatchEvent(new CustomEvent('conversationCreated'));
           setTimeout(() => window.dispatchEvent(new CustomEvent('conversationCreated')), 500);
           setTimeout(() => window.dispatchEvent(new CustomEvent('conversationCreated')), 1000);
-          
-          // Also force a page reload of conversations
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
         }
       } else {
         toast({
