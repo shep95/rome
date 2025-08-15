@@ -175,6 +175,9 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
             title: "Request accepted!",
             description: "A new conversation has been started. Check your Messages tab.",
           });
+          
+          // Force reload conversations by triggering a custom event
+          window.dispatchEvent(new CustomEvent('conversationCreated'));
         }
       } else {
         toast({

@@ -9,6 +9,7 @@ import { NavigationSidebar } from '@/components/NavigationSidebar';
 import { LiveMainContent } from '@/components/LiveMainContent';
 import { AppLock } from '@/components/SecurityLock';
 import { LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -25,6 +26,27 @@ const Dashboard = () => {
       navigate('/');
     }
   }, [user, loading, navigate]);
+
+  // Load initial message request count
+  useEffect(() => {
+    if (user) {
+      loadMessageRequestCount();
+    }
+  }, [user]);
+
+  const loadMessageRequestCount = async () => {
+    try {
+      const { data } = await supabase
+        .from('message_requests')
+        .select('id')
+        .eq('to_user_id', user?.id)
+        .eq('status', 'pending');
+      
+      setMessageRequestCount(data?.length || 0);
+    } catch (error) {
+      console.error('Error loading message request count:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -60,6 +82,7 @@ const Dashboard = () => {
         activeSection={activeSection} 
         onSectionChange={setActiveSection}
         messageRequestCount={messageRequestCount}
+        onMessageRequestCountChange={setMessageRequestCount}
       />
       
       {/* Main Content */}

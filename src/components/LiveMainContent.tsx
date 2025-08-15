@@ -57,6 +57,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
       loadConversations();
       setupRealtimeSubscriptions();
     }
+    
     // Load saved background image
     const savedBackground = localStorage.getItem('rome-background-image');
     if (savedBackground) {
@@ -70,8 +71,18 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
       }
     };
 
+    // Listen for conversation creation events (e.g., from accepted message requests)
+    const handleConversationCreated = () => {
+      loadConversations();
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('conversationCreated', handleConversationCreated);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('conversationCreated', handleConversationCreated);
+    };
   }, [user]);
 
   // App lock when switching tabs - REMOVED

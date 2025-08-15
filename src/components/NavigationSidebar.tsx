@@ -25,12 +25,14 @@ interface NavigationSidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
   messageRequestCount?: number;
+  onMessageRequestCountChange?: (count: number) => void;
 }
 
 export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ 
   activeSection, 
   onSectionChange,
-  messageRequestCount = 0
+  messageRequestCount = 0,
+  onMessageRequestCountChange
 }) => {
   const { user } = useAuth();
   const { uploadAvatar, uploadWallpaper, isUploading } = useFileUpload();
@@ -389,7 +391,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         isOpen={isInboxOpen}
         onClose={() => setIsInboxOpen(false)}
         requestCount={messageRequestCount}
-        onRequestCountChange={() => {}}
+        onRequestCountChange={onMessageRequestCountChange || (() => {})}
       />
 
       <CallHistory
