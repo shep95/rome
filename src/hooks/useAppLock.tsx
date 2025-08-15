@@ -11,10 +11,11 @@ export const useAppLock = () => {
     setIsLocked(false);
   }, []);
 
-  // Keyboard shortcut: Shift + L
+  // Keyboard shortcut: Ctrl/Cmd + Shift + L (more specific to avoid accidental triggers)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.shiftKey && event.key.toLowerCase() === 'l') {
+      // Only trigger if Ctrl (Windows/Linux) or Cmd (Mac) + Shift + L are pressed together
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'l') {
         event.preventDefault();
         lockApp();
       }
