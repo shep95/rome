@@ -50,13 +50,28 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
   useEffect(() => {
     if (conversationId && user) {
-      setHasLoadedMessages(false);
-      setMessages([]);
+      // Hydrate from cache first to avoid flicker/reload on tab return
+      const cacheKey = `convMsg:${conversationId}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached) as Message[];
+          if (Array.isArray(parsed)) {
+            setMessages(parsed);
+            setHasLoadedMessages(true);
+          }
+        } catch {
+          // ignore parse errors
+        }
+      } else {
+        setHasLoadedMessages(false);
+      }
+
       loadConversationDetails();
       loadUserWallpaper();
       const cleanup = setupRealtimeSubscription();
       (async () => {
-        await loadMessages();
+        await loadMessages(); // refresh in background without clearing UI
         setHasLoadedMessages(true);
       })();
       return () => {
@@ -68,6 +83,15 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Cache messages per conversation to persist between tab switches
+  useEffect(() => {
+    if (!conversationId) return;
+    if (messages.length === 0) return;
+    try {
+      sessionStorage.setItem(`convMsg:${conversationId}`, JSON.stringify(messages));
+    } catch {}
+  }, [messages, conversationId]);
 
   // Stable viewport height on mobile to avoid growth on focus/return
   useEffect(() => {
