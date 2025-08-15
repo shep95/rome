@@ -19,6 +19,7 @@ import {
 import { SettingsModal } from './SettingsModal';
 import { CallHistory } from './CallHistory';
 import { AboutUs } from './AboutUs';
+import { InboxModal } from './InboxModal';
 
 interface NavigationSidebarProps {
   activeSection: string;
@@ -36,6 +37,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCallHistoryOpen, setIsCallHistoryOpen] = useState(false);
   const [isAboutUsOpen, setIsAboutUsOpen] = useState(false);
+  const [isInboxOpen, setIsInboxOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const wallpaperInputRef = useRef<HTMLInputElement>(null);
@@ -95,6 +97,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     window.open('https://donate.stripe.com/fZu14p2SI677bve3Ttfw403', '_blank');
   };
 
+  const handleInboxClick = () => {
+    setIsInboxOpen(true);
+  };
+
   const getUserInitial = () => {
     return user?.email?.charAt(0).toUpperCase() || 'U';
   };
@@ -130,7 +136,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
             <Button
-              onClick={() => onSectionChange('inbox')}
+              onClick={handleInboxClick}
               variant="ghost"
               size="sm"
               className="text-muted-foreground p-2 relative"
@@ -229,13 +235,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             </Button>
             
             <Button
-              onClick={() => onSectionChange('inbox')}
+              onClick={handleInboxClick}
               variant="ghost"
-              className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 relative ${
-                activeSection === 'inbox'
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  : 'text-foreground hover:text-primary hover:bg-primary/10'
-              }`}
+              className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 relative text-foreground hover:text-primary hover:bg-primary/10`}
             >
               <Inbox className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
               <span className="text-sm font-medium">Inbox</span>
@@ -383,6 +385,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         onClose={() => setIsSettingsOpen(false)} 
       />
       
+      <InboxModal
+        isOpen={isInboxOpen}
+        onClose={() => setIsInboxOpen(false)}
+        requestCount={messageRequestCount}
+        onRequestCountChange={() => {}}
+      />
+
       <CallHistory
         isOpen={isCallHistoryOpen}
         onClose={() => setIsCallHistoryOpen(false)}

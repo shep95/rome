@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { UserSearchDropdown } from './UserSearchDropdown';
 import { GroupChatCreation } from './GroupChatCreation';
-import { MessageRequests } from './MessageRequests';
 import { SecurityLock, AppLock } from './SecurityLock';
 import { SecureMessaging } from './SecureMessaging';
 
@@ -209,16 +208,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     setIsGroupCreationOpen(true);
   };
 
-  if (activeSection === 'inbox') {
-    return (
-      <div className="flex flex-col bg-background min-h-screen p-6">
-        <MessageRequests 
-          requestCount={messageRequestCount}
-          onRequestCountChange={onMessageRequestCountChange}
-        />
-      </div>
-    );
-  }
 
   if (activeSection !== 'messages') {
     return (
