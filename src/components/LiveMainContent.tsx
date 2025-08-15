@@ -143,6 +143,33 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     loadUnreadCounts();
   }, [conversations, groupChats, user]);
 
+  // Clear notifications when a conversation is opened
+  useEffect(() => {
+    if (selectedConversation && unreadCounts[selectedConversation] > 0) {
+      markConversationAsRead(selectedConversation);
+    }
+  }, [selectedConversation]);
+
+  // Mark conversation as read and update counts
+  const markConversationAsRead = (conversationId: string) => {
+    const currentUnread = unreadCounts[conversationId] || 0;
+    
+    // Update unread counts
+    setUnreadCounts(prev => ({
+      ...prev,
+      [conversationId]: 0
+    }));
+
+    // Update totals
+    const isGroupChat = groupChats.some(group => group.id === conversationId);
+    
+    if (isGroupChat) {
+      setGroupUnreadTotal(prev => Math.max(0, prev - currentUnread));
+    } else {
+      setDirectUnreadTotal(prev => Math.max(0, prev - currentUnread));
+    }
+  };
+
   const setupRealtimeSubscriptions = () => {
     const channel = supabase
       .channel('live-conversations')
