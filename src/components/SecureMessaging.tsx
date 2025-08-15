@@ -42,15 +42,24 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const [userWallpaper, setUserWallpaper] = useState<string>('');
   const [selectedFiles, setSelectedFiles] = useState<FilePreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [hasLoadedMessages, setHasLoadedMessages] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (conversationId && user) {
+      setHasLoadedMessages(false);
+      setMessages([]);
       loadConversationDetails();
-      loadMessages();
       loadUserWallpaper();
-      setupRealtimeSubscription();
+      const cleanup = setupRealtimeSubscription();
+      (async () => {
+        await loadMessages();
+        setHasLoadedMessages(true);
+      })();
+      return () => {
+        if (cleanup) cleanup();
+      };
     }
   }, [conversationId, user]);
 
@@ -408,10 +417,19 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       >
         {userWallpaper && <div className="absolute inset-0 bg-black/10 pointer-events-none" style={{ filter: 'blur(1px)' }} />}
         {messages.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8 relative z-10">
-            <div className="text-2xl mb-2">🔒</div>
-            <p>No messages yet. Start the conversation!</p>
-          </div>
+          hasLoadedMessages ? (
+            <div className="text-center text-muted-foreground py-8 relative z-10">
+              <div className="text-2xl mb-2">🔒</div>
+              <p>No messages yet. Start the conversation!</p>
+            </div>
+          ) : (
+            <div className="relative z-10 space-y-4">
+              <div className="h-5 w-24 bg-card/30 rounded animate-pulse" />
+              <div className="h-20 w-3/4 bg-card/20 rounded-2xl animate-pulse" />
+              <div className="h-8 w-1/2 bg-card/20 rounded-2xl animate-pulse ml-auto" />
+              <div className="h-14 w-2/3 bg-card/20 rounded-2xl animate-pulse" />
+            </div>
+          )
         ) : (
           <div className="space-y-4">
             {messages.map((message) => (
