@@ -226,6 +226,7 @@ export type Database = {
           display_name: string | null
           email: string
           id: string
+          screenshot_protection_enabled: boolean | null
           updated_at: string
           username: string | null
           wallpaper_url: string | null
@@ -236,6 +237,7 @@ export type Database = {
           display_name?: string | null
           email: string
           id: string
+          screenshot_protection_enabled?: boolean | null
           updated_at?: string
           username?: string | null
           wallpaper_url?: string | null
@@ -246,6 +248,7 @@ export type Database = {
           display_name?: string | null
           email?: string
           id?: string
+          screenshot_protection_enabled?: boolean | null
           updated_at?: string
           username?: string | null
           wallpaper_url?: string | null
