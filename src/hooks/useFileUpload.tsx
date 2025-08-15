@@ -141,10 +141,20 @@ export const useFileUpload = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Prefer a signed URL so recipients can view without extra permissions
+      const { data: signedData, error: signError } = await supabase.storage
         .from(bucketName)
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 7); // 7 days
+
+      if (signError) {
+        console.warn('Signed URL generation failed, falling back to public URL', signError);
+      }
+
+      const fallbackPublic = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(fileName).data.publicUrl;
+
+      const url = signedData?.signedUrl || fallbackPublic;
 
       if (!options?.silent) {
         toast({
@@ -153,7 +163,7 @@ export const useFileUpload = () => {
         });
       }
 
-      return publicUrl;
+      return url;
     } catch (error: any) {
       console.error('File upload error:', error);
       toast({

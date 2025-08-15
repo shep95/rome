@@ -183,6 +183,17 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     }
   };
 
+  const refreshSignedUrlForMessage = async (messageId: string, currentUrl?: string) => {
+    try {
+      const signed = await getSignedUrlForSecureFiles(currentUrl || '');
+      if (signed) {
+        setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, file_url: signed } : m)));
+      }
+    } catch (e) {
+      console.error('Failed to refresh signed URL for message', messageId, e);
+    }
+  };
+
   const setupRealtimeSubscription = () => {
     if (!conversationId) return;
     
@@ -488,10 +499,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                                     alt={message.file_name || 'Image'}
                                     className="max-w-full rounded-lg max-h-64 object-cover cursor-pointer"
                                     onClick={() => window.open(message.file_url!, '_blank')}
-                                    onError={(e) => {
-                                      console.error('Image failed to load:', message.file_url);
-                                      e.currentTarget.style.display = 'none';
-                                    }}
+                                    onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
                                   />
                                   <div className="flex gap-3 text-xs">
                                     <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
@@ -507,6 +515,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                                     src={message.file_url!}
                                     controls
                                     className="max-w-full rounded-lg max-h-64"
+                                    onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
                                   />
                                   <div className="flex gap-3 text-xs">
                                     <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
