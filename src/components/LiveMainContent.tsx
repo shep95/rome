@@ -17,6 +17,7 @@ import { UserSearchDropdown } from './UserSearchDropdown';
 import { GroupChatCreation } from './GroupChatCreation';
 import { SecurityLock, AppLock } from './SecurityLock';
 import { SecureMessaging } from './SecureMessaging';
+import { SecureFiles } from './SecureFiles';
 
 interface LiveMainContentProps {
   activeSection: string;
@@ -394,19 +395,8 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
               </div>
             )}
 
-            {selectedTab === 'secure-files' && (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-foreground font-semibold mb-2">Secure Files</h3>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    Your encrypted file storage
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Files are encrypted and secured with your personal key
-                  </p>
-                </div>
-              </div>
+            {selectedTab === 'secure-files' && !isSecureFilesLocked && (
+              <SecureFiles />
             )}
           </ScrollArea>
         </div>
