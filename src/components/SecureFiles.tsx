@@ -316,7 +316,7 @@ export const SecureFiles: React.FC = () => {
 
       {/* Files Grid */}
       <ScrollArea className="flex-1 p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-6 max-w-none">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 max-w-none">
           {files.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
