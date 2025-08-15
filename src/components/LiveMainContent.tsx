@@ -345,8 +345,8 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                   
                   <div className="space-y-4">
                     <p>
-                      <span className="font-semibold text-red-400">WhatsApp</span> is data collection. 
-                      I mean it's owned by <span className="font-semibold">Meta</span> which is the 
+                      <span className="font-semibold text-red-400">WhatsApp</span> is data collection 
+                      and easily hackable. I mean it's owned by <span className="font-semibold">Meta</span> which is the 
                       <span className="font-bold text-red-400"> King of Data Collection</span>.
                     </p>
                     
