@@ -253,21 +253,18 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       const detectMobileScreenshot = () => {
         // Detect app state changes (screenshot trigger on iOS/Android)
         const handleVisibilityChange = () => {
-          if (document.hidden) {
-            document.body.style.filter = 'blur(20px)';
-          } else {
-            setTimeout(() => {
-              document.body.style.filter = 'none';
-            }, 1000);
-          }
+          // Do not blur the whole app to avoid dark screen issues
+          // We simply log and keep UI intact
+          console.debug('Visibility changed');
         };
         
-        // Detect focus loss (potential screenshot)
+        // Avoid blurring the UI on focus loss
         const handleBlur = () => {
-          document.body.style.filter = 'blur(20px)';
+          // No UI blur to prevent dark screen
         };
         
         const handleFocus = () => {
+          // Ensure UI is clear
           document.body.style.filter = 'none';
         };
 

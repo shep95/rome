@@ -106,6 +106,10 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           content: atob(msg.encrypted_content), // Simple base64 decode for demo
           sender_id: msg.sender_id,
           created_at: msg.created_at,
+          message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
+          file_url: (msg.file_url as string | undefined) || undefined,
+          file_name: (msg.file_name as string | undefined) || undefined,
+          file_size: (msg.file_size as number | undefined) || undefined,
           sender_profile: senderProfile
         };
       }));
@@ -193,6 +197,9 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           sender_id: user.id,
           encrypted_content: encryptedContent,
           message_type: messageType,
+          file_url: fileUrl || null,
+          file_name: fileName || null,
+          file_size: fileSize || null,
           sequence_number: Date.now()
         });
 
