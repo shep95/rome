@@ -103,7 +103,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         
         return {
           id: msg.id,
-          content: atob(msg.encrypted_content), // Simple base64 decode for demo
+          content: decodeMessage(msg.encrypted_content),
           sender_id: msg.sender_id,
           created_at: msg.created_at,
           message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
@@ -141,6 +141,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const setupRealtimeSubscription = () => {
     if (!conversationId) return;
     
+    console.log('Setting up realtime subscription for conversation:', conversationId);
+    
     const channel = supabase
       .channel(`messages:${conversationId}`)
       .on(
@@ -151,13 +153,17 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`
         },
-        () => {
+        (payload) => {
+          console.log('New message received via realtime:', payload);
           loadMessages();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up realtime subscription');
       supabase.removeChannel(channel);
     };
   };
@@ -207,7 +213,11 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       
       setNewMessage('');
       setSelectedFiles([]);
-      loadMessages();
+      
+      // Force reload messages after a short delay to ensure the new message appears
+      setTimeout(() => {
+        loadMessages();
+      }, 500);
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
@@ -257,6 +267,27 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Helper function to decode messages (handles both base64 and bytea formats)
+  const decodeMessage = (encryptedContent: any): string => {
+    try {
+      if (typeof encryptedContent === 'string') {
+        // Handle bytea format (e.g., "\\x61475635")
+        if (encryptedContent.startsWith('\\x')) {
+          const hex = encryptedContent.slice(2);
+          const bytes = hex.match(/.{2}/g)?.map(byte => parseInt(byte, 16)) || [];
+          const binaryString = String.fromCharCode(...bytes);
+          return atob(binaryString);
+        }
+        // Handle base64 format
+        return atob(encryptedContent);
+      }
+      return 'Unable to decode message';
+    } catch (error) {
+      console.error('Error decoding message:', error);
+      return 'Unable to decode message';
+    }
   };
 
   if (!conversationId) {
