@@ -249,8 +249,15 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
             });
           }
           
-          // Force reload conversations by triggering a custom event
+          // Force reload conversations by triggering multiple events
           window.dispatchEvent(new CustomEvent('conversationCreated'));
+          setTimeout(() => window.dispatchEvent(new CustomEvent('conversationCreated')), 500);
+          setTimeout(() => window.dispatchEvent(new CustomEvent('conversationCreated')), 1000);
+          
+          // Also force a page reload of conversations
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
         }
       } else {
         toast({

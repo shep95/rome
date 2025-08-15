@@ -73,15 +73,25 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
     // Listen for conversation creation events (e.g., from accepted message requests)
     const handleConversationCreated = () => {
+      console.log('Conversation created event received, reloading conversations...');
       loadConversations();
     };
 
+    // Listen for storage changes and other events
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('conversationCreated', handleConversationCreated);
+    
+    // Also listen for focus events to reload conversations when user comes back
+    const handleFocus = () => {
+      console.log('Window focused, reloading conversations...');
+      loadConversations();
+    };
+    window.addEventListener('focus', handleFocus);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('conversationCreated', handleConversationCreated);
+      window.removeEventListener('focus', handleFocus);
     };
   }, [user]);
 
@@ -126,7 +136,9 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
   const loadConversations = async () => {
     try {
-      const { data: participantData } = await supabase
+      console.log('Loading conversations for user:', user?.id);
+      
+      const { data: participantData, error: participantError } = await supabase
         .from('conversation_participants')
         .select(`
           conversation_id,
@@ -135,11 +147,19 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
             name,
             type,
             avatar_url,
-            updated_at
+            updated_at,
+            created_by
           )
         `)
         .eq('user_id', user?.id)
         .is('left_at', null);
+
+      if (participantError) {
+        console.error('Error fetching participant data:', participantError);
+        return;
+      }
+
+      console.log('Participant data:', participantData);
 
       if (participantData) {
         const directChats: Conversation[] = [];
@@ -147,44 +167,69 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
         for (const p of participantData) {
           const conv = p.conversations;
+          console.log('Processing conversation:', conv);
           
-          if (conv.type === 'direct') {
+          if (conv && conv.type === 'direct') {
             // Get other participant for direct chats
-            const { data: otherParticipants } = await supabase
+            const { data: otherParticipants, error: otherError } = await supabase
               .from('conversation_participants')
               .select('user_id')
               .eq('conversation_id', conv.id)
               .neq('user_id', user?.id)
               .is('left_at', null);
 
+            if (otherError) {
+              console.error('Error fetching other participants:', otherError);
+              continue;
+            }
+
+            console.log('Other participants:', otherParticipants);
+
             let otherUserName = 'Unknown User';
+            let otherUserAvatar = '';
             if (otherParticipants && otherParticipants[0]) {
-              const { data: profile } = await supabase
+              const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('username, display_name, avatar_url')
                 .eq('id', otherParticipants[0].user_id)
                 .single();
 
-              otherUserName = profile?.display_name || profile?.username || 'Unknown User';
+              if (profileError) {
+                console.error('Error fetching profile:', profileError);
+              } else {
+                console.log('Profile data:', profile);
+                otherUserName = profile?.display_name || profile?.username || 'Unknown User';
+                otherUserAvatar = profile?.avatar_url || '';
+              }
             }
 
-            directChats.push({
+            const directChat = {
               id: conv.id,
               type: conv.type as 'direct',
               name: otherUserName,
+              avatar_url: otherUserAvatar,
               updated_at: conv.updated_at
-            });
-          } else if (conv.type === 'group') {
-            groups.push({
+            };
+            
+            console.log('Adding direct chat:', directChat);
+            directChats.push(directChat);
+          } else if (conv && conv.type === 'group') {
+            const groupChat = {
               id: conv.id,
               type: conv.type as 'group',
               name: conv.name || 'Unnamed Group',
               avatar_url: conv.avatar_url,
               updated_at: conv.updated_at
-            });
+            };
+            
+            console.log('Adding group chat:', groupChat);
+            groups.push(groupChat);
           }
         }
 
+        console.log('Final direct chats:', directChats);
+        console.log('Final groups:', groups);
+        
         setConversations(directChats);
         setGroupChats(groups);
       }
