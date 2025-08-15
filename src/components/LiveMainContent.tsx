@@ -352,7 +352,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                     
                     <p>
                       <span className="font-semibold text-orange-400">Telegram</span> has backdoors 
-                      that government can access.
+                      that government can access and easily hackable.
                     </p>
                     
                     <p>
