@@ -42,9 +42,29 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       return false;
     };
 
-    // Enhanced key combination blocking
+    // Enhanced key combination blocking (but allow normal typing)
     const preventKeys = (e: KeyboardEvent) => {
-      // Desktop screenshot shortcuts
+      // Allow normal typing in input fields
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true')) {
+        // Only block screenshot keys, not normal typing
+        if (
+          e.key === 'F12' ||
+          e.key === 'PrintScreen' ||
+          (e.metaKey && e.shiftKey && (e.key === '3' || e.key === '4' || e.key === '5' || e.key === '6')) ||
+          (e.key === 'PrintScreen') ||
+          (e.altKey && e.key === 'PrintScreen') ||
+          (e.ctrlKey && e.key === 'PrintScreen')
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          return false;
+        }
+        return; // Allow normal typing in form fields
+      }
+      
+      // Desktop screenshot shortcuts (only when not in form fields)
       if (
         e.key === 'F12' ||
         e.key === 'PrintScreen' ||
@@ -78,16 +98,26 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       return false;
     };
 
-    // Enhanced text selection prevention
+    // Enhanced text selection prevention (but allow in form fields)
     const preventSelection = (e: Event) => {
+      const target = e.target as HTMLElement;
+      // Allow selection in input fields and textareas
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true')) {
+        return;
+      }
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
       return false;
     };
 
-    // Touch event prevention for mobile screenshots
+    // Touch event prevention for mobile screenshots (but allow form interaction)
     const preventTouchScreenshot = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      // Allow normal touch interaction with form elements
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.contentEditable === 'true')) {
+        return;
+      }
       // Prevent volume + power button combinations on mobile
       if (e.touches.length >= 2) {
         e.preventDefault();
@@ -97,8 +127,13 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       }
     };
 
-    // Prevent copy operations
+    // Prevent copy operations (but allow in form fields)
     const preventCopy = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement;
+      // Allow copy/paste in input fields and textareas
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true')) {
+        return;
+      }
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -130,16 +165,21 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
         user-drag: none !important;
       }
       
-      /* Enhanced mobile protection */
+      /* Enhanced mobile protection - but allow input */
       @media screen and (max-width: 768px) {
         body {
           -webkit-touch-callout: none !important;
-          -webkit-user-select: none !important;
-          -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
           touch-action: manipulation !important;
         }
         
-        * {
+        input, textarea, [contenteditable] {
+          -webkit-touch-callout: auto !important;
+          -webkit-user-select: text !important;
+          touch-action: auto !important;
+          pointer-events: auto !important;
+        }
+        
+        *:not(input):not(textarea):not([contenteditable]) {
           -webkit-touch-callout: none !important;
           -webkit-user-select: none !important;
           pointer-events: auto !important;
@@ -176,7 +216,7 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
         }
       }
       
-      /* Disable image saving */
+      /* Disable image saving but allow form inputs */
       img {
         -webkit-user-drag: none !important;
         -khtml-user-drag: none !important;
@@ -184,6 +224,15 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
         -o-user-drag: none !important;
         user-drag: none !important;
         pointer-events: none !important;
+      }
+      
+      /* Allow normal interaction with form elements */
+      input, textarea, select, button, [contenteditable] {
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        user-select: text !important;
+        pointer-events: auto !important;
+        -webkit-touch-callout: auto !important;
       }
     `;
     document.head.appendChild(style);
