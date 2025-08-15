@@ -115,12 +115,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border p-3 sm:p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <img 
-              src="/lovable-uploads/6ff9b03d-a2fd-4cd2-b509-fb12b4bca3f2.png" 
-              alt="ROME" 
-              className="w-7 h-7 sm:w-8 sm:h-8 object-cover rounded-lg"
-            />
-            <h1 className="text-foreground font-bold text-base sm:text-lg">ROME</h1>
+            {/* Logo and name removed on mobile */}
           </div>
           <div className="flex items-center space-x-1 sm:space-x-2">
             <Button
