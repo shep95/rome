@@ -128,6 +128,16 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
     try {
       console.log(`Attempting to ${action} request ${requestId}`);
       
+      // Only allow accepting incoming requests
+      const request = requests.find(r => r.id === requestId);
+      if (!request) {
+        throw new Error('Request not found');
+      }
+      
+      if (action === 'accepted' && !request.is_incoming) {
+        throw new Error('Cannot accept outgoing requests');
+      }
+      
       const { error } = await supabase
         .from('message_requests')
         .update({ status: action })
@@ -142,7 +152,6 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
 
       // If accepted, create a conversation and add the initial message
       if (action === 'accepted') {
-        const request = requests.find(r => r.id === requestId);
         if (request) {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
@@ -150,53 +159,95 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
             return;
           }
 
-          console.log('Creating conversation...');
-          // Create conversation
-          const { data: conversation, error: convError } = await supabase
-            .from('conversations')
-            .insert({
-              type: 'direct',
-              created_by: request.from_user_id,
-              name: `${request.profiles.display_name || request.profiles.username}`
-            })
-            .select()
-            .single();
-
-          if (convError) {
-            console.error('Error creating conversation:', convError);
-            throw convError;
-          }
-
-          console.log('Conversation created:', conversation);
-          console.log('Adding participants...');
-          
-          // Add both users as participants
-          const { error: participantError } = await supabase
+          // Check if conversation already exists between these users
+          console.log('Checking for existing conversation...');
+          const { data: existingConversations } = await supabase
             .from('conversation_participants')
-            .insert([
-              {
-                conversation_id: conversation.id,
-                user_id: request.from_user_id,
-                role: 'member'
-              },
-              {
-                conversation_id: conversation.id,
-                user_id: user.id,
-                role: 'member'
+            .select(`
+              conversation_id,
+              conversations!inner (
+                id,
+                type
+              )
+            `)
+            .eq('user_id', user.id);
+
+          let existingDirectConversation = null;
+          if (existingConversations) {
+            for (const convParticipant of existingConversations) {
+              if (convParticipant.conversations?.type === 'direct') {
+                // Check if the other user is also a participant in this conversation
+                const { data: otherParticipant } = await supabase
+                  .from('conversation_participants')
+                  .select('user_id')
+                  .eq('conversation_id', convParticipant.conversation_id)
+                  .eq('user_id', request.from_user_id)
+                  .is('left_at', null)
+                  .single();
+
+                if (otherParticipant) {
+                  existingDirectConversation = convParticipant.conversations;
+                  break;
+                }
               }
-            ]);
-
-          if (participantError) {
-            console.error('Error adding participants:', participantError);
-            throw participantError;
+            }
           }
-          
-          console.log('Participants added successfully');
 
-          toast({
-            title: "Request accepted!",
-            description: "A new conversation has been started. Check your Messages tab.",
-          });
+          if (existingDirectConversation) {
+            console.log('Found existing conversation:', existingDirectConversation.id);
+            toast({
+              title: "Request accepted!",
+              description: "Conversation already exists. Check your Messages tab.",
+            });
+          } else {
+            console.log('Creating new conversation...');
+            // Create conversation
+            const { data: conversation, error: convError } = await supabase
+              .from('conversations')
+              .insert({
+                type: 'direct',
+                created_by: request.from_user_id,
+                name: `${request.profiles.display_name || request.profiles.username}`
+              })
+              .select()
+              .single();
+
+            if (convError) {
+              console.error('Error creating conversation:', convError);
+              throw convError;
+            }
+
+            console.log('Conversation created:', conversation);
+            console.log('Adding participants...');
+            
+            // Add both users as participants
+            const { error: participantError } = await supabase
+              .from('conversation_participants')
+              .insert([
+                {
+                  conversation_id: conversation.id,
+                  user_id: request.from_user_id,
+                  role: 'member'
+                },
+                {
+                  conversation_id: conversation.id,
+                  user_id: user.id,
+                  role: 'member'
+                }
+              ]);
+
+            if (participantError) {
+              console.error('Error adding participants:', participantError);
+              throw participantError;
+            }
+            
+            console.log('Participants added successfully');
+            
+            toast({
+              title: "Request accepted!",
+              description: "A new conversation has been started. Check your Messages tab.",
+            });
+          }
           
           // Force reload conversations by triggering a custom event
           window.dispatchEvent(new CustomEvent('conversationCreated'));
@@ -324,6 +375,7 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
                                   size="sm"
                                   onClick={() => handleRequestAction(request.id, 'accepted')}
                                   className="flex items-center gap-1 bg-primary hover:bg-primary/90"
+                                  disabled={!request.is_incoming}
                                 >
                                   <Check className="h-3 w-3" />
                                   Accept
@@ -333,6 +385,7 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
                                   variant="outline"
                                   onClick={() => handleRequestAction(request.id, 'declined')}
                                   className="flex items-center gap-1"
+                                  disabled={!request.is_incoming}
                                 >
                                   <X className="h-3 w-3" />
                                   Decline
