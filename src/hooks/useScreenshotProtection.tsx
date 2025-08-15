@@ -11,7 +11,7 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
   useEffect(() => {
     if (!enabled || typeof window === 'undefined') return;
 
-    let style: HTMLStyleElement;
+    let style: HTMLStyleElement | null = null;
     let cleanupFunctions: Array<() => void> = [];
 
     // Check if current user has screenshot protection enabled
@@ -308,7 +308,7 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       // Execute all cleanup functions
       cleanupFunctions.forEach(cleanup => cleanup());
       
-      // Remove style
+      // Remove style if it exists
       if (style && document.head.contains(style)) {
         document.head.removeChild(style);
       }
