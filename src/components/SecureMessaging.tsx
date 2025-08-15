@@ -50,6 +50,15 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
   useEffect(() => {
     if (conversationId && user) {
+      // Immediately load wallpaper from cache to avoid flash
+      const cachedWallpaper = localStorage.getItem('rome-background-image');
+      if (cachedWallpaper) {
+        setUserWallpaper(cachedWallpaper);
+        // Preload image to ensure it's cached
+        const img = new Image();
+        img.src = cachedWallpaper;
+      }
+
       // Hydrate from cache first to avoid flicker/reload on tab return
       const cacheKey = `convMsg:${conversationId}`;
       const cached = sessionStorage.getItem(cacheKey);
@@ -68,7 +77,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       }
 
       loadConversationDetails();
-      loadUserWallpaper();
+      loadUserWallpaper(); // Still refresh in background for updates
       const cleanup = setupRealtimeSubscription();
       (async () => {
         await loadMessages(); // refresh in background without clearing UI
@@ -196,6 +205,11 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       
       if (profile?.wallpaper_url) {
         setUserWallpaper(profile.wallpaper_url);
+        // Cache for instant loading on future visits
+        localStorage.setItem('rome-background-image', profile.wallpaper_url);
+        // Preload image to ensure it's cached in browser
+        const img = new Image();
+        img.src = profile.wallpaper_url;
       }
     } catch (error) {
       console.log('No wallpaper found for user');
