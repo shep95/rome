@@ -51,6 +51,9 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   const [isGroupCreationOpen, setIsGroupCreationOpen] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [selectedGroupForSettings, setSelectedGroupForSettings] = useState<string | null>(null);
+  const [unreadCounts, setUnreadCounts] = useState<{[key: string]: number}>({});
+  const [directUnreadTotal, setDirectUnreadTotal] = useState(0);
+  const [groupUnreadTotal, setGroupUnreadTotal] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -87,6 +90,59 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     };
   }, [user]);
 
+  // Load unread counts for conversations
+  const loadUnreadCounts = async () => {
+    if (!user) return;
+
+    try {
+      const { data: participantData } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id)
+        .is('left_at', null);
+
+      if (!participantData) return;
+
+      const conversationIds = participantData.map(p => p.conversation_id);
+      const newUnreadCounts: {[key: string]: number} = {};
+
+      // For each conversation, count unread messages
+      for (const convId of conversationIds) {
+        const { count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('conversation_id', convId)
+          .neq('sender_id', user.id); // Messages not sent by current user
+
+        newUnreadCounts[convId] = count || 0;
+      }
+
+      setUnreadCounts(newUnreadCounts);
+
+      // Calculate totals
+      let directTotal = 0;
+      let groupTotal = 0;
+
+      conversations.forEach(conv => {
+        directTotal += newUnreadCounts[conv.id] || 0;
+      });
+
+      groupChats.forEach(group => {
+        groupTotal += newUnreadCounts[group.id] || 0;
+      });
+
+      setDirectUnreadTotal(directTotal);
+      setGroupUnreadTotal(groupTotal);
+    } catch (error) {
+      console.error('Error loading unread counts:', error);
+    }
+  };
+
+  // Load unread counts after conversations are loaded
+  useEffect(() => {
+    loadUnreadCounts();
+  }, [conversations, groupChats, user]);
+
   const setupRealtimeSubscriptions = () => {
     const channel = supabase
       .channel('live-conversations')
@@ -107,6 +163,21 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           table: 'conversation_participants'
         },
         () => loadConversations()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        (payload) => {
+          console.log('New message received:', payload);
+          // Only update count if message is not from current user
+          if (payload.new.sender_id !== user?.id) {
+            loadUnreadCounts();
+          }
+        }
       )
       .subscribe();
 
@@ -350,7 +421,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           <div className="flex space-x-1 bg-card rounded-lg p-1 border border-border">
             <button
               onClick={() => handleTabChange('conversations')}
-              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all relative ${
                 selectedTab === 'conversations'
                   ? 'bg-primary text-primary-foreground shadow-md'
                   : 'text-foreground hover:text-primary hover:bg-primary/10'
@@ -358,10 +429,18 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
             >
               <MessageCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Chats</span>
+              {directUnreadTotal > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center bg-red-500 hover:bg-red-500"
+                >
+                  {directUnreadTotal > 99 ? '99+' : directUnreadTotal}
+                </Badge>
+              )}
             </button>
             <button
               onClick={() => handleTabChange('groups')}
-              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all relative ${
                 selectedTab === 'groups'
                   ? 'bg-primary text-primary-foreground shadow-md'
                   : 'text-foreground hover:text-primary hover:bg-primary/10'
@@ -369,6 +448,14 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
             >
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Groups</span>
+              {groupUnreadTotal > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center bg-red-500 hover:bg-red-500"
+                >
+                  {groupUnreadTotal > 99 ? '99+' : groupUnreadTotal}
+                </Badge>
+              )}
             </button>
           </div>
         </div>
