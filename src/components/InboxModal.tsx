@@ -207,7 +207,7 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
             // Create conversation
             const conversationData = {
               type: 'direct',
-              created_by: request.from_user_id,
+              created_by: user.id, // Use current user's ID (the accepter) not the sender's ID
               name: `${request.profiles.display_name || request.profiles.username}`
             };
             console.log('About to create conversation with data:', conversationData);
