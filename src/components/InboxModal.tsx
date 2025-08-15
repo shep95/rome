@@ -104,20 +104,31 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
 
   const handleRequestAction = async (requestId: string, action: 'accepted' | 'declined') => {
     try {
+      console.log(`Attempting to ${action} request ${requestId}`);
+      
       const { error } = await supabase
         .from('message_requests')
         .update({ status: action })
         .eq('id', requestId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating message request status:', error);
+        throw error;
+      }
+      
+      console.log(`Successfully updated message request status to ${action}`);
 
       // If accepted, create a conversation and add the initial message
       if (action === 'accepted') {
         const request = requests.find(r => r.id === requestId);
         if (request) {
           const { data: { user } } = await supabase.auth.getUser();
-          if (!user) return;
+          if (!user) {
+            console.error('No authenticated user found');
+            return;
+          }
 
+          console.log('Creating conversation...');
           // Create conversation
           const { data: conversation, error: convError } = await supabase
             .from('conversations')
@@ -129,8 +140,14 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
             .select()
             .single();
 
-          if (convError) throw convError;
+          if (convError) {
+            console.error('Error creating conversation:', convError);
+            throw convError;
+          }
 
+          console.log('Conversation created:', conversation);
+          console.log('Adding participants...');
+          
           // Add both users as participants
           const { error: participantError } = await supabase
             .from('conversation_participants')
@@ -147,7 +164,12 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
               }
             ]);
 
-          if (participantError) throw participantError;
+          if (participantError) {
+            console.error('Error adding participants:', participantError);
+            throw participantError;
+          }
+          
+          console.log('Participants added successfully');
 
           toast({
             title: "Request accepted!",
@@ -167,7 +189,7 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
       console.error(`Error ${action} request:`, error);
       toast({
         title: "Error",
-        description: `Failed to ${action} request`,
+        description: `Failed to ${action} request: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     }
