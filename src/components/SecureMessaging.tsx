@@ -402,31 +402,63 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                     >
                       {message.file_url ? (
                         <div className="space-y-2">
-                          {/* Check if it's an image file */}
-                          {message.file_name && (message.file_name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) ? (
-                            <img 
-                              src={message.file_url} 
-                              alt={message.file_name}
-                              className="max-w-full rounded-lg max-h-64 object-cover cursor-pointer"
-                              onClick={() => window.open(message.file_url, '_blank')}
-                            />
-                          ) : message.file_name && (message.file_name.toLowerCase().match(/\.(mp4|webm|ogg|avi|mov)$/i)) ? (
-                            <video 
-                              src={message.file_url}
-                              controls
-                              className="max-w-full rounded-lg max-h-64"
-                            />
-                          ) : (
-                            <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
-                              <File className="h-8 w-8 text-muted-foreground" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{message.file_name || 'Unknown file'}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'File'}
-                                </p>
-                              </div>
-                            </div>
-                          )}
+                          {(() => {
+                            console.log('Message debug:', {
+                              file_name: message.file_name,
+                              file_url: message.file_url,
+                              content: message.content,
+                              message_type: message.message_type
+                            });
+                            
+                            // Check if it's an image file
+                            const isImage = message.file_name && message.file_name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+                            const isVideo = message.file_name && message.file_name.toLowerCase().match(/\.(mp4|webm|ogg|avi|mov)$/i);
+                            
+                            console.log('File type detection:', { isImage, isVideo });
+                            
+                            if (isImage) {
+                              return (
+                                <img 
+                                  src={message.file_url} 
+                                  alt={message.file_name}
+                                  className="max-w-full rounded-lg max-h-64 object-cover cursor-pointer"
+                                  onClick={() => window.open(message.file_url, '_blank')}
+                                  onError={(e) => {
+                                    console.error('Image failed to load:', message.file_url);
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              );
+                            } else if (isVideo) {
+                              return (
+                                <video 
+                                  src={message.file_url}
+                                  controls
+                                  className="max-w-full rounded-lg max-h-64"
+                                />
+                              );
+                            } else {
+                              return (
+                                <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
+                                  <File className="h-8 w-8 text-muted-foreground" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{message.file_name || 'Unknown file'}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'File'}
+                                    </p>
+                                  </div>
+                                  <a 
+                                    href={message.file_url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-primary hover:underline"
+                                  >
+                                    Download
+                                  </a>
+                                </div>
+                              );
+                            }
+                          })()}
                           {/* Always show the message content if it exists and is different from filename */}
                           {message.content && message.content.trim() && message.content !== message.file_name && (
                             <p className="text-sm leading-relaxed break-words">{message.content}</p>
