@@ -322,22 +322,9 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   }
 
   return (
-    <div 
-      className="flex h-screen relative"
-      style={{
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
-      {/* Background overlay for readability */}
-      {backgroundImage && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-      )}
-      
+    <div className="flex h-screen">
       {/* Left Panel - Hidden on mobile when conversation is selected */}
-      <div className={`${selectedConversation ? 'hidden md:block' : 'block'} w-full md:w-96 border-r border-border flex flex-col relative z-10`}>
+      <div className={`${selectedConversation ? 'hidden md:block' : 'block'} w-full md:w-96 border-r border-border flex flex-col`}>
         {/* Tab Navigation */}
         <div className="p-4 border-b border-border flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
