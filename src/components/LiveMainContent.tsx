@@ -351,11 +351,13 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                           <Users className="w-5 h-5" />
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-foreground font-medium truncate">{group.name}</h4>
-                        <p className="text-sm text-muted-foreground truncate">
-                          Click to open group
-                        </p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-medium text-foreground truncate pr-2">{group.name}</h4>
+                              <span className="text-xs text-muted-foreground flex-shrink-0">
+                                {new Date(group.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
                       </div>
                     </div>
                   </CardContent>
@@ -493,11 +495,11 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                       }}
                     >
                       <CardContent className="p-3">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={group.avatar_url} />
-                            <AvatarFallback>
-                              <Users className="w-5 h-5" />
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
+                            <AvatarImage src={group.avatar_url} className="rounded-lg object-cover" />
+                            <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
+                              <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
