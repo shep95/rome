@@ -241,6 +241,82 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
 
   if (activeSection !== 'messages') {
+    if (activeSection === 'why-us') {
+      return (
+        <div className="flex-1 flex items-center justify-center bg-background min-h-screen relative overflow-hidden">
+          {/* Background with glassmorphism effect */}
+          <div 
+            className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-primary/20"
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 20% 30%, hsl(var(--primary) / 0.3) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, hsl(var(--accent) / 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 60% 20%, hsl(var(--primary) / 0.15) 0%, transparent 50%)
+              `
+            }}
+          />
+          
+          {/* Main content card */}
+          <div className="relative z-10 max-w-4xl mx-auto p-6 md:p-8">
+            <div 
+              className="backdrop-blur-xl bg-card/20 border border-border/30 rounded-3xl p-8 md:p-12 shadow-2xl"
+              style={{
+                backdropFilter: 'blur(24px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+              }}
+            >
+              <div className="text-center">
+                <div className="mb-8">
+                  <Shield className="h-16 w-16 text-primary mx-auto mb-4" />
+                  <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
+                    Why Choose Us?
+                  </h1>
+                  <div className="h-1 w-24 bg-gradient-to-r from-primary to-accent mx-auto rounded-full" />
+                </div>
+                
+                <div className="space-y-6 text-lg md:text-xl leading-relaxed text-foreground/90">
+                  <p className="font-medium text-primary">
+                    The Truth About Popular Messaging Apps:
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <p>
+                      <span className="font-semibold text-red-400">WhatsApp</span> is data collection. 
+                      I mean it's owned by <span className="font-semibold">Meta</span> which is the 
+                      <span className="font-bold text-red-400"> King of Data Collection</span>.
+                    </p>
+                    
+                    <p>
+                      <span className="font-semibold text-orange-400">Telegram</span> has backdoors 
+                      that government can access.
+                    </p>
+                    
+                    <p>
+                      <span className="font-semibold text-blue-400">Signal</span> is awesome but 
+                      <span className="font-bold"> nobody uses it</span>.
+                    </p>
+                  </div>
+                  
+                  <div className="mt-8 p-6 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl border border-primary/30">
+                    <p className="text-xl md:text-2xl font-bold text-primary">
+                      Which is why <span className="text-accent">ZORAK CORP</span> created & invested into this app.
+                    </p>
+                  </div>
+                  
+                  <div className="mt-8 flex items-center justify-center space-x-2 text-muted-foreground">
+                    <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent flex-1" />
+                    <span className="px-4 text-sm">True Privacy, Real Security</span>
+                    <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent flex-1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
         <div className="text-center text-foreground">

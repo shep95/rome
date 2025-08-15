@@ -15,7 +15,8 @@ import {
   Camera,
   Upload,
   ImageIcon,
-  Shield
+  Shield,
+  FileText
 } from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 import { CallHistory } from './CallHistory';
@@ -139,6 +140,14 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
             <Button
+              onClick={() => onSectionChange('why-us')}
+              variant={activeSection === 'why-us' ? 'default' : 'ghost'}
+              size="sm"
+              className={`${activeSection === 'why-us' ? 'bg-primary/20 text-primary' : 'text-muted-foreground'} p-2`}
+            >
+              <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+            </Button>
+            <Button
               onClick={handleInboxClick}
               variant="ghost"
               size="sm"
@@ -160,7 +169,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               size="sm"
               className={`${activeSection === 'secure-files' ? 'bg-primary/20 text-primary' : 'text-muted-foreground'} p-2`}
             >
-              <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+              <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
             <Button
               onClick={handleAboutUsClick}
@@ -246,6 +255,19 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             </Button>
             
             <Button
+              onClick={() => onSectionChange('why-us')}
+              variant="ghost"
+              className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
+                activeSection === 'why-us'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10'
+              }`}
+            >
+              <Shield className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+              <span className="text-sm font-medium">Why Us</span>
+            </Button>
+            
+            <Button
               onClick={handleInboxClick}
               variant="ghost"
               className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 relative text-foreground hover:text-primary hover:bg-primary/10`}
@@ -271,7 +293,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                   : 'text-foreground hover:text-primary hover:bg-primary/10'
               }`}
             >
-              <Shield className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+              <FileText className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
               <span className="text-sm font-medium">Secure Files</span>
             </Button>
             
