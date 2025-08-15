@@ -387,11 +387,11 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                   
                   <div className="relative group">
                     <div
-                      className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl backdrop-blur-xl border-2 ${
+                      className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl backdrop-blur-xl border-2 text-white ${
                         message.sender_id === user?.id
-                          ? 'bg-primary/20 text-primary-foreground border-primary/20 shadow-primary/10'
-                          : 'bg-card/10 border-border/20 text-foreground shadow-card/10'
-                      } shadow-xl transition-all duration-300 hover:shadow-2xl hover:backdrop-blur-2xl group-hover:border-primary/40`}
+                          ? 'bg-primary/20 border-primary/20'
+                          : 'bg-card/10 border-border/20'
+                      } transition-all duration-300 hover:backdrop-blur-2xl group-hover:border-primary/40`}
                       style={{
                         backdropFilter: 'blur(20px) saturate(150%)',
                         WebkitBackdropFilter: 'blur(20px) saturate(150%)',
