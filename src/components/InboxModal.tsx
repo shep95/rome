@@ -159,39 +159,52 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
             return;
           }
 
-          console.log('Creating/finding conversation using secure function...');
-          console.log('Request object:', request);
-          console.log('Current user:', user);
-          
-          // Use secure RPC function to create conversation
-          const { data: conversationId, error: rpcError } = await supabase
-            .rpc('create_direct_conversation', {
-              _other_user_id: request.from_user_id,
-              _name: request.profiles.display_name || request.profiles.username
-            });
-
-          if (rpcError) {
-            console.error('Error creating conversation via RPC:', rpcError);
-            throw rpcError;
-          }
-
-          if (!conversationId) {
-            console.error('No conversation ID returned from RPC');
-            throw new Error('Conversation creation failed - no ID returned');
-          }
-
-          console.log('Conversation created/found with ID:', conversationId);
-          
-          toast({
-            title: "Request accepted!",
-            description: "Conversation is ready. Check your Messages tab.",
+          console.log('Creating conversation using secure RPC function...');
+          console.log('Request details:', { 
+            requestId: request.id,
+            fromUserId: request.from_user_id, 
+            currentUserId: user.id,
+            profileName: request.profiles.display_name || request.profiles.username
           });
           
-          // Force reload conversations by triggering multiple events
-          console.log('Triggering conversation reload events...');
-          window.dispatchEvent(new CustomEvent('conversationCreated'));
-          setTimeout(() => window.dispatchEvent(new CustomEvent('conversationCreated')), 500);
-          setTimeout(() => window.dispatchEvent(new CustomEvent('conversationCreated')), 1000);
+          try {
+            // Use the secure RPC function to create/find conversation
+            const { data: conversationId, error: rpcError } = await supabase
+              .rpc('create_direct_conversation', {
+                _other_user_id: request.from_user_id,
+                _name: request.profiles.display_name || request.profiles.username || 'Direct Chat'
+              });
+
+            if (rpcError) {
+              console.error('RPC Error:', rpcError);
+              throw new Error(`Failed to create conversation: ${rpcError.message}`);
+            }
+
+            if (!conversationId) {
+              throw new Error('No conversation ID returned from database');
+            }
+
+            console.log('✅ Conversation created/found successfully with ID:', conversationId);
+            
+            toast({
+              title: "Request accepted!",
+              description: "Conversation is ready in your Messages tab.",
+            });
+          } catch (convError) {
+            console.error('❌ Conversation creation failed:', convError);
+            throw convError;
+          }
+          
+          // Trigger conversation reload with more aggressive approach
+          console.log('🔄 Triggering conversation reload events...');
+          
+          // Multiple reload attempts
+          for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('conversationCreated'));
+              console.log(`Reload attempt ${i + 1}`);
+            }, i * 200);
+          }
         }
       } else {
         toast({
