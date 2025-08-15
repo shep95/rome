@@ -1,18 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video } from 'lucide-react';
 
 interface Message {
   id: string;
   content: string;
   sender_id: string;
   created_at: string;
+  message_type?: 'text' | 'file' | 'image' | 'video';
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
   sender_profile?: {
     username: string;
     display_name: string;
     avatar_url: string;
   };
+}
+
+interface FilePreview {
+  file: File;
+  url: string;
+  type: 'image' | 'video' | 'file';
 }
 
 interface SecureMessagingProps {
@@ -21,11 +34,15 @@ interface SecureMessagingProps {
 
 export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId }) => {
   const { user } = useAuth();
+  const { uploadFile } = useFileUpload();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversationDetails, setConversationDetails] = useState<any>(null);
   const [userWallpaper, setUserWallpaper] = useState<string>('');
+  const [selectedFiles, setSelectedFiles] = useState<FilePreview[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (conversationId && user) {
@@ -142,11 +159,32 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !conversationId || !user) return;
+    if ((!newMessage.trim() && selectedFiles.length === 0) || !conversationId || !user) return;
 
+    setIsUploading(true);
     try {
+      let messageContent = newMessage;
+      let messageType = 'text';
+      let fileUrl = '';
+      let fileName = '';
+      let fileSize = 0;
+
+      // Handle file upload if there are selected files
+      if (selectedFiles.length > 0) {
+        const file = selectedFiles[0].file; // Take first file for now
+        const uploadedUrl = await uploadFile(file, 'secure-files');
+        
+        if (uploadedUrl) {
+          fileUrl = uploadedUrl;
+          fileName = file.name;
+          fileSize = file.size;
+          messageType = selectedFiles[0].type;
+          messageContent = fileName; // Use filename as content for file messages
+        }
+      }
+
       // Simple base64 encoding for demo (use real encryption in production)
-      const encryptedContent = btoa(newMessage);
+      const encryptedContent = btoa(messageContent);
       
       const { error } = await supabase
         .from('messages')
@@ -154,16 +192,60 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           conversation_id: conversationId,
           sender_id: user.id,
           encrypted_content: encryptedContent,
+          message_type: messageType,
           sequence_number: Date.now()
         });
 
       if (error) throw error;
       
       setNewMessage('');
+      setSelectedFiles([]);
       loadMessages();
     } catch (error) {
       console.error('Error sending message:', error);
+    } finally {
+      setIsUploading(false);
     }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const newFiles: FilePreview[] = [];
+    
+    Array.from(files).forEach(file => {
+      // Check file size (300MB limit)
+      if (file.size > 300 * 1024 * 1024) {
+        alert(`File ${file.name} is too large. Maximum size is 300MB.`);
+        return;
+      }
+
+      const url = URL.createObjectURL(file);
+      let type: 'image' | 'video' | 'file' = 'file';
+      
+      if (file.type.startsWith('image/')) {
+        type = 'image';
+      } else if (file.type.startsWith('video/')) {
+        type = 'video';
+      }
+
+      newFiles.push({ file, url, type });
+    });
+
+    setSelectedFiles(prev => [...prev, ...newFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => {
+      const newFiles = [...prev];
+      URL.revokeObjectURL(newFiles[index].url);
+      newFiles.splice(index, 1);
+      return newFiles;
+    });
   };
 
   const scrollToBottom = () => {
@@ -220,82 +302,199 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
             <p>No messages yet. Start the conversation!</p>
           </div>
         ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex items-end gap-2 relative z-10 ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
-            >
-              {/* Avatar for others */}
-              {message.sender_id !== user?.id && (
-                <Avatar className="h-8 w-8 mb-1">
-                  <AvatarImage src={message.sender_profile?.avatar_url} />
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                    {message.sender_profile?.display_name?.[0] || 
-                     message.sender_profile?.username?.[0] || 
-                     'U'}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-              
-              <div className="flex flex-col">
-                {/* Username for others */}
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex items-end gap-2 sm:gap-3 relative z-10 ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+              >
+                {/* Avatar for others */}
                 {message.sender_id !== user?.id && (
-                  <p className="text-xs text-muted-foreground mb-1 px-1">
-                    {message.sender_profile?.display_name || 
-                     message.sender_profile?.username || 
-                     'Unknown User'}
-                  </p>
+                  <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
+                    <AvatarImage src={message.sender_profile?.avatar_url} className="rounded-lg" />
+                    <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-lg">
+                      {message.sender_profile?.display_name?.[0] || 
+                       message.sender_profile?.username?.[0] || 
+                       'U'}
+                    </AvatarFallback>
+                  </Avatar>
                 )}
                 
-                <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.sender_id === user?.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-card/90 backdrop-blur-sm border border-border text-foreground'
-                  }`}
-                >
-                  <p className="text-sm">{message.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {new Date(message.created_at).toLocaleTimeString()}
-                  </p>
+                <div className="flex flex-col max-w-[70%] sm:max-w-xs lg:max-w-md">
+                  {/* Username for others */}
+                  {message.sender_id !== user?.id && (
+                    <p className="text-xs text-muted-foreground mb-1 px-1">
+                      {message.sender_profile?.display_name || 
+                       message.sender_profile?.username || 
+                       'Unknown User'}
+                    </p>
+                  )}
+                  
+                  <div
+                    className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl backdrop-blur-md border ${
+                      message.sender_id === user?.id
+                        ? 'bg-primary/80 text-primary-foreground border-primary/30'
+                        : 'bg-card/70 border-border/30 text-foreground'
+                    } shadow-lg transition-all duration-200 hover:shadow-xl`}
+                  >
+                    {message.message_type === 'image' && message.file_url ? (
+                      <div className="space-y-2">
+                        <img 
+                          src={message.file_url} 
+                          alt={message.content}
+                          className="max-w-full rounded-lg max-h-64 object-cover"
+                        />
+                        {message.content && (
+                          <p className="text-sm">{atob(message.content)}</p>
+                        )}
+                      </div>
+                    ) : message.message_type === 'video' && message.file_url ? (
+                      <div className="space-y-2">
+                        <video 
+                          src={message.file_url}
+                          controls
+                          className="max-w-full rounded-lg max-h-64"
+                        />
+                        {message.content && (
+                          <p className="text-sm">{atob(message.content)}</p>
+                        )}
+                      </div>
+                    ) : message.message_type === 'file' && message.file_url ? (
+                      <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
+                        <File className="h-8 w-8 text-muted-foreground" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{message.file_name || message.content}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'File'}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                    )}
+                    
+                    <p className="text-xs opacity-70 mt-2">
+                      {new Date(message.created_at).toLocaleTimeString()}
+                    </p>
+                  </div>
                 </div>
+                
+                {/* Avatar for current user */}
+                {message.sender_id === user?.id && (
+                  <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
+                    <AvatarImage src={message.sender_profile?.avatar_url} className="rounded-lg" />
+                    <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-lg">
+                      {message.sender_profile?.display_name?.[0] || 
+                       message.sender_profile?.username?.[0] || 
+                       'Y'}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
               </div>
-              
-              {/* Avatar for current user */}
-              {message.sender_id === user?.id && (
-                <Avatar className="h-8 w-8 mb-1">
-                  <AvatarImage src={message.sender_profile?.avatar_url} />
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                    {message.sender_profile?.display_name?.[0] || 
-                     message.sender_profile?.username?.[0] || 
-                     'Y'}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-            </div>
-          ))
+            ))}
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Message Input */}
-      <div className="p-4 border-t border-border bg-card/50">
-        <div className="flex gap-2">
+      <div className="p-3 sm:p-4 border-t border-border bg-card/50 backdrop-blur-xl">
+        {/* File Previews */}
+        {selectedFiles.length > 0 && (
+          <div className="mb-3 flex gap-2 flex-wrap">
+            {selectedFiles.map((filePreview, index) => (
+              <div
+                key={index}
+                className="relative bg-card/80 backdrop-blur-sm border border-border rounded-xl p-2 max-w-24 sm:max-w-32"
+              >
+                <Button
+                  onClick={() => removeFile(index)}
+                  size="sm"
+                  variant="ghost"
+                  className="absolute -top-2 -right-2 h-6 w-6 p-0 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+                
+                {filePreview.type === 'image' ? (
+                  <img
+                    src={filePreview.url}
+                    alt="Preview"
+                    className="w-full h-16 sm:h-20 object-cover rounded-lg"
+                  />
+                ) : filePreview.type === 'video' ? (
+                  <div className="w-full h-16 sm:h-20 bg-muted rounded-lg flex items-center justify-center">
+                    <Video className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="w-full h-16 sm:h-20 bg-muted rounded-lg flex items-center justify-center">
+                    <File className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                )}
+                
+                <p className="text-xs text-center mt-1 truncate">
+                  {filePreview.file.name}
+                </p>
+                <p className="text-xs text-center text-muted-foreground">
+                  {(filePreview.file.size / 1024 / 1024).toFixed(1)} MB
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-2 items-end">
           <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Type a secure message..."
-            className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,video/*,*/*"
+            onChange={handleFileSelect}
+            className="hidden"
           />
-          <button
-            onClick={sendMessage}
-            disabled={!newMessage.trim()}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            size="sm"
+            variant="ghost"
+            className="p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+            disabled={isUploading}
           >
-            Send
-          </button>
+            <Paperclip className="h-4 w-4 text-muted-foreground" />
+          </Button>
+          
+          <div className="flex-1 bg-background/50 backdrop-blur-sm border border-border rounded-xl p-2">
+            <textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder="Type a secure message..."
+              className="w-full bg-transparent resize-none text-foreground placeholder-muted-foreground focus:outline-none text-sm leading-relaxed min-h-[20px] max-h-32"
+              rows={1}
+              style={{ 
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgba(0,0,0,0.3) transparent'
+              }}
+            />
+          </div>
+          
+          <Button
+            onClick={sendMessage}
+            disabled={(!newMessage.trim() && selectedFiles.length === 0) || isUploading}
+            size="sm"
+            className="p-2 h-auto flex-shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
+          >
+            {isUploading ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
     </div>
