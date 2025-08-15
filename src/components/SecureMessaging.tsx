@@ -190,7 +190,10 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           fileName = file.name;
           fileSize = file.size;
           messageType = 'file'; // Use 'file' for all file types as per database constraint
-          messageContent = fileName; // Use filename as content for file messages
+          // Keep the original message content if user typed something, otherwise use filename
+          if (!newMessage.trim()) {
+            messageContent = fileName;
+          }
         }
       }
 
@@ -400,13 +403,14 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                       {message.file_url ? (
                         <div className="space-y-2">
                           {/* Check if it's an image file */}
-                          {message.file_name && (message.file_name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) ? (
+                          {message.file_name && (message.file_name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) ? (
                             <img 
                               src={message.file_url} 
                               alt={message.file_name}
-                              className="max-w-full rounded-lg max-h-64 object-cover"
+                              className="max-w-full rounded-lg max-h-64 object-cover cursor-pointer"
+                              onClick={() => window.open(message.file_url, '_blank')}
                             />
-                          ) : message.file_name && (message.file_name.match(/\.(mp4|webm|ogg|avi|mov)$/i)) ? (
+                          ) : message.file_name && (message.file_name.toLowerCase().match(/\.(mp4|webm|ogg|avi|mov)$/i)) ? (
                             <video 
                               src={message.file_url}
                               controls
@@ -416,15 +420,16 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                             <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
                               <File className="h-8 w-8 text-muted-foreground" />
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{message.file_name || message.content}</p>
+                                <p className="text-sm font-medium truncate">{message.file_name || 'Unknown file'}</p>
                                 <p className="text-xs text-muted-foreground">
                                   {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'File'}
                                 </p>
                               </div>
                             </div>
                           )}
-                          {message.content && message.content !== message.file_name && (
-                            <p className="text-sm">{message.content}</p>
+                          {/* Always show the message content if it exists and is different from filename */}
+                          {message.content && message.content.trim() && message.content !== message.file_name && (
+                            <p className="text-sm leading-relaxed break-words">{message.content}</p>
                           )}
                         </div>
                       ) : (
