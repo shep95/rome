@@ -317,10 +317,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                 <img 
                   src={profileImage} 
                   alt="Profile" 
-                  className="w-8 h-8 lg:w-10 lg:h-10 object-cover rounded-lg border border-border"
+                  className="w-8 h-8 lg:w-10 lg:h-10 object-cover rounded-xl border border-border"
                 />
               ) : (
-                <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-sm">
+                <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-primary-foreground font-medium text-sm">
                   {getUserInitial()}
                 </div>
               )}
@@ -344,9 +344,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           
           <div className="space-y-6">
             <div className="flex flex-col items-center space-y-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={profileImage || ''} />
-                <AvatarFallback className="text-2xl">
+              <Avatar className="h-20 w-20 rounded-xl border border-border">
+                <AvatarImage src={profileImage || ''} className="rounded-xl object-cover" />
+                <AvatarFallback className="text-2xl rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground">
                   {getUserInitial()}
                 </AvatarFallback>
               </Avatar>

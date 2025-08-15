@@ -120,7 +120,53 @@ export const useFileUpload = () => {
     }
   };
 
+  const uploadFile = async (file: File, bucketName: string = 'secure-files'): Promise<string | null> => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to upload files"
+      });
+      return null;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}_${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(fileName);
+
+      toast({
+        title: "Success",
+        description: "File uploaded successfully"
+      });
+
+      return publicUrl;
+    } catch (error: any) {
+      console.error('File upload error:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: error.message
+      });
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return {
+    uploadFile,
     uploadAvatar,
     uploadWallpaper,
     isUploading
