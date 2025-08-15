@@ -46,6 +46,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const [hasLoadedMessages, setHasLoadedMessages] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [vhSet, setVhSet] = useState(false);
 
   useEffect(() => {
     if (conversationId && user) {
@@ -67,6 +68,27 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Stable viewport height on mobile to avoid growth on focus/return
+  useEffect(() => {
+    const setVh = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--app-vh', `${vh}px`);
+      setVhSet(true);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+    window.addEventListener('orientationchange', setVh);
+    // Use visualViewport when available for more accurate height on mobile
+    const vv = (window as any).visualViewport as VisualViewport | undefined;
+    const onVvResize = () => setVh();
+    vv?.addEventListener?.('resize', onVvResize);
+    return () => {
+      window.removeEventListener('resize', setVh);
+      window.removeEventListener('orientationchange', setVh);
+      vv?.removeEventListener?.('resize', onVvResize as any);
+    };
+  }, []);
 
   const loadConversationDetails = async () => {
     if (!conversationId) return;
@@ -407,7 +429,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden md:mt-0 mt-0 h-full md:h-auto min-h-screen md:min-h-0">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden md:mt-0 mt-0 h-full md:h-auto md:min-h-0" style={{ height: 'calc(var(--app-vh) * 100)' }}>
       {/* Chat Header - floating on mobile with back button */}
       <div className="p-4 border-b border-border bg-card/50 md:relative fixed top-0 left-0 right-0 z-50 md:rounded-none rounded-b-3xl md:backdrop-blur-none backdrop-blur-xl">
         <div className="flex items-center gap-3">
@@ -433,7 +455,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-4 space-y-4 relative custom-scrollbar md:max-h-[calc(100vh-200px)] max-h-[calc(100vh-180px)] md:mt-0 mt-20 md:mb-0 mb-24"
+        className="flex-1 overflow-y-auto p-4 space-y-4 relative custom-scrollbar md:mt-0 mt-20 md:mb-0 mb-24"
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',
@@ -623,7 +645,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       </div>
 
       {/* Message Input - floating on mobile */}
-      <div className="p-3 sm:p-4 border-t border-border bg-card/50 backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:rounded-none rounded-t-3xl md:w-auto w-full">
+      <div className="p-3 sm:p-4 border-t border-border bg-card/50 backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:rounded-none rounded-t-3xl md:w-auto w-full min-h-16">
         {/* File Previews */}
         {selectedFiles.length > 0 && (
           <div className="mb-3 flex gap-2 flex-wrap">
