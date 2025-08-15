@@ -55,6 +55,39 @@ export const GroupChatCreation = ({ isOpen, onClose, onGroupCreated }: GroupChat
       
       console.log('Creating group chat for user:', user.id);
 
+      // Upload avatar if provided
+      let avatarUrl = null;
+      if (groupAvatar) {
+        try {
+          const fileExt = groupAvatar.name.split('.').pop();
+          const fileName = `group-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          const filePath = `${user.id}/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, groupAvatar);
+
+          if (uploadError) {
+            console.error('Avatar upload error:', uploadError);
+            throw uploadError;
+          }
+
+          const { data } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+          avatarUrl = data.publicUrl;
+          console.log('Avatar uploaded successfully:', avatarUrl);
+        } catch (uploadError) {
+          console.error('Failed to upload avatar:', uploadError);
+          toast({
+            title: "Warning",
+            description: "Group created but avatar upload failed",
+            variant: "destructive"
+          });
+        }
+      }
+
       // Create conversation via RPC to bypass RLS safely
       const interval = settings.autoDeleteEnabled ? (
         settings.autoDeleteInterval === '1day' ? '1 day' :
@@ -74,6 +107,20 @@ export const GroupChatCreation = ({ isOpen, onClose, onGroupCreated }: GroupChat
       });
 
       if (rpcError) throw rpcError;
+
+      // Update conversation with avatar URL if we have one
+      if (avatarUrl && convId) {
+        const { error: updateError } = await supabase
+          .from('conversations')
+          .update({ avatar_url: avatarUrl })
+          .eq('id', convId);
+
+        if (updateError) {
+          console.error('Failed to update avatar URL:', updateError);
+        } else {
+          console.log('Avatar URL updated successfully');
+        }
+      }
 
       toast({
         title: "Group chat created!",
