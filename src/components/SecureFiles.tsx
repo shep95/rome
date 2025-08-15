@@ -195,56 +195,172 @@ export const SecureFiles: React.FC = () => {
     setAccessCode('');
   };
 
+  const createTextScreenshot = (content: string, filename: string) => {
+    // Create a styled HTML document for the text content
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>${filename}</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+              max-width: 800px;
+              margin: 40px auto;
+              padding: 40px;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              min-height: 100vh;
+              box-sizing: border-box;
+            }
+            .container {
+              background: white;
+              border-radius: 16px;
+              padding: 40px;
+              box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            }
+            .header {
+              border-bottom: 2px solid #f0f0f0;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .title {
+              color: #2d3748;
+              font-size: 24px;
+              font-weight: 600;
+              margin: 0;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            }
+            .shield-icon {
+              width: 24px;
+              height: 24px;
+              background: linear-gradient(135deg, #667eea, #764ba2);
+              border-radius: 6px;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-weight: bold;
+            }
+            .subtitle {
+              color: #718096;
+              font-size: 14px;
+              margin: 8px 0 0 36px;
+            }
+            .content {
+              color: #2d3748;
+              font-size: 16px;
+              line-height: 1.6;
+              white-space: pre-wrap;
+              word-wrap: break-word;
+            }
+            .footer {
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 2px solid #f0f0f0;
+              color: #718096;
+              font-size: 14px;
+              text-align: center;
+            }
+            .encrypted-badge {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              background: #f7fafc;
+              color: #4a5568;
+              padding: 4px 12px;
+              border-radius: 20px;
+              font-size: 12px;
+              font-weight: 500;
+              margin-top: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 class="title">
+                <span class="shield-icon">🛡</span>
+                ${filename}
+              </h1>
+              <p class="subtitle">Secure File Content</p>
+              <div class="encrypted-badge">
+                🔒 Encrypted Content
+              </div>
+            </div>
+            <div class="content">${content}</div>
+            <div class="footer">
+              Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}<br>
+              This is a secure document from your encrypted storage.
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    
+    return htmlContent;
+  };
+
   const verifyAccessAndDownload = async () => {
     if (!selectedFileForAccess || !accessCode) return;
 
-    // Simple 4-digit code verification (you can enhance this with proper encryption)
-    if (accessCode.length !== 4 || !/^\d{4}$/.test(accessCode)) {
-      toast.error('Please enter a valid 4-digit code');
+    // Get the user's actual security code from Supabase auth
+    const { data: { user } } = await supabase.auth.getUser();
+    const userSecurityCode = user?.user_metadata?.security_code;
+    
+    if (accessCode !== userSecurityCode) {
+      toast.error('Incorrect security code');
       return;
     }
 
-    // For demo purposes, accept any 4-digit code
-    // In production, you'd want proper authentication
     setAccessLoading(true);
     
     try {
-      // Simulate verification delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       const file = selectedFileForAccess;
       
-      // Handle text content
+      // Handle text content - create a formatted "screenshot"
       if (file.content_type === 'text/plain') {
         const content = atob(file.encrypted_key); // Decode base64
-        const blob = new Blob([content], { type: 'text/plain' });
+        
+        // Create formatted HTML document
+        const htmlContent = createTextScreenshot(content, file.filename);
+        const blob = new Blob([htmlContent], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${file.filename}.txt`;
+        a.download = `${file.filename}_secure_document.html`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        
+        toast.success('Text content downloaded as formatted document');
       } else {
-        // Handle actual files
+        // Handle actual files (images, documents, etc.) - download directly
         const { data, error } = await supabase.storage
           .from('secure-files')
           .download(file.file_path);
 
         if (error) throw error;
 
+        // Get file extension from the original file path
+        const fileExtension = file.file_path.split('.').pop() || '';
+        const downloadName = fileExtension ? `${file.filename}.${fileExtension}` : file.filename;
+
         const url = URL.createObjectURL(data);
         const a = document.createElement('a');
         a.href = url;
-        a.download = file.filename || 'download';
+        a.download = downloadName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        
+        toast.success('File downloaded successfully');
       }
 
-      toast.success('File accessed successfully');
       setIsAccessModalOpen(false);
       setSelectedFileForAccess(null);
       setAccessCode('');
@@ -334,18 +450,18 @@ export const SecureFiles: React.FC = () => {
             files.map((file) => (
               <Card 
                 key={file.id} 
-                className="bg-card/50 border-border hover:shadow-lg transition-all cursor-pointer h-fit"
+                className="bg-card/50 border-border hover:shadow-lg transition-all cursor-pointer h-[280px] flex flex-col"
                 onClick={() => handleFileAccess(file)}
               >
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center space-y-4">
+                <CardContent className="p-6 flex flex-col h-full">
+                  <div className="flex flex-col items-center text-center space-y-4 flex-1">
                     {/* File Icon */}
                     <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-primary-foreground flex-shrink-0">
                       {getFileIcon(file.content_type)}
                     </div>
                     
                     {/* File Info */}
-                    <div className="space-y-2 w-full">
+                    <div className="space-y-2 w-full flex-1">
                       <h4 className="text-foreground font-medium text-sm truncate w-full max-w-full">
                         {file.filename}
                       </h4>
