@@ -4,7 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface Message {
   id: string;
@@ -265,6 +266,22 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     });
   };
 
+  const deleteMessage = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) throw error;
+      
+      // Reload messages to reflect the deletion
+      loadMessages();
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -368,52 +385,82 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                     </p>
                   )}
                   
-                  <div
-                    className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl backdrop-blur-md border ${
-                      message.sender_id === user?.id
-                        ? 'bg-primary/80 text-primary-foreground border-primary/30'
-                        : 'bg-card/70 border-border/30 text-foreground'
-                    } shadow-lg transition-all duration-200 hover:shadow-xl`}
-                  >
-                    {message.message_type === 'image' && message.file_url ? (
-                      <div className="space-y-2">
-                        <img 
-                          src={message.file_url} 
-                          alt={message.content}
-                          className="max-w-full rounded-lg max-h-64 object-cover"
-                        />
-                        {message.content && (
-                          <p className="text-sm">{atob(message.content)}</p>
-                        )}
-                      </div>
-                    ) : message.message_type === 'video' && message.file_url ? (
-                      <div className="space-y-2">
-                        <video 
-                          src={message.file_url}
-                          controls
-                          className="max-w-full rounded-lg max-h-64"
-                        />
-                        {message.content && (
-                          <p className="text-sm">{atob(message.content)}</p>
-                        )}
-                      </div>
-                    ) : message.message_type === 'file' && message.file_url ? (
-                      <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
-                        <File className="h-8 w-8 text-muted-foreground" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{message.file_name || message.content}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'File'}
-                          </p>
+                  <div className="relative group">
+                    <div
+                      className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl backdrop-blur-xl border-2 ${
+                        message.sender_id === user?.id
+                          ? 'bg-primary/20 text-primary-foreground border-primary/20 shadow-primary/10'
+                          : 'bg-card/10 border-border/20 text-foreground shadow-card/10'
+                      } shadow-xl transition-all duration-300 hover:shadow-2xl hover:backdrop-blur-2xl group-hover:border-primary/40`}
+                      style={{
+                        backdropFilter: 'blur(20px) saturate(150%)',
+                        WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+                      }}
+                    >
+                      {message.message_type === 'image' && message.file_url ? (
+                        <div className="space-y-2">
+                          <img 
+                            src={message.file_url} 
+                            alt={message.content}
+                            className="max-w-full rounded-lg max-h-64 object-cover"
+                          />
+                          {message.content && (
+                            <p className="text-sm">{atob(message.content)}</p>
+                          )}
                         </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
-                    )}
+                      ) : message.message_type === 'video' && message.file_url ? (
+                        <div className="space-y-2">
+                          <video 
+                            src={message.file_url}
+                            controls
+                            className="max-w-full rounded-lg max-h-64"
+                          />
+                          {message.content && (
+                            <p className="text-sm">{atob(message.content)}</p>
+                          )}
+                        </div>
+                      ) : message.message_type === 'file' && message.file_url ? (
+                        <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
+                          <File className="h-8 w-8 text-muted-foreground" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{message.file_name || message.content}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'File'}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                      )}
+                      
+                      <p className="text-xs opacity-70 mt-2">
+                        {new Date(message.created_at).toLocaleTimeString()}
+                      </p>
+                    </div>
                     
-                    <p className="text-xs opacity-70 mt-2">
-                      {new Date(message.created_at).toLocaleTimeString()}
-                    </p>
+                    {/* Delete message dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-6 w-6 p-0 rounded-full backdrop-blur-sm border border-border/30 hover:bg-background/40 ${
+                            message.sender_id === user?.id ? 'right-1' : 'left-1'
+                          }`}
+                        >
+                          <MoreVertical className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="backdrop-blur-xl bg-card/80 border-border/30">
+                        <DropdownMenuItem
+                          onClick={() => deleteMessage(message.id)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Message
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
                 
