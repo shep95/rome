@@ -464,6 +464,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_direct_conversation: {
+        Args: { _name: string; _other_user_id: string }
+        Returns: string
+      }
       user_is_conversation_participant: {
         Args: { conversation_id: string; user_id: string }
         Returns: boolean

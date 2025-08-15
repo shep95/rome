@@ -1,33 +1,99 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from './useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export const useScreenshotProtection = (enabled: boolean = true) => {
-  useEffect(() => {
-    if (!enabled) return;
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [protectionActive, setProtectionActive] = useState(false);
 
-    // Mobile-specific screenshot protection
-    const preventMobileScreenshot = () => {
-      // Create overlay to block screenshots on mobile
-      const overlay = document.createElement('div');
-      overlay.style.cssText = `
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        background: transparent !important;
-        pointer-events: none !important;
-        z-index: 999999 !important;
-        -webkit-user-select: none !important;
-        -webkit-touch-callout: none !important;
-      `;
-      overlay.setAttribute('data-screenshot-protection', 'true');
-      document.body.appendChild(overlay);
+  useEffect(() => {
+    if (!enabled || typeof window === 'undefined') return;
+
+    let style: HTMLStyleElement;
+    let cleanupFunctions: Array<() => void> = [];
+
+    // Check if current user has screenshot protection enabled
+    const checkUserScreenshotSettings = async () => {
+      if (!user) return false;
       
-      return overlay;
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('screenshot_protection_enabled')
+          .eq('id', user.id)
+          .single();
+        
+        return profile?.screenshot_protection_enabled === true;
+      } catch (error) {
+        console.error('Error checking screenshot settings:', error);
+        return false;
+      }
+    };
+
+    // Check if any participant in conversations has screenshot protection
+    const checkConversationProtection = async () => {
+      if (!user) return false;
+      
+      try {
+        // Get all conversations the user is part of
+        const { data: userConversations } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .eq('user_id', user.id)
+          .is('left_at', null);
+
+        if (!userConversations || userConversations.length === 0) return false;
+
+        // Get all participant user IDs from these conversations
+        const conversationIds = userConversations.map(c => c.conversation_id);
+        
+        const { data: allParticipants } = await supabase
+          .from('conversation_participants')
+          .select('user_id')
+          .in('conversation_id', conversationIds)
+          .is('left_at', null);
+
+        if (!allParticipants) return false;
+
+        // Check if any of these users has screenshot protection enabled
+        const userIds = [...new Set(allParticipants.map(p => p.user_id))];
+        
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('screenshot_protection_enabled')
+          .in('id', userIds);
+
+        // Return true if ANY participant has protection enabled
+        return profiles?.some(p => p.screenshot_protection_enabled) || false;
+      } catch (error) {
+        console.error('Error checking conversation protection:', error);
+        return false;
+      }
+    };
+
+    const initializeProtection = async () => {
+      const userHasProtection = await checkUserScreenshotSettings();
+      const conversationHasProtection = await checkConversationProtection();
+      
+      const shouldProtect = userHasProtection || conversationHasProtection;
+      setProtectionActive(shouldProtect);
+      
+      if (shouldProtect) {
+        console.log('Screenshot protection activated for user or conversations');
+        toast({
+          title: "Security Active",
+          description: "Screenshot protection is enabled for this conversation.",
+        });
+        return true;
+      }
+      return false;
     };
 
     // Comprehensive screenshot prevention for all platforms
     const preventScreenshot = (e: Event) => {
+      if (!protectionActive) return;
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -36,14 +102,22 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
 
     // Enhanced right-click prevention
     const preventContextMenu = (e: MouseEvent) => {
+      if (!protectionActive) return;
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
+      toast({
+        title: "Action Blocked",
+        description: "Right-click disabled for security.",
+        variant: "destructive",
+      });
       return false;
     };
 
     // Enhanced key combination blocking (but allow normal typing)
     const preventKeys = (e: KeyboardEvent) => {
+      if (!protectionActive) return;
+      
       // Allow normal typing in input fields
       const target = e.target as HTMLElement;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true')) {
@@ -52,13 +126,17 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
           e.key === 'F12' ||
           e.key === 'PrintScreen' ||
           (e.metaKey && e.shiftKey && (e.key === '3' || e.key === '4' || e.key === '5' || e.key === '6')) ||
-          (e.key === 'PrintScreen') ||
           (e.altKey && e.key === 'PrintScreen') ||
           (e.ctrlKey && e.key === 'PrintScreen')
         ) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
+          toast({
+            title: "Screenshot Blocked",
+            description: "Screenshots are disabled for privacy protection.",
+            variant: "destructive",
+          });
           return false;
         }
         return; // Allow normal typing in form fields
@@ -86,33 +164,19 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
+        toast({
+          title: "Screenshot Blocked",
+          description: "Screenshots are disabled for privacy protection.",
+          variant: "destructive",
+        });
         return false;
       }
     };
 
-    // Enhanced drag and drop prevention
-    const preventDragDrop = (e: DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      return false;
-    };
-
-    // Enhanced text selection prevention (but allow in form fields)
-    const preventSelection = (e: Event) => {
-      const target = e.target as HTMLElement;
-      // Allow selection in input fields and textareas
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true')) {
-        return;
-      }
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      return false;
-    };
-
     // Touch event prevention for mobile screenshots (but allow form interaction)
     const preventTouchScreenshot = (e: TouchEvent) => {
+      if (!protectionActive) return;
+      
       const target = e.target as HTMLElement;
       // Allow normal touch interaction with form elements
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.contentEditable === 'true')) {
@@ -127,210 +191,130 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       }
     };
 
-    // Prevent copy operations (but allow in form fields)
-    const preventCopy = (e: ClipboardEvent) => {
-      const target = e.target as HTMLElement;
-      // Allow copy/paste in input fields and textareas
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true')) {
-        return;
-      }
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      return false;
-    };
-
-    // Create mobile overlay for screenshot protection
-    const mobileOverlay = preventMobileScreenshot();
-
-    // Enhanced CSS protection for all devices
-    const style = document.createElement('style');
-    style.textContent = `
-      * {
-        -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        -ms-user-select: none !important;
-        user-select: none !important;
-        -webkit-touch-callout: none !important;
-        -webkit-tap-highlight-color: transparent !important;
-        -webkit-appearance: none !important;
-      }
-      
-      body {
-        -webkit-app-region: no-drag !important;
-        -webkit-user-drag: none !important;
-        -khtml-user-drag: none !important;
-        -moz-user-drag: none !important;
-        -o-user-drag: none !important;
-        user-drag: none !important;
-      }
-      
-      /* Enhanced mobile protection - but allow input */
-      @media screen and (max-width: 768px) {
-        body {
-          -webkit-touch-callout: none !important;
-          touch-action: manipulation !important;
-        }
-        
-        input, textarea, [contenteditable] {
-          -webkit-touch-callout: auto !important;
-          -webkit-user-select: text !important;
-          touch-action: auto !important;
-          pointer-events: auto !important;
-        }
-        
-        *:not(input):not(textarea):not([contenteditable]) {
-          -webkit-touch-callout: none !important;
+    // Initialize protection check
+    const initProtection = async () => {
+      const shouldProtect = await initializeProtection();
+      if (!shouldProtect) return;
+    
+      // Add protection styles
+      style = document.createElement('style');
+      style.textContent = `
+        * {
           -webkit-user-select: none !important;
+          -moz-user-select: none !important;
+          -ms-user-select: none !important;
+          user-select: none !important;
+          -webkit-touch-callout: none !important;
+          -webkit-tap-highlight-color: transparent !important;
+        }
+        
+        body {
+          -webkit-app-region: no-drag !important;
+          -webkit-user-drag: none !important;
+          -khtml-user-drag: none !important;
+          -moz-user-drag: none !important;
+          -o-user-drag: none !important;
+          user-drag: none !important;
+        }
+        
+        /* Allow normal interaction with form elements */
+        input, textarea, select, button, [contenteditable] {
+          -webkit-user-select: text !important;
+          -moz-user-select: text !important;
+          user-select: text !important;
           pointer-events: auto !important;
+          -webkit-touch-callout: auto !important;
         }
-      }
-      
-      /* Hide content when screenshot is detected */
-      @media print {
-        body { display: none !important; }
-        * { display: none !important; }
-      }
-      
-      /* Protection against screenshot apps */
-      body::after {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: transparent;
-        pointer-events: none;
-        z-index: 999998;
-        -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        user-select: none !important;
-      }
-      
-      /* Advanced mobile screenshot protection */
-      @supports (-webkit-backdrop-filter: blur(10px)) {
-        body.screenshot-attempt {
-          -webkit-backdrop-filter: blur(50px) !important;
-          backdrop-filter: blur(50px) !important;
+        
+        /* Hide content when screenshot is detected */
+        @media print {
+          body { display: none !important; }
+          * { display: none !important; }
         }
-      }
-      
-      /* Disable image saving but allow form inputs */
-      img {
-        -webkit-user-drag: none !important;
-        -khtml-user-drag: none !important;
-        -moz-user-drag: none !important;
-        -o-user-drag: none !important;
-        user-drag: none !important;
-        pointer-events: none !important;
-      }
-      
-      /* Allow normal interaction with form elements */
-      input, textarea, select, button, [contenteditable] {
-        -webkit-user-select: text !important;
-        -moz-user-select: text !important;
-        user-select: text !important;
-        pointer-events: auto !important;
-        -webkit-touch-callout: auto !important;
-      }
-    `;
-    document.head.appendChild(style);
+        
+        /* Disable image saving */
+        img {
+          -webkit-user-drag: none !important;
+          -khtml-user-drag: none !important;
+          -moz-user-drag: none !important;
+          -o-user-drag: none !important;
+          user-drag: none !important;
+          pointer-events: none !important;
+        }
+      `;
+      document.head.appendChild(style);
 
-    // Mobile-specific screenshot detection
-    const detectMobileScreenshot = () => {
-      // Detect app state changes (screenshot trigger on iOS/Android)
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-          document.body.classList.add('screenshot-attempt');
-        } else {
-          setTimeout(() => {
-            document.body.classList.remove('screenshot-attempt');
-          }, 1000);
-        }
-      });
+      // Mobile-specific screenshot detection
+      const detectMobileScreenshot = () => {
+        // Detect app state changes (screenshot trigger on iOS/Android)
+        const handleVisibilityChange = () => {
+          if (document.hidden) {
+            document.body.style.filter = 'blur(20px)';
+          } else {
+            setTimeout(() => {
+              document.body.style.filter = 'none';
+            }, 1000);
+          }
+        };
+        
+        // Detect focus loss (potential screenshot)
+        const handleBlur = () => {
+          document.body.style.filter = 'blur(20px)';
+        };
+        
+        const handleFocus = () => {
+          document.body.style.filter = 'none';
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('blur', handleBlur);
+        window.addEventListener('focus', handleFocus);
+
+        cleanupFunctions.push(() => {
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+          window.removeEventListener('blur', handleBlur);
+          window.removeEventListener('focus', handleFocus);
+        });
+      };
+
+      // Initialize mobile detection
+      detectMobileScreenshot();
+
+      // Enhanced event listeners with capture phase
+      const eventOptions = { capture: true, passive: false };
       
-      // Detect focus loss (potential screenshot)
-      window.addEventListener('blur', () => {
-        document.body.style.filter = 'blur(20px)';
-      });
-      
-      window.addEventListener('focus', () => {
-        document.body.style.filter = 'none';
+      document.addEventListener('contextmenu', preventContextMenu, eventOptions);
+      document.addEventListener('keydown', preventKeys, eventOptions);
+      document.addEventListener('keyup', preventKeys, eventOptions);
+      document.addEventListener('touchstart', preventTouchScreenshot, eventOptions);
+      document.addEventListener('touchend', preventTouchScreenshot, eventOptions);
+      document.addEventListener('touchmove', preventTouchScreenshot, eventOptions);
+
+      cleanupFunctions.push(() => {
+        document.removeEventListener('contextmenu', preventContextMenu);
+        document.removeEventListener('keydown', preventKeys);
+        document.removeEventListener('keyup', preventKeys);
+        document.removeEventListener('touchstart', preventTouchScreenshot);
+        document.removeEventListener('touchend', preventTouchScreenshot);
+        document.removeEventListener('touchmove', preventTouchScreenshot);
       });
     };
-
-    // Initialize mobile detection
-    detectMobileScreenshot();
-
-    // Enhanced event listeners with capture phase
-    const eventOptions = { capture: true, passive: false };
     
-    document.addEventListener('contextmenu', preventContextMenu, eventOptions);
-    document.addEventListener('keydown', preventKeys, eventOptions);
-    document.addEventListener('keyup', preventKeys, eventOptions);
-    document.addEventListener('dragstart', preventDragDrop, eventOptions);
-    document.addEventListener('drop', preventDragDrop, eventOptions);
-    document.addEventListener('selectstart', preventSelection, eventOptions);
-    document.addEventListener('copy', preventCopy, eventOptions);
-    document.addEventListener('cut', preventCopy, eventOptions);
-    document.addEventListener('paste', preventCopy, eventOptions);
-    
-    // Enhanced mobile touch protection
-    document.addEventListener('touchstart', preventTouchScreenshot, eventOptions);
-    document.addEventListener('touchend', preventTouchScreenshot, eventOptions);
-    document.addEventListener('touchmove', preventTouchScreenshot, eventOptions);
-    
-    // Prevent screenshot via gesture/hardware buttons
-    document.addEventListener('gesturestart', preventScreenshot, eventOptions);
-    document.addEventListener('gesturechange', preventScreenshot, eventOptions);
-    document.addEventListener('gestureend', preventScreenshot, eventOptions);
-    
-    // Detect if developer tools are open
-    let devtools = { open: false, orientation: null };
-    setInterval(() => {
-      if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
-        if (!devtools.open) {
-          devtools.open = true;
-          console.clear();
-          console.log('%cSecurity Alert!', 'color: red; font-size: 50px; font-weight: bold;');
-          console.log('%cScreenshots and recordings are disabled for security.', 'color: red; font-size: 20px;');
-        }
-      } else {
-        devtools.open = false;
-      }
-    }, 500);
+    // Initialize protection
+    initProtection();
 
     // Cleanup function
     return () => {
-      // Remove all enhanced event listeners
-      document.removeEventListener('contextmenu', preventContextMenu);
-      document.removeEventListener('keydown', preventKeys);
-      document.removeEventListener('keyup', preventKeys);
-      document.removeEventListener('dragstart', preventDragDrop);
-      document.removeEventListener('drop', preventDragDrop);
-      document.removeEventListener('selectstart', preventSelection);
-      document.removeEventListener('copy', preventCopy);
-      document.removeEventListener('cut', preventCopy);
-      document.removeEventListener('paste', preventCopy);
-      document.removeEventListener('touchstart', preventTouchScreenshot);
-      document.removeEventListener('touchend', preventTouchScreenshot);
-      document.removeEventListener('touchmove', preventTouchScreenshot);
-      document.removeEventListener('gesturestart', preventScreenshot);
-      document.removeEventListener('gesturechange', preventScreenshot);
-      document.removeEventListener('gestureend', preventScreenshot);
+      // Execute all cleanup functions
+      cleanupFunctions.forEach(cleanup => cleanup());
       
-      // Remove style and overlay
-      if (document.head.contains(style)) {
+      // Remove style
+      if (style && document.head.contains(style)) {
         document.head.removeChild(style);
-      }
-      if (mobileOverlay && document.body.contains(mobileOverlay)) {
-        document.body.removeChild(mobileOverlay);
       }
       
       // Clean up body styles
       document.body.style.filter = 'none';
-      document.body.classList.remove('screenshot-attempt');
     };
-  }, [enabled]);
+  }, [enabled, user, protectionActive, toast]);
 };
