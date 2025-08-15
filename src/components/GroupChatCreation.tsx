@@ -43,8 +43,17 @@ export const GroupChatCreation = ({ isOpen, onClose, onGroupCreated }: GroupChat
 
   const createGroupChat = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw new Error('Authentication failed');
+      }
+      if (!user) {
+        console.error('No user found');
+        throw new Error('Not authenticated');
+      }
+      
+      console.log('Creating group chat for user:', user.id);
 
       // Create conversation
       const { data: conversation, error: convError } = await supabase
