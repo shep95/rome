@@ -55,7 +55,7 @@ export const GroupChatCreation = ({ isOpen, onClose, onGroupCreated }: GroupChat
       
       console.log('Creating group chat for user:', user.id);
 
-      // Create conversation
+      // Create conversation - use auth.uid() for RLS compatibility
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
         .insert({
@@ -74,7 +74,7 @@ export const GroupChatCreation = ({ isOpen, onClose, onGroupCreated }: GroupChat
              settings.autoDeleteInterval === '1month' ? '30 days' : null) : null
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (convError) throw convError;
 
