@@ -316,7 +316,7 @@ export const SecureFiles: React.FC = () => {
 
       {/* Files Grid */}
       <ScrollArea className="flex-1 p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {files.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -334,19 +334,19 @@ export const SecureFiles: React.FC = () => {
             files.map((file) => (
               <Card 
                 key={file.id} 
-                className="bg-card/50 border-border hover:shadow-lg transition-all cursor-pointer"
+                className="bg-card/50 border-border hover:shadow-lg transition-all cursor-pointer h-fit"
                 onClick={() => handleFileAccess(file)}
               >
-                <CardContent className="p-4">
-                  <div className="flex flex-col items-center text-center space-y-3">
+                <CardContent className="p-6">
+                  <div className="flex flex-col items-center text-center space-y-4">
                     {/* File Icon */}
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-primary-foreground">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-primary-foreground flex-shrink-0">
                       {getFileIcon(file.content_type)}
                     </div>
                     
                     {/* File Info */}
-                    <div className="space-y-1">
-                      <h4 className="text-foreground font-medium text-sm truncate w-full">
+                    <div className="space-y-2 w-full">
+                      <h4 className="text-foreground font-medium text-sm truncate w-full max-w-full">
                         {file.filename}
                       </h4>
                       <p className="text-xs text-muted-foreground">
@@ -355,15 +355,15 @@ export const SecureFiles: React.FC = () => {
                     </div>
                     
                     {/* Security Badge */}
-                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1 flex-shrink-0">
                       <Lock className="w-3 h-3" />
                       Encrypted
                     </Badge>
                     
                     {/* Date */}
-                    <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                    <div className="flex items-center justify-center space-x-1 text-xs text-muted-foreground flex-shrink-0">
                       <Clock className="w-3 h-3" />
-                      <span>{formatDate(file.created_at)}</span>
+                      <span className="whitespace-nowrap">{formatDate(file.created_at)}</span>
                     </div>
                   </div>
                 </CardContent>
