@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      call_history: {
+        Row: {
+          call_type: string
+          contact_avatar: string | null
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          duration_seconds: number
+          id: string
+          user_id: string
+        }
+        Insert: {
+          call_type: string
+          contact_avatar?: string | null
+          contact_name: string
+          contact_phone: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          user_id: string
+        }
+        Update: {
+          call_type?: string
+          contact_avatar?: string | null
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversation_participants: {
         Row: {
           conversation_id: string

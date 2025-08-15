@@ -180,7 +180,7 @@ export const SecureFiles: React.FC<SecureFilesProps> = ({ isLocked, onUnlock }) 
 
       // For actual files
       const { data, error } = await supabase.storage
-        .from('avatars') // Using existing bucket for now
+        .from('secure-files')
         .download(post.file_path);
 
       if (error) throw error;

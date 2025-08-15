@@ -4,6 +4,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Phone, PhoneIncoming, PhoneOutgoing, PhoneMissed, Video, Clock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CallHistoryProps {
   isOpen: boolean;
@@ -12,72 +14,40 @@ interface CallHistoryProps {
 
 interface CallRecord {
   id: string;
-  contactName: string;
-  contactAvatar?: string;
-  contactPhone: string;
-  type: 'incoming' | 'outgoing' | 'missed' | 'video';
-  duration: string;
-  timestamp: Date;
+  contact_name: string;
+  contact_avatar?: string;
+  contact_phone: string;
+  call_type: 'incoming' | 'outgoing' | 'missed' | 'video';
+  duration_seconds: number;
+  created_at: string;
 }
 
 export const CallHistory = ({ isOpen, onClose }: CallHistoryProps) => {
+  const { user } = useAuth();
   const [callHistory, setCallHistory] = useState<CallRecord[]>([]);
 
   useEffect(() => {
-    // Mock call history data - in real app this would come from database
-    const mockCalls: CallRecord[] = [
-      {
-        id: '1',
-        contactName: 'Alice Johnson',
-        contactPhone: '+1 (555) 123-4567',
-        type: 'incoming',
-        duration: '12:45',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
-      },
-      {
-        id: '2',
-        contactName: 'Bob Smith',
-        contactPhone: '+1 (555) 987-6543',
-        type: 'outgoing',
-        duration: '5:23',
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000) // 4 hours ago
-      },
-      {
-        id: '3',
-        contactName: 'Carol Wilson',
-        contactPhone: '+1 (555) 456-7890',
-        type: 'missed',
-        duration: '0:00',
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000) // 6 hours ago
-      },
-      {
-        id: '4',
-        contactName: 'David Brown',
-        contactPhone: '+1 (555) 321-9876',
-        type: 'video',
-        duration: '23:12',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
-      },
-      {
-        id: '5',
-        contactName: 'Emma Davis',
-        contactPhone: '+1 (555) 654-3210',
-        type: 'incoming',
-        duration: '8:34',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
-      },
-      {
-        id: '6',
-        contactName: 'Frank Miller',
-        contactPhone: '+1 (555) 789-0123',
-        type: 'outgoing',
-        duration: '15:47',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
-      }
-    ];
+    if (user && isOpen) {
+      loadCallHistory();
+    }
+  }, [user, isOpen]);
 
-    setCallHistory(mockCalls.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
-  }, []);
+  const loadCallHistory = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('call_history')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCallHistory((data || []) as CallRecord[]);
+    } catch (error) {
+      console.error('Error loading call history:', error);
+    }
+  };
 
   const getCallIcon = (type: string) => {
     switch (type) {
@@ -109,7 +79,8 @@ export const CallHistory = ({ isOpen, onClose }: CallHistoryProps) => {
     }
   };
 
-  const formatTime = (date: Date) => {
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
     
@@ -135,6 +106,13 @@ export const CallHistory = ({ isOpen, onClose }: CallHistoryProps) => {
         hour12: true
       });
     }
+  };
+
+  const formatDuration = (seconds: number) => {
+    if (seconds === 0) return '0:00';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -168,9 +146,9 @@ export const CallHistory = ({ isOpen, onClose }: CallHistoryProps) => {
                 >
                   {/* Avatar */}
                   <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
-                    <AvatarImage src={call.contactAvatar} />
+                    <AvatarImage src={call.contact_avatar} />
                     <AvatarFallback className="bg-primary/20 text-primary">
-                      {call.contactName.split(' ').map(n => n[0]).join('')}
+                      {call.contact_name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
 
@@ -178,21 +156,21 @@ export const CallHistory = ({ isOpen, onClose }: CallHistoryProps) => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-medium text-foreground text-sm sm:text-base truncate">
-                        {call.contactName}
+                        {call.contact_name}
                       </h3>
-                      {getCallIcon(call.type)}
+                      {getCallIcon(call.call_type)}
                     </div>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                      {call.contactPhone}
+                      {call.contact_phone}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                        {getCallTypeLabel(call.type)}
+                        {getCallTypeLabel(call.call_type)}
                       </Badge>
-                      {call.duration !== '0:00' && (
+                      {call.duration_seconds > 0 && (
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Clock className="w-3 h-3" />
-                          {call.duration}
+                          {formatDuration(call.duration_seconds)}
                         </div>
                       )}
                     </div>
@@ -201,7 +179,7 @@ export const CallHistory = ({ isOpen, onClose }: CallHistoryProps) => {
                   {/* Timestamp */}
                   <div className="text-right">
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      {formatTime(call.timestamp)}
+                      {formatTime(call.created_at)}
                     </p>
                   </div>
                 </div>
