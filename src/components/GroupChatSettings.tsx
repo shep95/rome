@@ -334,9 +334,9 @@ export const GroupChatSettings: React.FC<GroupChatSettingsProps> = ({
           <div className="space-y-4">
             <Label className="text-sm font-medium">Group Avatar</Label>
             <div className="flex items-center space-x-4">
-              <Avatar className="h-20 w-20 border-2 border-white/20">
-                <AvatarImage src={avatarPreview} />
-                <AvatarFallback className="bg-primary/20 text-lg">
+              <Avatar className="h-20 w-20 border-2 border-white/20 rounded-lg">
+                <AvatarImage src={avatarPreview} className="rounded-lg" />
+                <AvatarFallback className="bg-primary/20 text-lg rounded-lg">
                   {name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
