@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface Message {
@@ -31,9 +31,10 @@ interface FilePreview {
 
 interface SecureMessagingProps {
   conversationId?: string;
+  onBackToMessages?: () => void;
 }
 
-export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId }) => {
+export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId, onBackToMessages }) => {
   const { user } = useAuth();
   const { uploadFile } = useFileUpload();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -407,12 +408,27 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
   return (
     <div className="flex-1 flex flex-col bg-background overflow-hidden md:mt-0 mt-0">
-      {/* Chat Header - floating on mobile */}
+      {/* Chat Header - floating on mobile with back button */}
       <div className="p-4 border-b border-border bg-card/50 md:relative fixed top-0 left-0 right-0 z-50 md:rounded-none rounded-b-3xl md:backdrop-blur-none backdrop-blur-xl">
-        <h3 className="font-semibold text-foreground">
-          {conversationDetails?.name || 'Secure Chat'}
-        </h3>
-        <p className="text-sm text-muted-foreground">End-to-end encrypted</p>
+        <div className="flex items-center gap-3">
+          {/* Back button for mobile */}
+          {onBackToMessages && (
+            <Button
+              onClick={onBackToMessages}
+              variant="ghost"
+              size="sm"
+              className="md:hidden p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground">
+              {conversationDetails?.name || 'Secure Chat'}
+            </h3>
+            <p className="text-sm text-muted-foreground">End-to-end encrypted</p>
+          </div>
+        </div>
       </div>
 
       {/* Messages */}

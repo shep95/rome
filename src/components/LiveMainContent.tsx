@@ -91,10 +91,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     };
   }, [user]);
 
-  // App lock when switching tabs - REMOVED
-  // This was causing the 4-digit code prompt for all tabs
-  // Now only secure files will require the code
-
   const setupRealtimeSubscriptions = () => {
     const channel = supabase
       .channel('live-conversations')
@@ -239,7 +235,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     setIsGroupCreationOpen(true);
   };
 
-
   if (activeSection !== 'messages') {
     if (activeSection === 'why-us') {
       return (
@@ -334,309 +329,155 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     );
   }
 
-  if (selectedConversation) {
-    return (
-      <div className="flex flex-col md:flex-row bg-background min-h-screen">
-        {/* Left Panel - Message Categories */}
-        <div className="w-full md:w-80 lg:w-96 bg-card/80 backdrop-blur-xl border-b md:border-r md:border-b-0 border-border flex flex-col">
-          {/* Tab Navigation */}
-          <div className="p-4 border-b border-border flex-shrink-0">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-foreground font-semibold">
-                {selectedTab === 'conversations' ? 'Direct Messages' : 
-                 selectedTab === 'groups' ? 'Group Chats' : 'Secure Files'}
-              </h3>
+  return (
+    <div className="flex h-screen">
+      {/* Left Panel - Hidden on mobile when conversation is selected */}
+      <div className={`${selectedConversation ? 'hidden md:block' : 'block'} w-full md:w-96 border-r border-border flex flex-col`}>
+        {/* Tab Navigation */}
+        <div className="p-4 border-b border-border flex-shrink-0">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-foreground font-semibold">
+              {selectedTab === 'conversations' ? 'Direct Messages' : 'Group Chats'}
+            </h3>
+            <div className="flex items-center space-x-2">
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => setSelectedConversation(null)}
+                onClick={selectedTab === 'conversations' ? handleNewMessage : handleNewGroup}
                 className="text-muted-foreground"
               >
-                ← Back
+                <Plus className="w-4 h-4" />
               </Button>
             </div>
-            <div className="flex space-x-1 bg-card rounded-lg p-1 border border-border">
-              <button
-                onClick={() => handleTabChange('conversations')}
-                className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
-                  selectedTab === 'conversations'
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'text-foreground hover:text-primary hover:bg-primary/10'
-                }`}
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">Chats</span>
-              </button>
-              <button
-                onClick={() => handleTabChange('groups')}
-                className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
-                  selectedTab === 'groups'
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'text-foreground hover:text-primary hover:bg-primary/10'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Groups</span>
-              </button>
-            </div>
           </div>
-          
-          {/* Conversation List */}
-          <ScrollArea className="flex-1 p-3 md:p-4 custom-scrollbar">
-            <div className="space-y-2">
-              {selectedTab === 'conversations' && conversations.map((conv) => (
-                <Card 
-                  key={conv.id} 
-                  className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all ${
-                    selectedConversation === conv.id ? 'ring-2 ring-primary bg-primary/10' : ''
-                  }`}
-                  onClick={() => setSelectedConversation(conv.id)}
-                >
-                  <CardContent className="p-3">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
-                        <AvatarImage src={conv.avatar_url} className="rounded-lg object-cover" />
-                        <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
-                          {conv.name?.[0] || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-foreground font-medium truncate">{conv.name}</h4>
-                        <p className="text-sm text-muted-foreground truncate">
-                          Click to open chat
-                        </p>
+          <div className="flex space-x-1 bg-card rounded-lg p-1 border border-border">
+            <button
+              onClick={() => handleTabChange('conversations')}
+              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
+                selectedTab === 'conversations'
+                  ? 'bg-primary text-primary-foreground shadow-md'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10'
+              }`}
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Chats</span>
+            </button>
+            <button
+              onClick={() => handleTabChange('groups')}
+              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
+                selectedTab === 'groups'
+                  ? 'bg-primary text-primary-foreground shadow-md'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">Groups</span>
+            </button>
+          </div>
+        </div>
+        
+        {/* Conversation List */}
+        <ScrollArea className="flex-1 p-3 md:p-4 custom-scrollbar">
+          <div className="space-y-2">
+            {selectedTab === 'conversations' && conversations.map((conv) => (
+              <Card 
+                key={conv.id} 
+                className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all ${
+                  selectedConversation === conv.id ? 'ring-2 ring-primary bg-primary/10' : ''
+                }`}
+                onClick={() => setSelectedConversation(conv.id)}
+              >
+                <CardContent className="p-3">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
+                      <AvatarImage src={conv.avatar_url} className="rounded-lg object-cover" />
+                      <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
+                        {conv.name?.[0] || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-foreground font-medium truncate">{conv.name}</h4>
+                      <p className="text-sm text-muted-foreground truncate">
+                        Click to open chat
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            
+            {selectedTab === 'groups' && groupChats.map((group) => (
+              <Card 
+                key={group.id} 
+                className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all ${
+                  selectedConversation === group.id ? 'ring-2 ring-primary bg-primary/10' : ''
+                }`}
+                onClick={() => setSelectedConversation(group.id)}
+              >
+                <CardContent className="p-3">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
+                      <AvatarImage src={group.avatar_url} className="rounded-lg object-cover" />
+                      <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
+                        <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium text-foreground truncate pr-2">{group.name}</h4>
+                        <span className="text-xs text-muted-foreground flex-shrink-0">
+                          {new Date(group.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-              
-              {selectedTab === 'groups' && groupChats.map((group) => (
-                <Card 
-                  key={group.id} 
-                  className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all ${
-                    selectedConversation === group.id ? 'ring-2 ring-primary bg-primary/10' : ''
-                  }`}
-                  onClick={() => setSelectedConversation(group.id)}
-                >
-                  <CardContent className="p-3">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
-                        <AvatarImage src={group.avatar_url} className="rounded-lg object-cover" />
-                        <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
-                          <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </AvatarFallback>
-                      </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-sm font-medium text-foreground truncate pr-2">{group.name}</h4>
-                              <span className="text-xs text-muted-foreground flex-shrink-0">
-                                {new Date(group.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* Right Panel - Chat Area */}
-        <div className="flex-1 flex flex-col">
-          <SecureMessaging conversationId={selectedConversation} />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <div className="flex flex-col md:flex-row bg-background min-h-screen">
-        {/* Left Panel - Message Categories */}
-        <div className="w-full md:w-80 lg:w-96 bg-card/80 backdrop-blur-xl border-b md:border-r md:border-b-0 border-border flex flex-col">
-          {/* Tab Navigation */}
-          <div className="p-4 border-b border-border flex-shrink-0">
-            <div className="flex space-x-1 bg-card rounded-lg p-1 border border-border">
-              <button
-                onClick={() => handleTabChange('conversations')}
-                className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
-                  selectedTab === 'conversations'
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'text-foreground hover:text-primary hover:bg-primary/10'
-                }`}
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">Chats</span>
-              </button>
-              <button
-                onClick={() => handleTabChange('groups')}
-                className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
-                  selectedTab === 'groups'
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'text-foreground hover:text-primary hover:bg-primary/10'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Groups</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Content Area */}
-          <ScrollArea className="flex-1 p-3 md:p-4 custom-scrollbar">
-            {selectedTab === 'conversations' && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-foreground font-semibold">Conversations</h3>
-                  <Button 
-                    size="sm" 
-                    onClick={handleNewMessage}
-                    className="bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                {conversations.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No conversations yet. Start a new chat!
                   </div>
-                ) : (
-                  conversations.map((conv) => (
-                    <Card 
-                      key={conv.id} 
-                      className="bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all"
-                      onClick={() => {
-                        console.log('Opening conversation:', conv.id, conv.name);
-                        setSelectedConversation(conv.id);
-                      }}
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
-                            <AvatarImage src={conv.avatar_url} className="rounded-lg object-cover" />
-                            <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
-                              {conv.name?.[0] || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-foreground font-medium truncate">{conv.name}</h4>
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(conv.updated_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {conv.last_message || 'No messages yet'}
-                            </p>
-                          </div>
-                          {conv.unread_count && conv.unread_count > 0 && (
-                            <Badge className="bg-destructive text-destructive-foreground text-xs">
-                              {conv.unread_count}
-                            </Badge>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
+                </CardContent>
+              </Card>
+            ))}
+            
+            {selectedTab === 'conversations' && conversations.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No conversations yet</p>
+                <p className="text-sm">Start a new chat to get started!</p>
               </div>
             )}
-
-            {selectedTab === 'groups' && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-foreground font-semibold">Group Chats</h3>
-                  <Button 
-                    size="sm" 
-                    onClick={handleNewGroup}
-                    className="bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                {groupChats.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No group chats yet. Create a new group!
-                  </div>
-                ) : (
-                  groupChats.map((group) => (
-                    <Card 
-                      key={group.id} 
-                      className="bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all"
-                      onClick={() => {
-                        console.log('Opening group chat:', group.id, group.name);
-                        setSelectedConversation(group.id);
-                      }}
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex items-center space-x-2 sm:space-x-3">
-                          <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
-                            <AvatarImage src={group.avatar_url} className="rounded-lg object-cover" />
-                            <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
-                              <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-foreground font-medium truncate">{group.name}</h4>
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(group.updated_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {group.last_message || 'No messages yet'}
-                            </p>
-                          </div>
-                          {group.unread_count && group.unread_count > 0 && (
-                            <Badge className="bg-destructive text-destructive-foreground text-xs">
-                              {group.unread_count}
-                            </Badge>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
+            
+            {selectedTab === 'groups' && groupChats.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No group chats yet</p>
+                <p className="text-sm">Create a group to start chatting!</p>
               </div>
             )}
-          </ScrollArea>
-        </div>
-
-        {/* Right Panel - Chat Area */}
-        <div 
-          className="hidden md:flex flex-1 items-center justify-center relative"
-          style={{
-            backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            filter: backgroundImage ? 'blur(1px)' : undefined
-          }}
-        >
-          {backgroundImage && (
-            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" style={{ filter: 'blur(0.5px)' }} />
-          )}
-          <div className="text-center text-foreground relative z-10">
-            <Shield className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg md:text-xl font-semibold mb-2">Select a conversation</h3>
-            <p className="text-muted-foreground text-sm md:text-base">Choose a conversation to start secure messaging</p>
           </div>
-        </div>
+        </ScrollArea>
       </div>
-
-      {/* Modals and Dialogs */}
+      
+      {/* Right Panel - Chat Area */}
+      <div className={`${selectedConversation ? 'block' : 'hidden md:block'} flex-1`}>
+        <SecureMessaging 
+          conversationId={selectedConversation || undefined} 
+          onBackToMessages={() => setSelectedConversation(null)}
+        />
+      </div>
+      
+      {/* User Search Modal */}
       <UserSearchDropdown
         isOpen={isUserSearchOpen}
         onClose={() => setIsUserSearchOpen(false)}
       />
-
+      
+      {/* Group Creation Modal */}
       <GroupChatCreation
         isOpen={isGroupCreationOpen}
         onClose={() => setIsGroupCreationOpen(false)}
-        onGroupCreated={loadConversations}
+        onGroupCreated={() => {
+          console.log('Group created, reloading conversations...');
+          setIsGroupCreationOpen(false);
+          loadConversations(); // Reload conversations after creating a group
+        }}
       />
-    </>
+    </div>
   );
 };
