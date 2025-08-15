@@ -178,10 +178,11 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundRepeat: 'no-repeat',
+          filter: userWallpaper ? 'blur(1px)' : undefined
         }}
       >
-        {userWallpaper && <div className="absolute inset-0 bg-black/20" />}
+        {userWallpaper && <div className="absolute inset-0 bg-black/20" style={{ filter: 'blur(0.5px)' }} />}
         <div className="text-center text-foreground relative z-10">
           <div className="text-4xl mb-4">💬</div>
           <h3 className="text-lg md:text-xl font-semibold mb-2">Select a conversation</h3>
@@ -203,15 +204,16 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-4 space-y-4"
+        className="flex-1 overflow-y-auto p-4 space-y-4 relative"
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundRepeat: 'no-repeat',
+          filter: userWallpaper ? 'blur(0.5px)' : undefined
         }}
       >
-        {userWallpaper && <div className="absolute inset-0 bg-black/10 pointer-events-none" />}
+        {userWallpaper && <div className="absolute inset-0 bg-black/10 pointer-events-none" style={{ filter: 'blur(1px)' }} />}
         {messages.length === 0 ? (
           <div className="text-center text-muted-foreground py-8 relative z-10">
             <div className="text-2xl mb-2">🔒</div>

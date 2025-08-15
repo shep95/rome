@@ -14,7 +14,8 @@ import {
   Heart,
   Camera,
   Upload,
-  ImageIcon
+  ImageIcon,
+  Shield
 } from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 import { CallHistory } from './CallHistory';
@@ -154,6 +155,14 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               )}
             </Button>
             <Button
+              onClick={() => onSectionChange('secure-files')}
+              variant={activeSection === 'secure-files' ? 'default' : 'ghost'}
+              size="sm"
+              className={`${activeSection === 'secure-files' ? 'bg-primary/20 text-primary' : 'text-muted-foreground'} p-2`}
+            >
+              <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+            </Button>
+            <Button
               onClick={handleAboutUsClick}
               variant="ghost"
               size="sm"
@@ -251,6 +260,19 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                   {messageRequestCount}
                 </Badge>
               )}
+            </Button>
+            
+            <Button
+              onClick={() => onSectionChange('secure-files')}
+              variant="ghost"
+              className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
+                activeSection === 'secure-files'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10'
+              }`}
+            >
+              <Shield className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+              <span className="text-sm font-medium">Secure Files</span>
             </Button>
             
             <Button

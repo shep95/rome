@@ -15,9 +15,7 @@ import {
 } from 'lucide-react';
 import { UserSearchDropdown } from './UserSearchDropdown';
 import { GroupChatCreation } from './GroupChatCreation';
-import { SecurityLock, AppLock } from './SecurityLock';
 import { SecureMessaging } from './SecureMessaging';
-import { SecureFiles } from './SecureFiles';
 
 interface LiveMainContentProps {
   activeSection: string;
@@ -42,14 +40,12 @@ interface Conversation {
 
 export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection, messageRequestCount, onMessageRequestCountChange }) => {
   const { user } = useAuth();
-  const [selectedTab, setSelectedTab] = useState<'conversations' | 'groups' | 'secure-files'>('conversations');
+  const [selectedTab, setSelectedTab] = useState<'conversations' | 'groups'>('conversations');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [groupChats, setGroupChats] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
   const [isGroupCreationOpen, setIsGroupCreationOpen] = useState(false);
-  const [isSecureFilesLocked, setIsSecureFilesLocked] = useState(true);
-  const [showSecurityLock, setShowSecurityLock] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -98,13 +94,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   // App lock when switching tabs - REMOVED
   // This was causing the 4-digit code prompt for all tabs
   // Now only secure files will require the code
-
-  // Lock secure files when clicking off the tab
-  useEffect(() => {
-    if (selectedTab !== 'secure-files') {
-      setIsSecureFilesLocked(true);
-    }
-  }, [selectedTab]);
 
   const setupRealtimeSubscriptions = () => {
     const channel = supabase
@@ -238,23 +227,8 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     }
   };
 
-  const handleTabChange = (tab: 'conversations' | 'groups' | 'secure-files') => {
-    if (tab === 'secure-files' && isSecureFilesLocked) {
-      setShowSecurityLock(true);
-      return;
-    }
+  const handleTabChange = (tab: 'conversations' | 'groups') => {
     setSelectedTab(tab);
-  };
-
-  const handleSecureFilesUnlock = () => {
-    console.log('Security unlock called, switching to secure-files tab');
-    setIsSecureFilesLocked(false);
-    setSelectedTab('secure-files');
-    setShowSecurityLock(false);
-  };
-
-  const handleSecurityCancel = () => {
-    setShowSecurityLock(false);
   };
 
   const handleNewMessage = () => {
@@ -429,17 +403,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Groups</span>
               </button>
-              <button
-                onClick={() => handleTabChange('secure-files')}
-                className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
-                  selectedTab === 'secure-files'
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'text-foreground hover:text-primary hover:bg-primary/10'
-                }`}
-              >
-                <Shield className="w-4 h-4" />
-                <span className="hidden sm:inline">Secure Files</span>
-              </button>
             </div>
           </div>
 
@@ -560,29 +523,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 )}
               </div>
             )}
-
-            {selectedTab === 'secure-files' && isSecureFilesLocked && (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <h3 className="text-foreground font-semibold mb-2">Secure Files</h3>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    Click to unlock your encrypted file storage
-                  </p>
-                  <Button 
-                    onClick={() => setShowSecurityLock(true)}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    <Shield className="w-4 h-4 mr-2" />
-                    Unlock Secure Files
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {selectedTab === 'secure-files' && !isSecureFilesLocked && (
-              <SecureFiles />
-            )}
           </ScrollArea>
         </div>
 
@@ -593,11 +533,12 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
             backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
+            backgroundRepeat: 'no-repeat',
+            filter: backgroundImage ? 'blur(1px)' : undefined
           }}
         >
           {backgroundImage && (
-            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" style={{ filter: 'blur(0.5px)' }} />
           )}
           <div className="text-center text-foreground relative z-10">
             <Shield className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-muted-foreground" />
@@ -617,14 +558,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
         isOpen={isGroupCreationOpen}
         onClose={() => setIsGroupCreationOpen(false)}
         onGroupCreated={loadConversations}
-      />
-
-      <SecurityLock
-        isOpen={showSecurityLock}
-        onUnlock={handleSecureFilesUnlock}
-        onCancel={handleSecurityCancel}
-        title="Secure Files Access"
-        description="Enter your 4-digit code to access secure files"
       />
     </>
   );

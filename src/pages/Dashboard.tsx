@@ -7,6 +7,7 @@ import { useScreenshotProtection } from '@/hooks/useScreenshotProtection';
 import { Button } from '@/components/ui/button';
 import { NavigationSidebar } from '@/components/NavigationSidebar';
 import { LiveMainContent } from '@/components/LiveMainContent';
+import { SecureFiles } from '@/components/SecureFiles';
 import { AppLock } from '@/components/SecurityLock';
 import { LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -100,11 +101,17 @@ const Dashboard = () => {
       
       {/* Main Content */}
       <div className="pt-16 sm:pt-20 md:pt-0 md:ml-60 lg:ml-72 min-h-screen">
-        <LiveMainContent 
-          activeSection={activeSection}
-          messageRequestCount={messageRequestCount}
-          onMessageRequestCountChange={setMessageRequestCount}
-        />
+        {activeSection === 'secure-files' ? (
+          <div className="flex-1 flex items-center justify-center bg-background min-h-screen">
+            <SecureFiles />
+          </div>
+        ) : (
+          <LiveMainContent 
+            activeSection={activeSection}
+            messageRequestCount={messageRequestCount}
+            onMessageRequestCountChange={setMessageRequestCount}
+          />
+        )}
       </div>
     </div>
     </>
