@@ -77,17 +77,9 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('conversationCreated', handleConversationCreated);
     
-    // Also listen for focus events to reload conversations when user comes back
-    const handleFocus = () => {
-      console.log('Window focused, reloading conversations...');
-      loadConversations();
-    };
-    window.addEventListener('focus', handleFocus);
-    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('conversationCreated', handleConversationCreated);
-      window.removeEventListener('focus', handleFocus);
     };
   }, [user]);
 
