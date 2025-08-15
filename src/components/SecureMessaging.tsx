@@ -189,7 +189,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           fileUrl = uploadedUrl;
           fileName = file.name;
           fileSize = file.size;
-          messageType = selectedFiles[0].type;
+          messageType = 'file'; // Use 'file' for all file types as per database constraint
           messageContent = fileName; // Use filename as content for file messages
         }
       }
@@ -397,37 +397,35 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                         WebkitBackdropFilter: 'blur(20px) saturate(150%)',
                       }}
                     >
-                      {message.message_type === 'image' && message.file_url ? (
+                      {message.file_url ? (
                         <div className="space-y-2">
-                          <img 
-                            src={message.file_url} 
-                            alt={message.content}
-                            className="max-w-full rounded-lg max-h-64 object-cover"
-                          />
-                          {message.content && (
-                            <p className="text-sm">{atob(message.content)}</p>
+                          {/* Check if it's an image file */}
+                          {message.file_name && (message.file_name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) ? (
+                            <img 
+                              src={message.file_url} 
+                              alt={message.file_name}
+                              className="max-w-full rounded-lg max-h-64 object-cover"
+                            />
+                          ) : message.file_name && (message.file_name.match(/\.(mp4|webm|ogg|avi|mov)$/i)) ? (
+                            <video 
+                              src={message.file_url}
+                              controls
+                              className="max-w-full rounded-lg max-h-64"
+                            />
+                          ) : (
+                            <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
+                              <File className="h-8 w-8 text-muted-foreground" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{message.file_name || message.content}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'File'}
+                                </p>
+                              </div>
+                            </div>
                           )}
-                        </div>
-                      ) : message.message_type === 'video' && message.file_url ? (
-                        <div className="space-y-2">
-                          <video 
-                            src={message.file_url}
-                            controls
-                            className="max-w-full rounded-lg max-h-64"
-                          />
-                          {message.content && (
-                            <p className="text-sm">{atob(message.content)}</p>
+                          {message.content && message.content !== message.file_name && (
+                            <p className="text-sm">{message.content}</p>
                           )}
-                        </div>
-                      ) : message.message_type === 'file' && message.file_url ? (
-                        <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
-                          <File className="h-8 w-8 text-muted-foreground" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{message.file_name || message.content}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'File'}
-                            </p>
-                          </div>
                         </div>
                       ) : (
                         <p className="text-sm leading-relaxed break-words">{message.content}</p>
