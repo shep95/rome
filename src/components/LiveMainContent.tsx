@@ -285,7 +285,118 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   }
 
   if (selectedConversation) {
-    return <SecureMessaging />;
+    return (
+      <div className="flex flex-col md:flex-row bg-background min-h-screen">
+        {/* Left Panel - Message Categories */}
+        <div className="w-full md:w-80 lg:w-96 bg-card/80 backdrop-blur-xl border-b md:border-r md:border-b-0 border-border flex flex-col">
+          {/* Tab Navigation */}
+          <div className="p-4 border-b border-border flex-shrink-0">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-foreground font-semibold">
+                {selectedTab === 'conversations' ? 'Direct Messages' : 
+                 selectedTab === 'groups' ? 'Group Chats' : 'Secure Files'}
+              </h3>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => setSelectedConversation(null)}
+                className="text-muted-foreground"
+              >
+                ← Back
+              </Button>
+            </div>
+            <div className="flex space-x-1 bg-card rounded-lg p-1 border border-border">
+              <button
+                onClick={() => handleTabChange('conversations')}
+                className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
+                  selectedTab === 'conversations'
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'text-foreground hover:text-primary hover:bg-primary/10'
+                }`}
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Chats</span>
+              </button>
+              <button
+                onClick={() => handleTabChange('groups')}
+                className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all ${
+                  selectedTab === 'groups'
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'text-foreground hover:text-primary hover:bg-primary/10'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">Groups</span>
+              </button>
+            </div>
+          </div>
+          
+          {/* Conversation List */}
+          <ScrollArea className="flex-1 p-3 md:p-4">
+            <div className="space-y-2">
+              {selectedTab === 'conversations' && conversations.map((conv) => (
+                <Card 
+                  key={conv.id} 
+                  className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all ${
+                    selectedConversation === conv.id ? 'ring-2 ring-primary bg-primary/10' : ''
+                  }`}
+                  onClick={() => setSelectedConversation(conv.id)}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={conv.avatar_url} />
+                        <AvatarFallback>
+                          {conv.name?.[0] || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-foreground font-medium truncate">{conv.name}</h4>
+                        <p className="text-sm text-muted-foreground truncate">
+                          Click to open chat
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {selectedTab === 'groups' && groupChats.map((group) => (
+                <Card 
+                  key={group.id} 
+                  className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all ${
+                    selectedConversation === group.id ? 'ring-2 ring-primary bg-primary/10' : ''
+                  }`}
+                  onClick={() => setSelectedConversation(group.id)}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={group.avatar_url} />
+                        <AvatarFallback>
+                          <Users className="w-5 h-5" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-foreground font-medium truncate">{group.name}</h4>
+                        <p className="text-sm text-muted-foreground truncate">
+                          Click to open group
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Right Panel - Chat Area */}
+        <div className="flex-1 flex flex-col">
+          <SecureMessaging conversationId={selectedConversation} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -355,7 +466,10 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                     <Card 
                       key={conv.id} 
                       className="bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all"
-                      onClick={() => setSelectedConversation(conv.id)}
+                      onClick={() => {
+                        console.log('Opening conversation:', conv.id, conv.name);
+                        setSelectedConversation(conv.id);
+                      }}
                     >
                       <CardContent className="p-3">
                         <div className="flex items-center space-x-3">
@@ -410,7 +524,10 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                     <Card 
                       key={group.id} 
                       className="bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all"
-                      onClick={() => setSelectedConversation(group.id)}
+                      onClick={() => {
+                        console.log('Opening group chat:', group.id, group.name);
+                        setSelectedConversation(group.id);
+                      }}
                     >
                       <CardContent className="p-3">
                         <div className="flex items-center space-x-3">
