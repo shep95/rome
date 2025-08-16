@@ -186,7 +186,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         .select('joined_at')
         .eq('conversation_id', conversationId)
         .eq('user_id', user.id)
-        .eq('left_at', null)
+        .is('left_at', null)
         .single();
 
       if (participantError) throw participantError;
