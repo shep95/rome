@@ -25,7 +25,7 @@ const NavItem: React.FC<NavItemProps> = ({
       onClick={onClick}
     >
       <div 
-        className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-24 bg-gradient-to-b from-white/40 to-transparent blur-lg rounded-full transition-opacity duration-400"
+        className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-24 bg-gradient-to-b from-primary/60 to-transparent blur-lg rounded-full transition-opacity duration-400"
         style={{
           opacity: spotlightOpacity,
           transitionDelay: isActive ? '0.1s' : '0s',
