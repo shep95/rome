@@ -18,6 +18,7 @@ import {
   Shield,
   FileText
 } from 'lucide-react';
+import { RiDiscordFill } from 'react-icons/ri';
 import { SettingsModal } from './SettingsModal';
 import { CallHistory } from './CallHistory';
 import { AboutUs } from './AboutUs';
@@ -124,7 +125,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               size="sm"
               className={`${activeSection === 'messages' ? 'bg-primary/20 text-primary' : 'text-muted-foreground'} p-2`}
             >
-              <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+              <RiDiscordFill className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
             <Button
               onClick={handleCallsClick}
@@ -236,7 +237,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                   : 'text-foreground hover:text-primary hover:bg-primary/10'
               }`}
             >
-              <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+              <RiDiscordFill className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
               <span className="text-sm font-medium">Messages</span>
             </Button>
             
