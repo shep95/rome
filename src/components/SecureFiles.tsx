@@ -31,12 +31,12 @@ import { toast } from 'sonner';
 interface SecureFile {
   id: string;
   user_id: string;
-  content_type: string;
-  created_at: string;
-  encrypted_key: string;
-  file_path: string;
-  file_size: number;
   filename: string;
+  file_path: string;
+  content_type: string;
+  file_size: number;
+  created_at: string;
+  secure_payload: string; // Updated property name
 }
 
 export const SecureFiles: React.FC = () => {
@@ -158,7 +158,6 @@ export const SecureFiles: React.FC = () => {
         encryptedContent = await encryptionService.encryptMessage(newFileContent.trim(), accessCode);
       }
 
-      // Create file record
       const { error } = await supabase
         .from('secure_files')
         .insert({
@@ -167,7 +166,7 @@ export const SecureFiles: React.FC = () => {
           file_path: filePath,
           filename: fileName.trim(),
           file_size: fileSize,
-          encrypted_key: encryptedContent
+          secure_payload: encryptedContent // Updated column name
         });
 
       if (error) throw error;
@@ -327,11 +326,11 @@ export const SecureFiles: React.FC = () => {
         const { encryptionService } = await import('@/lib/encryption');
         let content: string;
         try {
-          content = await encryptionService.decryptMessage(file.encrypted_key.toString(), accessCode);
+          content = await encryptionService.decryptMessage(file.secure_payload.toString(), accessCode); // Updated column name
         } catch (decryptError) {
           // Fallback for old base64 encoded files
           try {
-            content = atob(file.encrypted_key.toString());
+            content = atob(file.secure_payload.toString()); // Updated column name
           } catch {
             toast.error('Invalid access code or corrupted file');
             return;

@@ -176,7 +176,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
         return {
           id: msg.id,
-          content: await decodeMessage(msg.encrypted_content, conversationId),
+          content: await decodeMessage(msg.data_payload, conversationId), // Updated column name
           sender_id: msg.sender_id,
           created_at: msg.created_at,
           message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
@@ -322,7 +322,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          encrypted_content: encryptedContent,
+          data_payload: encryptedContent, // Updated column name
           message_type: messageType,
           file_url: fileUrl || null,
           file_name: fileName || null,
