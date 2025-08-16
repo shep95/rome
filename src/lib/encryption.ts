@@ -67,8 +67,9 @@ class MilitaryEncryption {
   ): Promise<{ encryptedData: Uint8Array; salt: Uint8Array; iv: Uint8Array }> {
     const encoder = new TextEncoder();
     
-    // Layer 1: Add random padding to obscure data patterns
-    const paddedData = data + Array(Math.floor(Math.random() * 100) + 50).fill(0).map(() => 
+    // Layer 1: Add secure padding marker to distinguish real data from padding
+    const paddingMarker = '|||SECURE_MESSAGE_END|||';
+    const paddedData = data + paddingMarker + Array(Math.floor(Math.random() * 50) + 20).fill(0).map(() => 
       String.fromCharCode(Math.floor(Math.random() * 26) + 97)).join('');
     
     // Layer 2: Triple encryption with different keys
@@ -129,9 +130,14 @@ class MilitaryEncryption {
       const decoder = new TextDecoder();
       const paddedData = decoder.decode(decrypted);
       
-      // Remove padding by finding the original data (before random characters)
-      const originalData = paddedData.replace(/[a-z]+$/, '');
-      return originalData;
+      // Remove padding by finding the secure marker
+      const paddingMarker = '|||SECURE_MESSAGE_END|||';
+      const markerIndex = paddedData.indexOf(paddingMarker);
+      if (markerIndex !== -1) {
+        return paddedData.substring(0, markerIndex);
+      }
+      // Fallback: return as-is if no marker found (for legacy messages)
+      return paddedData;
     } catch (error) {
       throw new Error('Decryption failed - invalid credentials or compromised data');
     }
