@@ -39,8 +39,32 @@ export const MediaModal: React.FC<MediaModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 overflow-hidden bg-black/95 border-0 sm:max-w-[90vw] sm:max-h-[90vh]">
-        <DialogHeader className="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-10 flex flex-row items-center justify-between bg-black/50 backdrop-blur-sm rounded-lg p-2 sm:p-3">
+      <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 overflow-hidden border-0 sm:max-w-[90vw] sm:max-h-[90vh] bg-transparent">
+        {/* Ambient glow background layer */}
+        <div className="absolute inset-0 -z-10">
+          {/* Blurred background image/video for ambient glow */}
+          {mediaType === 'image' ? (
+            <img
+              src={mediaUrl}
+              alt=""
+              className="w-full h-full object-cover opacity-30 blur-3xl scale-110"
+            />
+          ) : (
+            <video
+              src={mediaUrl}
+              className="w-full h-full object-cover opacity-30 blur-3xl scale-110"
+              autoPlay={false}
+              muted
+            />
+          )}
+          {/* Glassmorphism overlay */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+          {/* Edge glow gradients */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-primary/20" />
+          <div className="absolute inset-0 bg-gradient-to-b from-accent/20 via-transparent to-accent/20" />
+        </div>
+
+        <DialogHeader className="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-10 flex flex-row items-center justify-between bg-black/30 backdrop-blur-xl border border-white/10 rounded-lg p-2 sm:p-3 shadow-2xl">
           <DialogTitle className="text-white text-xs sm:text-sm md:text-base truncate flex-1 mr-2 sm:mr-4">
             {fileName || 'Media File'}
             {fileSize && (
@@ -54,7 +78,7 @@ export const MediaModal: React.FC<MediaModalProps> = ({
               onClick={handleDownload}
               size="sm"
               variant="ghost"
-              className="text-white hover:bg-white/20 h-6 w-6 sm:h-8 sm:w-8 p-0"
+              className="text-white hover:bg-white/20 h-6 w-6 sm:h-8 sm:w-8 p-0 transition-all duration-200 hover:scale-105"
             >
               <Download className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
@@ -62,26 +86,26 @@ export const MediaModal: React.FC<MediaModalProps> = ({
               onClick={onClose}
               size="sm"
               variant="ghost"
-              className="text-white hover:bg-white/20 h-6 w-6 sm:h-8 sm:w-8 p-0"
+              className="text-white hover:bg-white/20 h-6 w-6 sm:h-8 sm:w-8 p-0 transition-all duration-200 hover:scale-105"
             >
               <X className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </DialogHeader>
         
-        <div className="flex items-center justify-center min-h-[40vh] sm:min-h-[50vh] max-h-[95vh] w-full overflow-auto p-2 sm:p-4">
+        <div className="relative flex items-center justify-center min-h-[40vh] sm:min-h-[50vh] max-h-[95vh] w-full overflow-auto p-2 sm:p-4">
           {mediaType === 'image' ? (
             <img
               src={mediaUrl}
               alt={fileName || 'Image'}
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-full object-contain animate-scale-in shadow-2xl rounded-lg border border-white/10"
               style={{ maxHeight: '85vh', maxWidth: '90vw' }}
             />
           ) : (
             <video
               src={mediaUrl}
               controls
-              className="max-w-full max-h-full"
+              className="max-w-full max-h-full animate-scale-in shadow-2xl rounded-lg border border-white/10"
               style={{ maxHeight: '85vh', maxWidth: '90vw' }}
               autoPlay={false}
             />
