@@ -158,7 +158,8 @@ export type Database = {
         Row: {
           conversation_id: string
           created_at: string
-          encrypted_content: string
+          data_payload: string
+          entropy_vector: string | null
           file_name: string | null
           file_size: number | null
           file_url: string | null
@@ -170,7 +171,8 @@ export type Database = {
         Insert: {
           conversation_id: string
           created_at?: string
-          encrypted_content: string
+          data_payload: string
+          entropy_vector?: string | null
           file_name?: string | null
           file_size?: number | null
           file_url?: string | null
@@ -182,7 +184,8 @@ export type Database = {
         Update: {
           conversation_id?: string
           created_at?: string
-          encrypted_content?: string
+          data_payload?: string
+          entropy_vector?: string | null
           file_name?: string | null
           file_size?: number | null
           file_url?: string | null
@@ -298,32 +301,56 @@ export type Database = {
         Row: {
           content_type: string
           created_at: string
-          encrypted_key: string
+          entropy_vector: string | null
           file_path: string
           file_size: number
           filename: string
           id: string
+          secure_payload: string
           user_id: string
         }
         Insert: {
           content_type: string
           created_at?: string
-          encrypted_key: string
+          entropy_vector?: string | null
           file_path: string
           file_size: number
           filename: string
           id?: string
+          secure_payload: string
           user_id: string
         }
         Update: {
           content_type?: string
           created_at?: string
-          encrypted_key?: string
+          entropy_vector?: string | null
           file_path?: string
           file_size?: number
           filename?: string
           id?: string
+          secure_payload?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      security_honeypot: {
+        Row: {
+          access_timestamp: string | null
+          accessor_info: Json | null
+          fake_data: string | null
+          id: string
+        }
+        Insert: {
+          access_timestamp?: string | null
+          accessor_info?: Json | null
+          fake_data?: string | null
+          id?: string
+        }
+        Update: {
+          access_timestamp?: string | null
+          accessor_info?: Json | null
+          fake_data?: string | null
+          id?: string
         }
         Relationships: []
       }
@@ -556,6 +583,10 @@ export type Database = {
       }
       create_group_conversation: {
         Args: { _auto_delete_after?: unknown; _name: string; _settings?: Json }
+        Returns: string
+      }
+      generate_entropy_vector: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       user_can_access_file: {
