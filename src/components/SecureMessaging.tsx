@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
@@ -18,6 +18,8 @@ interface Message {
   file_url?: string;
   file_name?: string;
   file_size?: number;
+  replied_to_message_id?: string;
+  replied_to_message?: Message;
   sender_profile?: {
     username: string;
     display_name: string;
@@ -60,6 +62,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const [vhSet, setVhSet] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [mediaModal, setMediaModal] = useState<{
     isOpen: boolean;
     url: string;
@@ -222,6 +225,48 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           console.log('Error loading read receipts for message:', msg.id);
         }
         
+        // Get replied-to message if exists
+        let repliedToMessage: Message | undefined = undefined;
+        if (msg.replied_to_message_id) {
+          try {
+            const { data: repliedMsg } = await supabase
+              .from('messages')
+              .select('*')
+              .eq('id', msg.replied_to_message_id)
+              .single();
+            
+            if (repliedMsg) {
+              // Get sender profile for replied message
+              let repliedSenderProfile = null;
+              try {
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('username, display_name, avatar_url')
+                  .eq('id', repliedMsg.sender_id)
+                  .single();
+                repliedSenderProfile = profile;
+              } catch (error) {
+                console.log('Profile not found for replied message sender:', repliedMsg.sender_id);
+              }
+              
+              repliedToMessage = {
+                id: repliedMsg.id,
+                content: await decodeMessage(repliedMsg.data_payload, conversationId),
+                sender_id: repliedMsg.sender_id,
+                created_at: repliedMsg.created_at,
+                message_type: (repliedMsg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
+                file_url: repliedMsg.file_url,
+                file_name: repliedMsg.file_name,
+                file_size: repliedMsg.file_size,
+                sender_profile: repliedSenderProfile,
+                read_by: []
+              };
+            }
+          } catch (error) {
+            console.log('Error loading replied-to message:', msg.replied_to_message_id);
+          }
+        }
+        
         // Prepare signed URL for secure-files if needed
         let fileUrl: string | undefined = (msg.file_url as string | undefined) || undefined;
         if (fileUrl && fileUrl.includes('/secure-files/')) {
@@ -238,6 +283,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           file_url: fileUrl,
           file_name: (msg.file_name as string | undefined) || undefined,
           file_size: (msg.file_size as number | undefined) || undefined,
+          replied_to_message_id: (msg.replied_to_message_id as string | undefined) || undefined,
+          replied_to_message: repliedToMessage,
           sender_profile: senderProfile,
           read_by: readBy
         };
@@ -412,6 +459,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           file_url: fileUrl || null,
           file_name: fileName || null,
           file_size: fileSize || null,
+          replied_to_message_id: replyingTo?.id || null,
           sequence_number: Date.now()
         });
 
@@ -419,6 +467,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       
       setNewMessage('');
       setSelectedFiles([]);
+      setReplyingTo(null); // Clear reply after sending
       
       // Force reload messages after a short delay to ensure the new message appears
       setTimeout(() => {
@@ -730,6 +779,28 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                         WebkitBackdropFilter: 'blur(20px) saturate(150%)',
                       }}
                     >
+                      {/* Reply Preview */}
+                      {message.replied_to_message && (
+                        <div className="mb-2 border-l-2 border-white/30 pl-2">
+                          <div className="text-xs text-white/60 mb-1">
+                            Replying to {message.replied_to_message.sender_profile?.display_name || 'Unknown'}
+                          </div>
+                          <div className="text-sm text-white/80 bg-white/10 rounded-lg px-2 py-1 max-h-20 overflow-hidden">
+                            {message.replied_to_message.file_url ? (
+                              message.replied_to_message.message_type === 'file' && 
+                              /(jpg|jpeg|png|gif|webp)$/i.test(message.replied_to_message.file_url) ? 
+                                '📷 Photo' : 
+                                message.replied_to_message.message_type === 'file' && 
+                                /(mp4|webm|ogg|avi|mov)$/i.test(message.replied_to_message.file_url) ? 
+                                  '🎥 Video' : 
+                                  '📁 File'
+                            ) : (
+                              <span className="line-clamp-2">{message.replied_to_message.content}</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
                       {message.file_url ? (
                         <div className="space-y-2">
                           {(() => {
@@ -855,6 +926,13 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="backdrop-blur-xl bg-card/80 border-border/30">
                         <DropdownMenuItem
+                          onClick={() => setReplyingTo(message)}
+                          className="hover:bg-primary/10"
+                        >
+                          <Reply className="h-4 w-4 mr-2" />
+                          Reply
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           onClick={() => deleteMessage(message.id)}
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
@@ -892,6 +970,40 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
       {/* Message Input - floating on mobile */}
       <div className="p-3 sm:p-4 border-t border-border bg-card/50 backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:rounded-none rounded-t-3xl md:w-auto w-full min-h-16">
+        {/* Reply Preview */}
+        {replyingTo && (
+          <div className="mb-3 bg-card/80 backdrop-blur-sm border border-border rounded-lg p-3">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="text-xs text-muted-foreground mb-1">
+                  Replying to {replyingTo.sender_profile?.display_name || 'Unknown'}
+                </div>
+                <div className="text-sm text-foreground bg-muted/50 rounded-lg px-2 py-1 max-h-16 overflow-hidden border-l-2 border-primary pl-3">
+                  {replyingTo.file_url ? (
+                    replyingTo.message_type === 'file' && 
+                    /(jpg|jpeg|png|gif|webp)$/i.test(replyingTo.file_url) ? 
+                      '📷 Photo' : 
+                      replyingTo.message_type === 'file' && 
+                      /(mp4|webm|ogg|avi|mov)$/i.test(replyingTo.file_url) ? 
+                        '🎥 Video' : 
+                        '📁 File'
+                  ) : (
+                    <span className="line-clamp-2">{replyingTo.content}</span>
+                  )}
+                </div>
+              </div>
+              <Button
+                onClick={() => setReplyingTo(null)}
+                size="sm"
+                variant="ghost"
+                className="p-1 h-auto ml-2 hover:bg-destructive/10"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        )}
+        
         {/* File Previews */}
         {selectedFiles.length > 0 && (
           <div className="mb-3 flex gap-2 flex-wrap">

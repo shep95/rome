@@ -204,6 +204,7 @@ export type Database = {
           file_url: string | null
           id: string
           message_type: string | null
+          replied_to_message_id: string | null
           sender_id: string
           sequence_number: number
         }
@@ -217,6 +218,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           message_type?: string | null
+          replied_to_message_id?: string | null
           sender_id: string
           sequence_number: number
         }
@@ -230,6 +232,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           message_type?: string | null
+          replied_to_message_id?: string | null
           sender_id?: string
           sequence_number?: number
         }
@@ -239,6 +242,20 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_replied_to_message_id_fkey"
+            columns: ["replied_to_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_replied_to_message_id_fkey"
+            columns: ["replied_to_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages_safe"
             referencedColumns: ["id"]
           },
         ]
