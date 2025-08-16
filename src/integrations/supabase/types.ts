@@ -198,6 +198,7 @@ export type Database = {
           conversation_id: string
           created_at: string
           data_payload: string
+          encrypted_file_metadata: string | null
           entropy_vector: string | null
           file_name: string | null
           file_size: number | null
@@ -212,6 +213,7 @@ export type Database = {
           conversation_id: string
           created_at?: string
           data_payload: string
+          encrypted_file_metadata?: string | null
           entropy_vector?: string | null
           file_name?: string | null
           file_size?: number | null
@@ -226,6 +228,7 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           data_payload?: string
+          encrypted_file_metadata?: string | null
           entropy_vector?: string | null
           file_name?: string | null
           file_size?: number | null
@@ -357,6 +360,7 @@ export type Database = {
         Row: {
           content_type: string
           created_at: string
+          encrypted_file_metadata: string | null
           entropy_vector: string | null
           file_path: string
           file_size: number
@@ -368,6 +372,7 @@ export type Database = {
         Insert: {
           content_type: string
           created_at?: string
+          encrypted_file_metadata?: string | null
           entropy_vector?: string | null
           file_path: string
           file_size: number
@@ -379,6 +384,7 @@ export type Database = {
         Update: {
           content_type?: string
           created_at?: string
+          encrypted_file_metadata?: string | null
           entropy_vector?: string | null
           file_path?: string
           file_size?: number

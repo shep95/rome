@@ -141,6 +141,29 @@ export const useFileUpload = () => {
 
       if (uploadError) throw uploadError;
 
+      // Store encrypted metadata in secure_files table if using secure-files bucket
+      if (bucketName === 'secure-files') {
+        const { encryptionService } = await import('@/lib/encryption');
+        const fileMetadata = {
+          filename: file.name,
+          file_path: fileName,
+          content_type: file.type
+        };
+        const encryptedMetadata = await encryptionService.encryptMessage(JSON.stringify(fileMetadata), user.id);
+        
+        await supabase
+          .from('secure_files')
+          .insert({
+            user_id: user.id,
+            filename: 'encrypted', // Hide real filename
+            file_path: 'encrypted', // Hide real path
+            content_type: 'application/octet-stream', // Hide real content type
+            file_size: file.size,
+            encrypted_file_metadata: encryptedMetadata,
+            secure_payload: JSON.stringify(Array.from(new TextEncoder().encode('placeholder'))) // Placeholder for compatibility
+          });
+      }
+
       // Prefer a signed URL so recipients can view without extra permissions
       const { data: signedData, error: signError } = await supabase.storage
         .from(bucketName)

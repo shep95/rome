@@ -20,12 +20,12 @@ interface Message {
   file_size?: number;
   replied_to_message_id?: string;
   replied_to_message?: Message;
-  sender_profile?: {
+  sender?: {
     username: string;
     display_name: string;
-    avatar_url: string;
+    avatar_url: string | null;
   };
-  read_by?: {
+  read_receipts?: {
     user_id: string;
     read_at: string;
     profile?: {
@@ -185,7 +185,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
       if (error) throw error;
       
-      // In a real app, you'd decrypt messages here
+      // Decrypt messages and handle file metadata
       const decryptedMessages = await Promise.all((messagesData || []).map(async (msg) => {
         // Get sender profile
         let senderProfile = null;
@@ -198,6 +198,28 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           senderProfile = profile;
         } catch (error) {
           console.log('Profile not found for sender:', msg.sender_id);
+        }
+
+        // Decrypt message content
+        const decryptedContent = await decodeMessage(msg.data_payload, conversationId);
+        
+        // Decrypt file metadata if present
+        let fileMetadata = null;
+        let signedUrl = null;
+        if (msg.encrypted_file_metadata) {
+          try {
+            const decryptedFileMetadata = await decodeMessage(msg.encrypted_file_metadata, conversationId);
+            fileMetadata = JSON.parse(decryptedFileMetadata);
+            
+            // Generate signed URL for secure files
+            if (fileMetadata.file_url && fileMetadata.file_url.includes('secure-files')) {
+              signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
+            } else {
+              signedUrl = fileMetadata.file_url;
+            }
+          } catch (error) {
+            console.error('Error decrypting file metadata:', error);
+          }
         }
         
         // Get read receipts for this message
@@ -229,65 +251,76 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         let repliedToMessage: Message | undefined = undefined;
         if (msg.replied_to_message_id) {
           try {
+            // For now, we'll need to fetch the replied message separately
+            // since we don't have the joined data structure properly set up
             const { data: repliedMsg } = await supabase
               .from('messages')
               .select('*')
               .eq('id', msg.replied_to_message_id)
               .single();
             
-            if (repliedMsg) {
-              // Get sender profile for replied message
-              let repliedSenderProfile = null;
+            if (!repliedMsg) return;
+            const repliedContent = await decodeMessage(repliedMsg.data_payload, conversationId);
+            
+            // Decrypt replied message file metadata if present
+            let repliedFileMetadata = null;
+            let repliedSignedUrl = null;
+            if (repliedMsg.encrypted_file_metadata) {
               try {
-                const { data: profile } = await supabase
-                  .from('profiles')
-                  .select('username, display_name, avatar_url')
-                  .eq('id', repliedMsg.sender_id)
-                  .single();
-                repliedSenderProfile = profile;
+                const decryptedRepliedFileMetadata = await decodeMessage(repliedMsg.encrypted_file_metadata, conversationId);
+                repliedFileMetadata = JSON.parse(decryptedRepliedFileMetadata);
+                
+                if (repliedFileMetadata.file_url && repliedFileMetadata.file_url.includes('secure-files')) {
+                  repliedSignedUrl = await getSignedUrlForSecureFiles(repliedFileMetadata.file_url);
+                } else {
+                  repliedSignedUrl = repliedFileMetadata.file_url;
+                }
               } catch (error) {
-                console.log('Profile not found for replied message sender:', repliedMsg.sender_id);
+                console.error('Error decrypting replied message file metadata:', error);
               }
-              
-              repliedToMessage = {
-                id: repliedMsg.id,
-                content: await decodeMessage(repliedMsg.data_payload, conversationId),
-                sender_id: repliedMsg.sender_id,
-                created_at: repliedMsg.created_at,
-                message_type: (repliedMsg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
-                file_url: repliedMsg.file_url,
-                file_name: repliedMsg.file_name,
-                file_size: repliedMsg.file_size,
-                sender_profile: repliedSenderProfile,
-                read_by: []
-              };
             }
+            
+            repliedToMessage = {
+              id: repliedMsg.id,
+              content: repliedContent,
+              sender_id: repliedMsg.sender_id,
+              created_at: repliedMsg.created_at,
+              message_type: (repliedMsg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
+              file_url: repliedSignedUrl,
+              file_name: repliedFileMetadata?.file_name,
+              file_size: repliedMsg.file_size,
+              sender: {
+                username: 'Unknown',
+                display_name: 'Unknown User',
+                avatar_url: null
+              },
+              read_receipts: []
+            };
           } catch (error) {
             console.log('Error loading replied-to message:', msg.replied_to_message_id);
           }
         }
         
-        // Prepare signed URL for secure-files if needed
-        let fileUrl: string | undefined = (msg.file_url as string | undefined) || undefined;
-        if (fileUrl && fileUrl.includes('/secure-files/')) {
-          const signed = await getSignedUrlForSecureFiles(fileUrl);
-          if (signed) fileUrl = signed;
-        }
-
-        return {
+        const message: Message = {
           id: msg.id,
-          content: await decodeMessage(msg.data_payload, conversationId), // Updated column name
+          content: decryptedContent,
           sender_id: msg.sender_id,
           created_at: msg.created_at,
-          message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
-          file_url: fileUrl,
-          file_name: (msg.file_name as string | undefined) || undefined,
-          file_size: (msg.file_size as number | undefined) || undefined,
-          replied_to_message_id: (msg.replied_to_message_id as string | undefined) || undefined,
-          replied_to_message: repliedToMessage,
-          sender_profile: senderProfile,
-          read_by: readBy
+          message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video') || 'text',
+          file_url: signedUrl || null,
+          file_name: fileMetadata?.file_name || null,
+          file_size: msg.file_size || null,
+          replied_to_message_id: msg.replied_to_message_id,
+          sender: {
+            username: senderProfile?.username || 'Unknown',
+            display_name: senderProfile?.display_name || 'Unknown User',
+            avatar_url: senderProfile?.avatar_url || null
+          },
+          read_receipts: [],
+          replied_to_message: repliedToMessage
         };
+
+        return message;
       }));
       
       setMessages(decryptedMessages);
@@ -449,16 +482,26 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       const { encryptionService } = await import('@/lib/encryption');
       const encryptedContent = await encryptionService.encryptMessage(messageContent, conversationId);
       
+      // Encrypt file metadata if present
+      let encryptedFileMetadata = null;
+      if (fileUrl && fileName) {
+        const fileMetadata = {
+          file_url: fileUrl,
+          file_name: fileName,
+          content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
+        };
+        encryptedFileMetadata = await encryptionService.encryptMessage(JSON.stringify(fileMetadata), conversationId);
+      }
+      
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          data_payload: encryptedContent, // Updated column name
+          data_payload: encryptedContent,
           message_type: messageType,
-          file_url: fileUrl || null,
-          file_name: fileName || null,
           file_size: fileSize || null,
+          encrypted_file_metadata: encryptedFileMetadata,
           replied_to_message_id: replyingTo?.id || null,
           sequence_number: Date.now()
         });
@@ -746,26 +789,26 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                 className={`flex items-end gap-2 sm:gap-3 relative z-10 ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
               >
                 {/* Avatar for others */}
-                {message.sender_id !== user?.id && (
-                  <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
-                    <AvatarImage src={message.sender_profile?.avatar_url} className="rounded-lg" />
-                    <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-lg">
-                      {message.sender_profile?.display_name?.[0] || 
-                       message.sender_profile?.username?.[0] || 
-                       'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
+                        {message.sender_id !== user?.id && (
+                          <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
+                            <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-lg" />
+                            <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-lg">
+                              {message.sender?.display_name?.[0] || 
+                               message.sender?.username?.[0] || 
+                               'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                 
                 <div className="flex flex-col max-w-[70%] sm:max-w-xs lg:max-w-md">
                   {/* Username for others */}
-                  {message.sender_id !== user?.id && (
-                    <p className="text-xs text-muted-foreground mb-1 px-1">
-                      {message.sender_profile?.display_name || 
-                       message.sender_profile?.username || 
-                       'Unknown User'}
-                    </p>
-                  )}
+                      {message.sender_id !== user?.id && (
+                        <p className="text-xs text-muted-foreground mb-1 px-1">
+                          {message.sender?.display_name || 
+                           message.sender?.username || 
+                           'Unknown User'}
+                        </p>
+                      )}
                   
                   <div className="relative group">
                     <div
@@ -783,7 +826,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                       {message.replied_to_message && (
                         <div className="mb-2 border-l-2 border-white/30 pl-2">
                           <div className="text-xs text-white/60 mb-1">
-                            Replying to {message.replied_to_message.sender_profile?.display_name || 'Unknown'}
+                            Replying to {message.replied_to_message.sender?.display_name || 'Unknown'}
                           </div>
                           <div className="text-sm text-white/80 bg-white/10 rounded-lg px-2 py-1 max-h-20 overflow-hidden">
                             {message.replied_to_message.file_url ? (
@@ -891,9 +934,9 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                         </p>
                         
                         {/* Read receipts for sent messages */}
-                        {message.sender_id === user?.id && message.read_by && message.read_by.length > 0 && (
+                        {message.sender_id === user?.id && message.read_receipts && message.read_receipts.length > 0 && (
                           <div className="flex -space-x-1">
-                            {message.read_by.slice(0, 3).map((read, index) => (
+                            {message.read_receipts.slice(0, 3).map((read, index) => (
                               <Avatar key={read.user_id} className="h-4 w-4 rounded-full border border-background/50">
                                 <AvatarImage src={read.profile?.avatar_url} className="rounded-full" />
                                 <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-full">
@@ -901,9 +944,9 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                                 </AvatarFallback>
                               </Avatar>
                             ))}
-                            {message.read_by.length > 3 && (
+                            {message.read_receipts.length > 3 && (
                               <div className="h-4 w-4 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center border border-background/50">
-                                +{message.read_by.length - 3}
+                                +{message.read_receipts.length - 3}
                               </div>
                             )}
                           </div>
@@ -947,10 +990,10 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                 {/* Avatar for current user */}
                 {message.sender_id === user?.id && (
                   <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
-                    <AvatarImage src={message.sender_profile?.avatar_url} className="rounded-lg" />
+                    <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-lg" />
                     <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-lg">
-                      {message.sender_profile?.display_name?.[0] || 
-                       message.sender_profile?.username?.[0] || 
+                      {message.sender?.display_name?.[0] || 
+                       message.sender?.username?.[0] || 
                        'Y'}
                     </AvatarFallback>
                   </Avatar>
@@ -976,7 +1019,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="text-xs text-muted-foreground mb-1">
-                  Replying to {replyingTo.sender_profile?.display_name || 'Unknown'}
+                  Replying to {replyingTo.sender?.display_name || 'Unknown'}
                 </div>
                 <div className="text-sm text-foreground bg-muted/50 rounded-lg px-2 py-1 max-h-16 overflow-hidden border-l-2 border-primary pl-3">
                   {replyingTo.file_url ? (
