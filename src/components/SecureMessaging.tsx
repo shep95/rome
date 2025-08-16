@@ -50,6 +50,7 @@ interface SecureMessagingProps {
 }
 
 export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId, onBackToMessages }) => {
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const { user } = useAuth();
   const { uploadFile } = useFileUpload();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -698,6 +699,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       setMessages(prevMessages => prevMessages.filter(msg => msg.id !== messageId));
       
       toast.success('Message deleted');
+      setDeletingMessageId(null); // Reset the trigger state
     } catch (error) {
       console.error('Error deleting message:', error);
       toast.error('Failed to delete message');
@@ -860,11 +862,15 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         ) : (
           <div className="space-y-4">
             {messages.map((message) => (
-              <div
+              <ThanosSnapEffect
                 key={message.id}
-                data-message-id={message.id}
-                className={`flex items-end gap-2 sm:gap-3 relative z-10 ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                onAnimationComplete={() => deleteMessage(message.id, true)}
+                trigger={deletingMessageId === message.id}
               >
+                <div
+                  data-message-id={message.id}
+                  className={`flex items-end gap-2 sm:gap-3 relative z-10 ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                >
                 {/* Avatar for others */}
                         {message.sender_id !== user?.id && (
                           <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
@@ -1053,30 +1059,14 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                           Reply
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10 p-0"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           onSelect={(e) => {
                             e.preventDefault();
+                            setDeletingMessageId(message.id);
                           }}
                         >
-                          <ThanosSnapEffect
-                            onAnimationComplete={() => deleteMessage(message.id, true)}
-                            trigger={false}
-                          >
-                            <div 
-                              className="flex items-center w-full px-2 py-1.5 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Trigger the animation manually
-                                const thanosEffect = e.currentTarget.parentElement;
-                                if (thanosEffect) {
-                                  thanosEffect.click();
-                                }
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete Message
-                            </div>
-                          </ThanosSnapEffect>
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Message
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -1095,6 +1085,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                   </Avatar>
                 )}
               </div>
+              </ThanosSnapEffect>
             ))}
           </div>
         )}
