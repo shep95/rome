@@ -664,7 +664,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-4 space-y-4 relative custom-scrollbar md:mt-0 mt-20 md:mb-0 mb-24"
+        className="flex-1 overflow-y-auto p-2 sm:p-3 md:p-4 space-y-3 sm:space-y-4 relative custom-scrollbar md:mt-0 mt-16 sm:mt-18 md:mb-0 mb-20 sm:mb-24 safe-bottom"
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',

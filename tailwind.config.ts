@@ -17,7 +17,50 @@ export default {
 				'2xl': '1400px'
 			}
 		},
+		screens: {
+			'xs': '375px',
+			'sm': '640px',
+			'md': '768px',
+			'lg': '1024px',
+			'xl': '1280px',
+			'2xl': '1536px',
+			'3xl': '1920px',
+			'mobile': { 'max': '767px' },
+			'tablet': { 'min': '768px', 'max': '1023px' },
+			'desktop': { 'min': '1024px' },
+			'short': { 'raw': '(max-height: 600px)' },
+			'tall': { 'raw': '(min-height: 800px)' },
+		},
 		extend: {
+			spacing: {
+				'18': '4.5rem',
+				'88': '22rem',
+				'128': '32rem',
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-bottom': 'env(safe-area-inset-bottom)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
+			},
+			fontSize: {
+				'2xs': ['0.625rem', { lineHeight: '0.75rem' }],
+				'responsive-xs': 'clamp(0.625rem, 2vw, 0.75rem)',
+				'responsive-sm': 'clamp(0.75rem, 2.5vw, 0.875rem)',
+				'responsive-base': 'clamp(0.875rem, 3vw, 1rem)',
+				'responsive-lg': 'clamp(1rem, 3.5vw, 1.125rem)',
+				'responsive-xl': 'clamp(1.125rem, 4vw, 1.25rem)',
+			},
+			maxWidth: {
+				'8xl': '88rem',
+				'9xl': '96rem',
+			},
+			minHeight: {
+				'screen-small': '100vh',
+				'screen-dvh': '100dvh',
+			},
+			height: {
+				'screen-small': '100vh',
+				'screen-dvh': '100dvh',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

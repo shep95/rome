@@ -211,8 +211,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       </div>
 
       {/* Desktop Navigation - Sidebar */}
-      <div className="hidden md:block fixed left-2 lg:left-4 top-2 lg:top-4 bottom-2 lg:bottom-4 z-30">
-        <div className="w-56 lg:w-64 bg-background/80 backdrop-blur-xl border border-border rounded-2xl p-4 lg:p-6 h-full flex flex-col">
+      <div className="hidden md:block fixed left-2 lg:left-4 xl:left-6 top-2 lg:top-4 bottom-2 lg:bottom-4 z-30">
+        <div className="w-56 lg:w-64 xl:w-72 bg-background/80 backdrop-blur-xl border border-border rounded-2xl p-4 lg:p-6 h-full flex flex-col">
           {/* Logo/Brand */}
           <div className="flex items-center mb-6 lg:mb-8">
             <img 
