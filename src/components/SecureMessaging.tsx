@@ -203,13 +203,17 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         // Decrypt message content
         const decryptedContent = await decodeMessage(msg.data_payload, conversationId);
         
-        // Decrypt file metadata if present
+        // Handle file metadata - support both old (unencrypted) and new (encrypted) formats
         let fileMetadata = null;
         let signedUrl = null;
+        let fileName = null;
+        
         if (msg.encrypted_file_metadata) {
+          // New encrypted format
           try {
             const decryptedFileMetadata = await decodeMessage(msg.encrypted_file_metadata, conversationId);
             fileMetadata = JSON.parse(decryptedFileMetadata);
+            fileName = fileMetadata.file_name;
             
             // Generate signed URL for secure files
             if (fileMetadata.file_url && fileMetadata.file_url.includes('secure-files')) {
@@ -219,6 +223,14 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
             }
           } catch (error) {
             console.error('Error decrypting file metadata:', error);
+          }
+        } else if (msg.file_url || msg.file_name) {
+          // Old unencrypted format - fallback for existing messages
+          fileName = msg.file_name;
+          if (msg.file_url && msg.file_url.includes('secure-files')) {
+            signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
+          } else {
+            signedUrl = msg.file_url;
           }
         }
         
@@ -262,13 +274,17 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
             if (!repliedMsg) return;
             const repliedContent = await decodeMessage(repliedMsg.data_payload, conversationId);
             
-            // Decrypt replied message file metadata if present
+            // Handle replied message file metadata - support both old and new formats
             let repliedFileMetadata = null;
             let repliedSignedUrl = null;
+            let repliedFileName = null;
+            
             if (repliedMsg.encrypted_file_metadata) {
+              // New encrypted format
               try {
                 const decryptedRepliedFileMetadata = await decodeMessage(repliedMsg.encrypted_file_metadata, conversationId);
                 repliedFileMetadata = JSON.parse(decryptedRepliedFileMetadata);
+                repliedFileName = repliedFileMetadata.file_name;
                 
                 if (repliedFileMetadata.file_url && repliedFileMetadata.file_url.includes('secure-files')) {
                   repliedSignedUrl = await getSignedUrlForSecureFiles(repliedFileMetadata.file_url);
@@ -277,6 +293,14 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                 }
               } catch (error) {
                 console.error('Error decrypting replied message file metadata:', error);
+              }
+            } else if (repliedMsg.file_url || repliedMsg.file_name) {
+              // Old unencrypted format - fallback for existing messages
+              repliedFileName = repliedMsg.file_name;
+              if (repliedMsg.file_url && repliedMsg.file_url.includes('secure-files')) {
+                repliedSignedUrl = await getSignedUrlForSecureFiles(repliedMsg.file_url);
+              } else {
+                repliedSignedUrl = repliedMsg.file_url;
               }
             }
             
@@ -287,7 +311,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
               created_at: repliedMsg.created_at,
               message_type: (repliedMsg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
               file_url: repliedSignedUrl,
-              file_name: repliedFileMetadata?.file_name,
+              file_name: repliedFileName,
               file_size: repliedMsg.file_size,
               sender: {
                 username: 'Unknown',
@@ -308,7 +332,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           created_at: msg.created_at,
           message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video') || 'text',
           file_url: signedUrl || null,
-          file_name: fileMetadata?.file_name || null,
+          file_name: fileName || null,
           file_size: msg.file_size || null,
           replied_to_message_id: msg.replied_to_message_id,
           sender: {
