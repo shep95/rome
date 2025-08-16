@@ -361,10 +361,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 <CardContent className="space-y-6">
                   <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg border border-border">
                     <div className="flex-1">
-                      <Label className="text-foreground text-lg font-medium">Screenshot Protection</Label>
+                      <Label className="text-foreground text-lg font-medium">Screenshot & Recording Protection</Label>
                       <p className="text-muted-foreground text-sm mt-1">
-                        Prevent users from taking screenshots of the dashboard and conversations. 
-                        This will disable right-click, developer tools, and common screenshot shortcuts.
+                        Prevent users from taking screenshots or recording the screen. 
+                        This will disable right-click, developer tools, screenshot shortcuts, and screen recording APIs.
                       </p>
                     </div>
                     <Switch
@@ -378,7 +378,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
                       <div className="flex items-center space-x-2 text-primary">
                         <Check className="w-4 h-4" />
-                        <span className="font-medium">Screenshot Protection Active</span>
+                        <span className="font-medium">Screenshot & Recording Protection Active</span>
                       </div>
                       <p className="text-muted-foreground text-sm mt-2">
                         The following features are now disabled:
@@ -387,6 +387,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         <li>Right-click context menu</li>
                         <li>Developer tools (F12, Ctrl+Shift+I)</li>
                         <li>Screenshot shortcuts (Print Screen, Cmd+Shift+3/4)</li>
+                        <li>Screen recording APIs (getDisplayMedia, getUserMedia)</li>
                         <li>Text selection and dragging</li>
                       </ul>
                     </div>

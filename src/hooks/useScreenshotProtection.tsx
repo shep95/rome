@@ -13,6 +13,43 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
   });
   const [protectionActive, setProtectionActive] = useState(false);
 
+  // Block screen recording APIs
+  const blockScreenRecording = () => {
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices) {
+      // Override getDisplayMedia to prevent screen recording
+      const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
+      navigator.mediaDevices.getDisplayMedia = function() {
+        toast({
+          title: "Screen Recording Blocked",
+          description: "Screen recording is disabled for privacy protection.",
+          variant: "destructive",
+        });
+        return Promise.reject(new Error('Screen recording is disabled for privacy protection'));
+      };
+
+      // Override getUserMedia for screen capture
+      const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
+      navigator.mediaDevices.getUserMedia = function(constraints: any) {
+        if (constraints && constraints.video && constraints.video.mandatory && constraints.video.mandatory.chromeMediaSource === 'desktop') {
+          toast({
+            title: "Screen Recording Blocked", 
+            description: "Screen capture is disabled for privacy protection.",
+            variant: "destructive",
+          });
+          return Promise.reject(new Error('Screen capture is disabled for privacy protection'));
+        }
+        return originalGetUserMedia.call(this, constraints);
+      };
+
+      return () => {
+        // Restore original methods
+        navigator.mediaDevices.getDisplayMedia = originalGetDisplayMedia;
+        navigator.mediaDevices.getUserMedia = originalGetUserMedia;
+      };
+    }
+    return () => {};
+  };
+
   useEffect(() => {
     if (!enabled || !isEnabled || typeof window === 'undefined') return;
 
@@ -86,7 +123,7 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       setProtectionActive(shouldProtect);
       
       if (shouldProtect) {
-        console.log('Screenshot protection activated for user or conversations');
+        console.log('Screenshot and screen recording protection activated for user or conversations');
         return true;
       }
       return false;
@@ -277,6 +314,10 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
 
       // Initialize mobile detection
       detectMobileScreenshot();
+
+      // Initialize screen recording protection
+      const cleanupScreenRecording = blockScreenRecording();
+      cleanupFunctions.push(cleanupScreenRecording);
 
       // Enhanced event listeners with capture phase
       const eventOptions = { capture: true, passive: false };
