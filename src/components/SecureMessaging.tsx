@@ -259,22 +259,28 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         try {
           const { data: reads } = await supabase
             .from('message_reads')
-            .select(`
-              user_id,
-              read_at,
-              profiles:user_id (
-                username,
-                display_name,
-                avatar_url
-              )
-            `)
+            .select('user_id, read_at')
             .eq('message_id', msg.id);
-          
-          readBy = reads?.map(read => ({
-            user_id: read.user_id,
-            read_at: read.read_at,
-            profile: read.profiles
-          })) || [];
+            
+          if (reads && reads.length > 0) {
+            // Fetch profiles separately for each read receipt
+            const readByWithProfiles = await Promise.all(
+              reads.map(async (read) => {
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('username, display_name, avatar_url')
+                  .eq('id', read.user_id)
+                  .single();
+                
+                return {
+                  user_id: read.user_id,
+                  read_at: read.read_at,
+                  profile: profile
+                };
+              })
+            );
+            readBy = readByWithProfiles;
+          }
         } catch (error) {
           console.log('Error loading read receipts for message:', msg.id);
         }
