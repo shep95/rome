@@ -527,30 +527,42 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
   const decodeMessage = async (content: any, conversationId: string) => {
     try {
+      let base64Payload = '';
+      
       if (typeof content === 'string') {
         // Handle Postgres bytea returned as hex (e.g. "\\x...")
-        let base64Payload = content;
+        base64Payload = content;
         if (content.startsWith('\\x')) {
           const hex = content.slice(2);
           const bytes = new Uint8Array(hex.match(/.{2}/g)?.map((b) => parseInt(b, 16)) || []);
           // Bytes are ASCII of the base64 string we stored
           base64Payload = new TextDecoder().decode(bytes);
         }
+      } else if (content && typeof content === 'object' && content.type === 'Buffer' && Array.isArray(content.data)) {
+        // Handle Buffer object from Supabase
+        const bytes = new Uint8Array(content.data);
+        base64Payload = new TextDecoder().decode(bytes);
+      } else if (content && typeof content === 'object' && content.data) {
+        // Handle other buffer-like objects
+        const bytes = new Uint8Array(Object.values(content.data));
+        base64Payload = new TextDecoder().decode(bytes);
+      } else {
+        return content || 'Empty message';
+      }
 
-        const { encryptionService } = await import('@/lib/encryption');
+      const { encryptionService } = await import('@/lib/encryption');
+      try {
+        // Try military-grade decryption first
+        return await encryptionService.decryptMessage(base64Payload, conversationId);
+      } catch (decryptError) {
+        console.error('Decryption failed:', decryptError);
+        // Fallback for legacy base64-only messages
         try {
-          // Try military-grade decryption first
-          return await encryptionService.decryptMessage(base64Payload, conversationId);
+          return atob(base64Payload);
         } catch {
-          // Fallback for legacy base64-only messages
-          try {
-            return atob(base64Payload);
-          } catch {
-            return 'Unable to decrypt message';
-          }
+          return 'Unable to decrypt message';
         }
       }
-      return content || 'Empty message';
     } catch (error) {
       console.error('Message decoding error:', error);
       return 'Message decoding failed';
