@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { TypingIndicator } from './TypingIndicator';
 
 interface Message {
   id: string;
@@ -47,6 +48,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [vhSet, setVhSet] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (conversationId && user) {
@@ -85,6 +88,10 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       })();
       return () => {
         if (cleanup) cleanup();
+        // Clear typing status on unmount
+        if (user && conversationId) {
+          setTypingStatus(false);
+        }
       };
     }
   }, [conversationId, user]);
@@ -344,6 +351,54 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Handle typing indicators
+  const setTypingStatus = async (typing: boolean) => {
+    if (!conversationId || !user) return;
+
+    try {
+      if (typing) {
+        await supabase
+          .from('typing_indicators')
+          .upsert({
+            conversation_id: conversationId,
+            user_id: user.id,
+            is_typing: true,
+            updated_at: new Date().toISOString()
+          });
+      } else {
+        await supabase
+          .from('typing_indicators')
+          .delete()
+          .eq('conversation_id', conversationId)
+          .eq('user_id', user.id);
+      }
+    } catch (error) {
+      console.error('Error updating typing status:', error);
+    }
+  };
+
+  // Handle input changes with typing indicators
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewMessage(e.target.value);
+
+    // Set typing status
+    if (!isTyping) {
+      setIsTyping(true);
+      setTypingStatus(true);
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      setTypingStatus(false);
+    }, 2000);
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -638,11 +693,11 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                           })()}
                           {/* Show caption if not equal to filename */}
                           {message.content && message.content.trim() && message.content !== message.file_name && (
-                            <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                            <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">{message.content}</pre>
                           )}
                         </div>
                       ) : (
-                        <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                        <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">{message.content}</pre>
                       )}
                       
                       <p className="text-xs opacity-70 mt-2">
@@ -763,7 +818,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           <div className="flex-1 bg-background/50 backdrop-blur-sm border border-border rounded-xl p-2">
             <textarea
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={handleInputChange}
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
