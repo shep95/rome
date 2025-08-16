@@ -77,6 +77,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     url: '',
     type: 'image'
   });
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
 
   useEffect(() => {
     if (conversationId && user) {
@@ -110,8 +112,14 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       loadUserWallpaper(); // Still refresh in background for updates
       const cleanup = setupRealtimeSubscription();
       (async () => {
-        await loadMessages(); // refresh in background without clearing UI
-        setHasLoadedMessages(true);
+        try {
+          await loadMessages(); // refresh in background without clearing UI
+          setHasLoadedMessages(true);
+        } catch (error) {
+          console.error('Failed to load messages:', error);
+          // If background load fails, we still have cache to show
+          setHasLoadedMessages(true);
+        }
       })();
       return () => {
         if (cleanup) cleanup();
@@ -176,7 +184,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     }
   };
 
-  const loadMessages = async () => {
+  const loadMessages = async (append = false) => {
     if (!conversationId || !user?.id) return;
     
     try {
@@ -193,20 +201,33 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       
       const userJoinedAt = participantData?.joined_at;
       
-      // Use limit and pagination for faster loading
-      // Only load messages created after user joined the conversation
-      const { data: messagesData, error } = await supabase
+      // Use pagination for efficient loading - load more if appending
+      const limit = append ? 30 : 50;
+      const olderThan = append && messages.length > 0 ? messages[0].created_at : undefined;
+      
+      let query = supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
         .gte('created_at', userJoinedAt) // Only show messages from when user joined
         .order('created_at', { ascending: false })
-        .limit(50); // Load only latest 50 messages initially
+        .limit(limit);
+      
+      // If appending (loading older messages), get messages older than current oldest
+      if (olderThan) {
+        query = query.lt('created_at', olderThan);
+      }
+
+      const { data: messagesData, error } = await query;
 
       if (error) throw error;
       
+      // If appending, prepend new messages to existing ones
+      // Otherwise, replace all messages with fresh data
+      const messagesToProcess = messagesData || [];
+      
       // Reverse to get chronological order and decrypt messages
-      const decryptedMessages = await Promise.all((messagesData || []).reverse().map(async (msg) => {
+      const decryptedMessages = await Promise.all(messagesToProcess.reverse().map(async (msg) => {
         // Get sender profile
         let senderProfile = null;
         try {
@@ -259,28 +280,22 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         try {
           const { data: reads } = await supabase
             .from('message_reads')
-            .select('user_id, read_at')
+            .select(`
+              user_id,
+              read_at,
+              profiles (
+                username,
+                display_name,
+                avatar_url
+              )
+            `)
             .eq('message_id', msg.id);
-            
-          if (reads && reads.length > 0) {
-            // Fetch profiles separately for each read receipt
-            const readByWithProfiles = await Promise.all(
-              reads.map(async (read) => {
-                const { data: profile } = await supabase
-                  .from('profiles')
-                  .select('username, display_name, avatar_url')
-                  .eq('id', read.user_id)
-                  .single();
-                
-                return {
-                  user_id: read.user_id,
-                  read_at: read.read_at,
-                  profile: profile
-                };
-              })
-            );
-            readBy = readByWithProfiles;
-          }
+          
+          readBy = reads?.map(read => ({
+            user_id: read.user_id,
+            read_at: read.read_at,
+            profile: read.profiles
+          })) || [];
         } catch (error) {
           console.log('Error loading read receipts for message:', msg.id);
         }
@@ -373,16 +388,45 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         return message;
       }));
       
-      setMessages(decryptedMessages);
+      // Update messages state based on whether we're appending or replacing
+      if (append && decryptedMessages.length > 0) {
+        // Prepend older messages to the beginning of the array
+        setMessages(prev => [...decryptedMessages, ...prev]);
+      } else {
+        // Replace all messages with fresh data
+        setMessages(decryptedMessages);
+      }
       
-      // Mark messages as read when viewing them
-      if (user && conversationId) {
+      // Mark messages as read when viewing them (only for fresh loads, not appends)
+      if (!append && user && conversationId) {
         markMessagesAsRead();
       }
     } catch (error) {
       console.error('Error loading messages:', error);
     }
   };
+
+  // Function to load older messages for pagination
+  const loadOlderMessages = async () => {
+    if (loadingOlderMessages || !hasMoreMessages) return;
+    
+    setLoadingOlderMessages(true);
+    try {
+      const beforeCount = messages.length;
+      await loadMessages(true);
+      const afterCount = messages.length;
+      
+      // If no new messages were loaded, we've reached the end
+      if (afterCount === beforeCount) {
+        setHasMoreMessages(false);
+      }
+    } catch (error) {
+      console.error('Error loading older messages:', error);
+    } finally {
+      setLoadingOlderMessages(false);
+    }
+  };
+
 
   const markMessagesAsRead = async () => {
     if (!conversationId || !user) return;
@@ -882,6 +926,20 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           )
         ) : (
           <div className="space-y-4">
+            {/* Load older messages button */}
+            {hasMoreMessages && messages.length > 0 && (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadOlderMessages}
+                  disabled={loadingOlderMessages}
+                  className="bg-background/50 backdrop-blur-sm border-border/30"
+                >
+                  {loadingOlderMessages ? 'Loading...' : 'Load older messages'}
+                </Button>
+              </div>
+            )}
             {messages.map((message) => (
               <div
                 key={message.id}

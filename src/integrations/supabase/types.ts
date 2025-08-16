@@ -161,6 +161,20 @@ export type Database = {
             referencedRelation: "messages_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "message_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_search"
+            referencedColumns: ["id"]
+          },
         ]
       }
       message_requests: {
