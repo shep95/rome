@@ -97,23 +97,30 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     try {
       const { data: participantData } = await supabase
         .from('conversation_participants')
-        .select('conversation_id')
+        .select('conversation_id, last_read_at')
         .eq('user_id', user.id)
         .is('left_at', null);
 
       if (!participantData) return;
 
       const conversationIds = participantData.map(p => p.conversation_id);
+      const lastReadMap: { [key: string]: string | null } = {};
+      participantData.forEach(p => { lastReadMap[p.conversation_id] = (p as any).last_read_at; });
+
       const newUnreadCounts: {[key: string]: number} = {};
 
-      // For each conversation, count unread messages
+      // For each conversation, count unread messages after last_read_at
       for (const convId of conversationIds) {
-        const { count } = await supabase
+        const lastReadAt = lastReadMap[convId] || null;
+        let query = supabase
           .from('messages')
           .select('*', { count: 'exact', head: true })
           .eq('conversation_id', convId)
-          .neq('sender_id', user.id); // Messages not sent by current user
-
+          .neq('sender_id', user.id);
+        if (lastReadAt) {
+          query = query.gt('created_at', lastReadAt as string);
+        }
+        const { count } = await query;
         newUnreadCounts[convId] = count || 0;
       }
 
@@ -150,11 +157,23 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     }
   }, [selectedConversation]);
 
-  // Mark conversation as read and update counts
-  const markConversationAsRead = (conversationId: string) => {
+  const markConversationAsRead = async (conversationId: string) => {
     const currentUnread = unreadCounts[conversationId] || 0;
+
+    // Persist last_read_at in DB
+    try {
+      if (user) {
+        await supabase
+          .from('conversation_participants')
+          .update({ last_read_at: new Date().toISOString() })
+          .eq('conversation_id', conversationId)
+          .eq('user_id', user.id);
+      }
+    } catch (e) {
+      console.error('Failed to persist last_read_at', e);
+    }
     
-    // Update unread counts
+    // Update unread counts locally
     setUnreadCounts(prev => ({
       ...prev,
       [conversationId]: 0
@@ -162,7 +181,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
     // Update totals
     const isGroupChat = groupChats.some(group => group.id === conversationId);
-    
     if (isGroupChat) {
       setGroupUnreadTotal(prev => Math.max(0, prev - currentUnread));
     } else {
