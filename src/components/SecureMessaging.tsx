@@ -877,15 +877,11 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         ) : (
           <div className="space-y-4">
             {messages.map((message) => (
-              <ThanosSnapEffect
+              <div
                 key={message.id}
-                onAnimationComplete={() => deleteMessage(message.id, true)}
-                trigger={deletingMessageId === message.id}
+                data-message-id={message.id}
+                className={`flex items-end gap-2 sm:gap-3 relative z-10 ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
               >
-                <div
-                  data-message-id={message.id}
-                  className={`flex items-end gap-2 sm:gap-3 relative z-10 ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
-                >
                 {/* Avatar for others */}
                         {message.sender_id !== user?.id && (
                           <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
@@ -1075,16 +1071,21 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                         </DropdownMenuItem>
                         {/* Only show delete option for messages sent by current user */}
                         {message.sender_id === user?.id && (
-                          <DropdownMenuItem
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onSelect={(e) => {
-                              e.preventDefault();
-                              setDeletingMessageId(message.id);
-                            }}
+                          <ThanosSnapEffect
+                            onAnimationComplete={() => deleteMessage(message.id, true)}
+                            trigger={deletingMessageId === message.id}
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Message
-                          </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                setDeletingMessageId(message.id);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Message
+                            </DropdownMenuItem>
+                          </ThanosSnapEffect>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -1103,7 +1104,6 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                   </Avatar>
                 )}
               </div>
-              </ThanosSnapEffect>
             ))}
           </div>
         )}
