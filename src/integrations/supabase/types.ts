@@ -52,6 +52,7 @@ export type Database = {
           conversation_id: string
           id: string
           joined_at: string
+          last_read_at: string | null
           left_at: string | null
           role: string | null
           user_id: string
@@ -60,6 +61,7 @@ export type Database = {
           conversation_id: string
           id?: string
           joined_at?: string
+          last_read_at?: string | null
           left_at?: string | null
           role?: string | null
           user_id: string
@@ -68,6 +70,7 @@ export type Database = {
           conversation_id?: string
           id?: string
           joined_at?: string
+          last_read_at?: string | null
           left_at?: string | null
           role?: string | null
           user_id?: string
@@ -443,6 +446,80 @@ export type Database = {
       }
     }
     Views: {
+      messages_safe: {
+        Row: {
+          content_status: string | null
+          conversation_id: string | null
+          created_at: string | null
+          file_name: string | null
+          file_size: number | null
+          id: string | null
+          message_type: string | null
+          sender_id: string | null
+          sequence_number: number | null
+        }
+        Insert: {
+          content_status?: never
+          conversation_id?: string | null
+          created_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          id?: string | null
+          message_type?: string | null
+          sender_id?: string | null
+          sequence_number?: number | null
+        }
+        Update: {
+          content_status?: never
+          conversation_id?: string | null
+          created_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          id?: string | null
+          message_type?: string | null
+          sender_id?: string | null
+          sequence_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      secure_files_safe: {
+        Row: {
+          content_type: string | null
+          created_at: string | null
+          encryption_status: string | null
+          file_size: number | null
+          filename: string | null
+          id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string | null
+          encryption_status?: never
+          file_size?: number | null
+          filename?: string | null
+          id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string | null
+          encryption_status?: never
+          file_size?: number | null
+          filename?: string | null
+          id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_search: {
         Row: {
           avatar_url: string | null
