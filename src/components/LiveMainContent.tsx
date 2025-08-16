@@ -605,10 +605,13 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
       
       {/* Right Panel - Chat Area */}
       <div className={`${selectedConversation ? 'block' : 'hidden md:block'} flex-1`}>
-        <SecureMessaging 
-          conversationId={selectedConversation || undefined} 
-          onBackToMessages={() => setSelectedConversation(null)}
-        />
+        {selectedConversation && (
+          <SecureMessaging 
+            key={selectedConversation} // Force re-render when conversation changes
+            conversationId={selectedConversation} 
+            onBackToMessages={() => setSelectedConversation(null)}
+          />
+        )}
       </div>
       
       {/* User Search Modal */}

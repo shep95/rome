@@ -375,6 +375,12 @@ export const SecureFiles: React.FC = () => {
         toast.success('File downloaded successfully');
       }
 
+      // Ask user if they want to delete the file after accessing
+      const shouldDelete = confirm('File accessed successfully! Do you want to delete this secure file now?');
+      if (shouldDelete) {
+        await deleteSecureFile(selectedFileForAccess.id);
+      }
+
       setIsAccessModalOpen(false);
       setSelectedFileForAccess(null);
       setAccessCode('');
@@ -383,6 +389,40 @@ export const SecureFiles: React.FC = () => {
       toast.error('Failed to access file');
     } finally {
       setAccessLoading(false);
+    }
+  };
+
+  const deleteSecureFile = async (fileId: string) => {
+    try {
+      const fileToDelete = files.find(f => f.id === fileId);
+      if (!fileToDelete) return;
+
+      // Delete from storage if it's not a text file
+      if (fileToDelete.content_type !== 'text/plain') {
+        try {
+          await supabase.storage
+            .from('secure-files')
+            .remove([fileToDelete.file_path]);
+        } catch (storageError) {
+          console.warn('Failed to delete file from storage:', storageError);
+        }
+      }
+
+      // Delete from database
+      const { error } = await supabase
+        .from('secure_files')
+        .delete()
+        .eq('id', fileId)
+        .eq('user_id', user?.id); // Ensure user can only delete their own files
+
+      if (error) throw error;
+
+      // Update local state
+      setFiles(prev => prev.filter(f => f.id !== fileId));
+      toast.success('Secure file deleted successfully');
+    } catch (error) {
+      console.error('Error deleting secure file:', error);
+      toast.error('Failed to delete secure file');
     }
   };
 

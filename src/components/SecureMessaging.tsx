@@ -8,6 +8,7 @@ import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertic
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
+import { toast } from 'sonner';
 
 interface Message {
   id: string;
@@ -177,16 +178,18 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     if (!conversationId) return;
     
     try {
-    const { data: messagesData, error } = await supabase
-      .from('messages')
+      // Use limit and pagination for faster loading
+      const { data: messagesData, error } = await supabase
+        .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(50); // Load only latest 50 messages initially
 
       if (error) throw error;
       
-      // Decrypt messages and handle file metadata
-      const decryptedMessages = await Promise.all((messagesData || []).map(async (msg) => {
+      // Reverse to get chronological order and decrypt messages
+      const decryptedMessages = await Promise.all((messagesData || []).reverse().map(async (msg) => {
         // Get sender profile
         let senderProfile = null;
         try {
@@ -637,17 +640,48 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
   const deleteMessage = async (messageId: string) => {
     try {
+      // Get message details before deletion
+      const messageToDelete = messages.find(msg => msg.id === messageId);
+      
+      // Delete from database
       const { error } = await supabase
         .from('messages')
         .delete()
         .eq('id', messageId);
 
       if (error) throw error;
+
+      // If message had a file, delete it from storage too
+      if (messageToDelete?.file_url) {
+        try {
+          // Extract file path from URL
+          const urlParts = messageToDelete.file_url.split('/');
+          const bucketName = urlParts[urlParts.length - 2];
+          const fileName = urlParts[urlParts.length - 1];
+          const filePath = `${bucketName}/${fileName}`;
+          
+          // Delete from storage
+          await supabase.storage
+            .from('secure-files')
+            .remove([filePath]);
+
+          // Delete from secure_files table if it exists
+          await supabase
+            .from('secure_files')
+            .delete()
+            .eq('file_path', filePath);
+        } catch (fileError) {
+          console.warn('Failed to delete associated file:', fileError);
+        }
+      }
+
+      // Remove from local state
+      setMessages(prevMessages => prevMessages.filter(msg => msg.id !== messageId));
       
-      // Reload messages to reflect the deletion
-      loadMessages();
+      toast.success('Message deleted');
     } catch (error) {
       console.error('Error deleting message:', error);
+      toast.error('Failed to delete message');
     }
   };
 
