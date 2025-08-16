@@ -177,14 +177,29 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   };
 
   const loadMessages = async () => {
-    if (!conversationId) return;
+    if (!conversationId || !user?.id) return;
     
     try {
+      // Get user's join date for this conversation to filter messages
+      const { data: participantData, error: participantError } = await supabase
+        .from('conversation_participants')
+        .select('joined_at')
+        .eq('conversation_id', conversationId)
+        .eq('user_id', user.id)
+        .eq('left_at', null)
+        .single();
+
+      if (participantError) throw participantError;
+      
+      const userJoinedAt = participantData?.joined_at;
+      
       // Use limit and pagination for faster loading
+      // Only load messages created after user joined the conversation
       const { data: messagesData, error } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
+        .gte('created_at', userJoinedAt) // Only show messages from when user joined
         .order('created_at', { ascending: false })
         .limit(50); // Load only latest 50 messages initially
 
@@ -1058,16 +1073,19 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                           <Reply className="h-4 w-4 mr-2" />
                           Reply
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onSelect={(e) => {
-                            e.preventDefault();
-                            setDeletingMessageId(message.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Message
-                        </DropdownMenuItem>
+                        {/* Only show delete option for messages sent by current user */}
+                        {message.sender_id === user?.id && (
+                          <DropdownMenuItem
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onSelect={(e) => {
+                              e.preventDefault();
+                              setDeletingMessageId(message.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Message
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
