@@ -28,9 +28,9 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
     // Load initial typing users
     loadTypingUsers();
 
-    // Subscribe to typing indicator changes
+    // Subscribe to typing indicator changes with more specific filtering
     const channel = supabase
-      .channel(`typing:${conversationId}`)
+      .channel(`typing_indicators:${conversationId}`)
       .on(
         'postgres_changes',
         {
@@ -39,16 +39,25 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
           table: 'typing_indicators',
           filter: `conversation_id=eq.${conversationId}`
         },
-        () => {
+        (payload) => {
+          console.log('Typing indicator changed:', payload);
           loadTypingUsers();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Typing indicator subscription status:', status);
+      });
+
+    // Also set up a cleanup interval to remove stale typing indicators
+    const cleanupInterval = setInterval(() => {
+      loadTypingUsers();
+    }, 5000); // Check every 5 seconds
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(cleanupInterval);
     };
-  }, [conversationId]);
+  }, [conversationId, currentUserId]);
 
   const loadTypingUsers = async () => {
     try {
@@ -106,9 +115,9 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
           </Avatar>
           
           <div className="flex gap-1">
-            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
+            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0ms', animationDuration: '1s' }}></div>
+            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '333ms', animationDuration: '1s' }}></div>
+            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '666ms', animationDuration: '1s' }}></div>
           </div>
         </div>
       ))}

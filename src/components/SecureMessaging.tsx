@@ -106,7 +106,9 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   }, [conversationId, user]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      scrollToUnreadOrBottom();
+    }
   }, [messages]);
 
   // Cache messages per conversation to persist between tab switches
@@ -525,6 +527,32 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const scrollToUnreadOrBottom = () => {
+    if (!user || messages.length === 0) {
+      scrollToBottom();
+      return;
+    }
+
+    // Find the first unread message (message not read by current user)
+    const firstUnreadIndex = messages.findIndex(message => 
+      message.sender_id !== user.id && 
+      (!message.read_by || !message.read_by.some(read => read.user_id === user.id))
+    );
+
+    if (firstUnreadIndex !== -1) {
+      // Scroll to the first unread message
+      const messageElements = document.querySelectorAll('[data-message-id]');
+      const targetElement = messageElements[firstUnreadIndex];
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+    }
+
+    // If no unread messages, scroll to bottom
+    scrollToBottom();
+  };
+
   const decodeMessage = async (content: any, conversationId: string) => {
     try {
       let base64Payload = '';
@@ -665,6 +693,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
             {messages.map((message) => (
               <div
                 key={message.id}
+                data-message-id={message.id}
                 className={`flex items-end gap-2 sm:gap-3 relative z-10 ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
               >
                 {/* Avatar for others */}
