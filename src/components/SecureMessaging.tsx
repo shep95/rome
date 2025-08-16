@@ -1052,16 +1052,32 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                           <Reply className="h-4 w-4 mr-2" />
                           Reply
                         </DropdownMenuItem>
-                        <ThanosSnapEffect
-                          onAnimationComplete={() => deleteMessage(message.id, true)}
+                        <DropdownMenuItem
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 p-0"
+                          onSelect={(e) => {
+                            e.preventDefault();
+                          }}
                         >
-                          <DropdownMenuItem
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          <ThanosSnapEffect
+                            onAnimationComplete={() => deleteMessage(message.id, true)}
+                            trigger={false}
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Message
-                          </DropdownMenuItem>
-                        </ThanosSnapEffect>
+                            <div 
+                              className="flex items-center w-full px-2 py-1.5 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Trigger the animation manually
+                                const thanosEffect = e.currentTarget.parentElement;
+                                if (thanosEffect) {
+                                  thanosEffect.click();
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Message
+                            </div>
+                          </ThanosSnapEffect>
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
