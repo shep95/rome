@@ -124,6 +124,45 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reads: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reads_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reads_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_requests: {
         Row: {
           created_at: string
@@ -612,6 +651,14 @@ export type Database = {
       generate_entropy_vector: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      mark_messages_as_read: {
+        Args: { p_conversation_id: string; p_up_to_message_id?: string }
+        Returns: undefined
+      }
+      update_last_read_at: {
+        Args: { p_conversation_id: string }
+        Returns: undefined
       }
       user_can_access_file: {
         Args: { file_path: string }

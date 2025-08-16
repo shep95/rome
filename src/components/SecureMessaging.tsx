@@ -22,6 +22,15 @@ interface Message {
     display_name: string;
     avatar_url: string;
   };
+  read_by?: {
+    user_id: string;
+    read_at: string;
+    profile?: {
+      username: string;
+      display_name: string;
+      avatar_url: string;
+    };
+  }[];
 }
 
 interface FilePreview {
@@ -174,6 +183,31 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           console.log('Profile not found for sender:', msg.sender_id);
         }
         
+        // Get read receipts for this message
+        let readBy: any[] = [];
+        try {
+          const { data: reads } = await supabase
+            .from('message_reads')
+            .select(`
+              user_id,
+              read_at,
+              profiles:user_id (
+                username,
+                display_name,
+                avatar_url
+              )
+            `)
+            .eq('message_id', msg.id);
+          
+          readBy = reads?.map(read => ({
+            user_id: read.user_id,
+            read_at: read.read_at,
+            profile: read.profiles
+          })) || [];
+        } catch (error) {
+          console.log('Error loading read receipts for message:', msg.id);
+        }
+        
         // Prepare signed URL for secure-files if needed
         let fileUrl: string | undefined = (msg.file_url as string | undefined) || undefined;
         if (fileUrl && fileUrl.includes('/secure-files/')) {
@@ -190,13 +224,31 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           file_url: fileUrl,
           file_name: (msg.file_name as string | undefined) || undefined,
           file_size: (msg.file_size as number | undefined) || undefined,
-          sender_profile: senderProfile
+          sender_profile: senderProfile,
+          read_by: readBy
         };
       }));
       
       setMessages(decryptedMessages);
+      
+      // Mark messages as read when viewing them
+      if (user && conversationId) {
+        markMessagesAsRead();
+      }
     } catch (error) {
       console.error('Error loading messages:', error);
+    }
+  };
+
+  const markMessagesAsRead = async () => {
+    if (!conversationId || !user) return;
+    
+    try {
+      await supabase.rpc('mark_messages_as_read', {
+        p_conversation_id: conversationId
+      });
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
     }
   };
 
@@ -280,6 +332,18 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         (payload) => {
           console.log('New message received via realtime:', payload);
           loadMessages();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'message_reads'
+        },
+        (payload) => {
+          console.log('Message read receipt received via realtime:', payload);
+          loadMessages(); // Reload to get updated read receipts
         }
       )
       .subscribe((status) => {
@@ -700,9 +764,30 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                         <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">{message.content}</pre>
                       )}
                       
-                      <p className="text-xs opacity-70 mt-2">
-                        {new Date(message.created_at).toLocaleTimeString()}
-                      </p>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-xs opacity-70">
+                          {new Date(message.created_at).toLocaleTimeString()}
+                        </p>
+                        
+                        {/* Read receipts for sent messages */}
+                        {message.sender_id === user?.id && message.read_by && message.read_by.length > 0 && (
+                          <div className="flex -space-x-1">
+                            {message.read_by.slice(0, 3).map((read, index) => (
+                              <Avatar key={read.user_id} className="h-4 w-4 rounded-full border border-background/50">
+                                <AvatarImage src={read.profile?.avatar_url} className="rounded-full" />
+                                <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-full">
+                                  {read.profile?.display_name?.[0] || read.profile?.username?.[0] || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                            ))}
+                            {message.read_by.length > 3 && (
+                              <div className="h-4 w-4 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center border border-background/50">
+                                +{message.read_by.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     
                     {/* Delete message dropdown */}
@@ -746,6 +831,10 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
             ))}
           </div>
         )}
+        
+        {/* Typing Indicator */}
+        <TypingIndicator conversationId={conversationId} currentUserId={user?.id} />
+        
         <div ref={messagesEndRef} />
       </div>
 
