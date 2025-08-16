@@ -8,8 +8,8 @@ const BACKEND_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 // Secure backend client for encrypted communications
 export const supabase = createClient<Database>(BACKEND_URL, BACKEND_KEY, {
   auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+    storage: sessionStorage,
+    persistSession: false,
+    autoRefreshToken: false,
   }
 });
