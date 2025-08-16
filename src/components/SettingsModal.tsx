@@ -387,9 +387,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         <li>Right-click context menu</li>
                         <li>Developer tools (F12, Ctrl+Shift+I)</li>
                         <li>Screenshot shortcuts (Print Screen, Cmd+Shift+3/4)</li>
-                        <li>Screen recording APIs (getDisplayMedia, getUserMedia)</li>
+                        <li>Screen recording detection (with warnings)</li>
                         <li>Text selection and dragging</li>
                       </ul>
+                      <p className="text-muted-foreground text-xs mt-2 italic">
+                        Note: Screen sharing for video calls and social media is allowed but will show warnings.
+                      </p>
                     </div>
                   )}
                 </CardContent>

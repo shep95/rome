@@ -13,38 +13,43 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
   });
   const [protectionActive, setProtectionActive] = useState(false);
 
-  // Block screen recording APIs
+  // Block malicious screen recording while allowing legitimate screen sharing
   const blockScreenRecording = () => {
     if (typeof navigator !== 'undefined' && navigator.mediaDevices) {
-      // Override getDisplayMedia to prevent screen recording
+      // Store original methods
       const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
-      navigator.mediaDevices.getDisplayMedia = function() {
-        toast({
-          title: "Screen Recording Blocked",
-          description: "Screen recording is disabled for privacy protection.",
-          variant: "destructive",
-        });
-        return Promise.reject(new Error('Screen recording is disabled for privacy protection'));
-      };
-
-      // Override getUserMedia for screen capture
       const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
+      
+      // Override getUserMedia to detect screen recording attempts
       navigator.mediaDevices.getUserMedia = function(constraints: any) {
-        if (constraints && constraints.video && constraints.video.mandatory && constraints.video.mandatory.chromeMediaSource === 'desktop') {
+        // Only warn about desktop capture specifically targeting this app
+        if (constraints && constraints.video && constraints.video.mandatory && 
+            constraints.video.mandatory.chromeMediaSource === 'desktop') {
           toast({
-            title: "Screen Recording Blocked", 
-            description: "Screen capture is disabled for privacy protection.",
+            title: "Screen Recording Detected",
+            description: "Someone is trying to record your screen. Be cautious of what you share.",
             variant: "destructive",
           });
-          return Promise.reject(new Error('Screen capture is disabled for privacy protection'));
+          // Log but don't block - let user decide
+          console.warn('Screen recording attempt detected');
         }
         return originalGetUserMedia.call(this, constraints);
       };
 
+      // For getDisplayMedia, show a warning but allow the action for legitimate screen sharing
+      navigator.mediaDevices.getDisplayMedia = function(constraints?: any) {
+        toast({
+          title: "Screen Sharing Active",
+          description: "You're about to share your screen. Ensure sensitive information is not visible.",
+          variant: "default",
+        });
+        return originalGetDisplayMedia.call(this, constraints);
+      };
+
       return () => {
         // Restore original methods
-        navigator.mediaDevices.getDisplayMedia = originalGetDisplayMedia;
         navigator.mediaDevices.getUserMedia = originalGetUserMedia;
+        navigator.mediaDevices.getDisplayMedia = originalGetDisplayMedia;
       };
     }
     return () => {};
