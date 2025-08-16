@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
+import { MediaModal } from './MediaModal';
 
 interface Message {
   id: string;
@@ -59,6 +60,17 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const [vhSet, setVhSet] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [mediaModal, setMediaModal] = useState<{
+    isOpen: boolean;
+    url: string;
+    type: 'image' | 'video';
+    fileName?: string;
+    fileSize?: number;
+  }>({
+    isOpen: false,
+    url: '',
+    type: 'image'
+  });
 
   useEffect(() => {
     if (conversationId && user) {
@@ -107,7 +119,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
   useEffect(() => {
     if (messages.length > 0) {
-      scrollToUnreadOrBottom();
+      scrollToBottom();
     }
   }, [messages]);
 
@@ -527,32 +539,6 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const scrollToUnreadOrBottom = () => {
-    if (!user || messages.length === 0) {
-      scrollToBottom();
-      return;
-    }
-
-    // Find the first unread message (message not read by current user)
-    const firstUnreadIndex = messages.findIndex(message => 
-      message.sender_id !== user.id && 
-      (!message.read_by || !message.read_by.some(read => read.user_id === user.id))
-    );
-
-    if (firstUnreadIndex !== -1) {
-      // Scroll to the first unread message
-      const messageElements = document.querySelectorAll('[data-message-id]');
-      const targetElement = messageElements[firstUnreadIndex];
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-    }
-
-    // If no unread messages, scroll to bottom
-    scrollToBottom();
-  };
-
   const decodeMessage = async (content: any, conversationId: string) => {
     try {
       let base64Payload = '';
@@ -613,6 +599,20 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     const sep = url.includes('?') ? '&' : '?';
     const dl = filename ? `download=${encodeURIComponent(filename)}` : 'download';
     return `${url}${sep}${dl}`;
+  };
+
+  const openMediaModal = (url: string, type: 'image' | 'video', fileName?: string, fileSize?: number) => {
+    setMediaModal({
+      isOpen: true,
+      url,
+      type,
+      fileName,
+      fileSize
+    });
+  };
+
+  const closeMediaModal = () => {
+    setMediaModal(prev => ({ ...prev, isOpen: false }));
   };
 
   if (!conversationId) {
@@ -742,14 +742,14 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                             if (isImage) {
                               return (
                                 <div className="space-y-2">
-                                  <img 
-                                    src={message.file_url!} 
-                                    alt={message.file_name || 'Image'}
-                                    className="max-w-full w-full rounded-lg max-h-64 object-cover cursor-pointer block"
-                                    style={{ maxWidth: '100%', height: 'auto' }}
-                                    onClick={() => window.open(message.file_url!, '_blank')}
-                                    onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
-                                  />
+                                   <img 
+                                     src={message.file_url!} 
+                                     alt={message.file_name || 'Image'}
+                                     className="max-w-full w-full rounded-lg max-h-64 object-cover cursor-pointer block"
+                                     style={{ maxWidth: '100%', height: 'auto' }}
+                                     onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
+                                     onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
+                                   />
                                   <div className="flex gap-3 text-xs">
                                     <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
                                       Download
@@ -759,14 +759,23 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                               );
                             } else if (isVideo) {
                               return (
-                                <div className="space-y-2">
-                                  <video 
-                                    src={message.file_url!}
-                                    controls
-                                    className="max-w-full w-full rounded-lg max-h-64 block"
-                                    style={{ maxWidth: '100%', height: 'auto' }}
-                                    onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
-                                  />
+                                 <div className="space-y-2">
+                                   <div 
+                                     className="relative cursor-pointer"
+                                     onClick={() => openMediaModal(message.file_url!, 'video', message.file_name, message.file_size)}
+                                   >
+                                     <video 
+                                       src={message.file_url!}
+                                       className="max-w-full w-full rounded-lg max-h-64 block pointer-events-none"
+                                       style={{ maxWidth: '100%', height: 'auto' }}
+                                       onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
+                                     />
+                                     <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                                       <div className="bg-white/90 rounded-full p-2">
+                                         <Video className="h-6 w-6 text-black" />
+                                       </div>
+                                     </div>
+                                   </div>
                                   <div className="flex gap-3 text-xs">
                                     <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
                                       Download
@@ -981,6 +990,15 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           </Button>
         </div>
       </div>
+
+      <MediaModal
+        isOpen={mediaModal.isOpen}
+        onClose={closeMediaModal}
+        mediaUrl={mediaModal.url}
+        mediaType={mediaModal.type}
+        fileName={mediaModal.fileName}
+        fileSize={mediaModal.fileSize}
+      />
     </div>
   );
 };
