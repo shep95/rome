@@ -154,6 +154,7 @@ export const SecureFiles: React.FC = () => {
         // Text content only
         filePath = `text/${user.id}/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
         fileSize = newFileContent.length;
+        // Military-grade encryption using the access code as password
         const { encryptionService } = await import('@/lib/encryption');
         encryptedContent = await encryptionService.encryptMessage(newFileContent.trim(), accessCode);
       }

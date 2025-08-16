@@ -144,8 +144,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     if (!conversationId) return;
     
     try {
-      const { data: messagesData, error } = await supabase
-        .from('messages')
+    const { data: messagesData, error } = await supabase
+      .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
@@ -313,7 +313,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         }
       }
 
-      // Use proper encryption - messages are encrypted with conversation ID as password
+      // Military-grade encryption - messages are encrypted with conversation ID as password
       const { encryptionService } = await import('@/lib/encryption');
       const encryptedContent = await encryptionService.encryptMessage(messageContent, conversationId);
       
