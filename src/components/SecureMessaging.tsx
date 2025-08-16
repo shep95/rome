@@ -8,6 +8,7 @@ import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertic
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
+import { ThanosSnapEffect } from '@/components/ui/thanos-snap-effect';
 import { toast } from 'sonner';
 
 interface Message {
@@ -638,7 +639,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     });
   };
 
-  const deleteMessage = async (messageId: string) => {
+  const deleteMessage = async (messageId: string, skipAnimation = false) => {
     try {
       // Get message details before deletion
       const messageToDelete = messages.find(msg => msg.id === messageId);
@@ -1033,13 +1034,16 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                           <Reply className="h-4 w-4 mr-2" />
                           Reply
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => deleteMessage(message.id)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        <ThanosSnapEffect
+                          onAnimationComplete={() => deleteMessage(message.id, true)}
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Message
-                        </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Message
+                          </DropdownMenuItem>
+                        </ThanosSnapEffect>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

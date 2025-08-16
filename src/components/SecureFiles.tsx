@@ -20,8 +20,10 @@ import {
   X,
   Lock,
   Shield,
-  Eye
+  Eye,
+  Trash2
 } from 'lucide-react';
+import { ThanosSnapEffect } from '@/components/ui/thanos-snap-effect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
@@ -504,10 +506,25 @@ export const SecureFiles: React.FC = () => {
             files.map((file) => (
               <Card 
                 key={file.id} 
-                className="bg-card/50 border-border hover:shadow-lg transition-all cursor-pointer h-[280px] flex flex-col"
-                onClick={() => handleFileAccess(file)}
+                className="bg-card/50 border-border hover:shadow-lg transition-all h-[280px] flex flex-col relative group"
               >
-                <CardContent className="p-6 flex flex-col h-full">
+                {/* Delete button with Thanos Snap effect */}
+                <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ThanosSnapEffect onAnimationComplete={() => deleteSecureFile(file.id)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-full backdrop-blur-sm"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </ThanosSnapEffect>
+                </div>
+
+                <CardContent 
+                  className="p-6 flex flex-col h-full cursor-pointer"
+                  onClick={() => handleFileAccess(file)}
+                >
                   <div className="flex flex-col items-center text-center space-y-4 flex-1">
                     {/* File Icon */}
                     <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-primary-foreground flex-shrink-0">
