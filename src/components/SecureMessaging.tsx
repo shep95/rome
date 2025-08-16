@@ -536,14 +536,32 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
       if (error) throw error;
       
+      // Clear form immediately for better UX
       setNewMessage('');
       setSelectedFiles([]);
-      setReplyingTo(null); // Clear reply after sending
+      setReplyingTo(null);
       
-      // Force reload messages after a short delay to ensure the new message appears
-      setTimeout(() => {
-        loadMessages();
-      }, 500);
+      // Optimistic update - add message to UI immediately
+      const optimisticMessage: Message = {
+        id: `temp-${Date.now()}`, // Temporary ID until real-time update
+        content: messageContent,
+        sender_id: user.id,
+        created_at: new Date().toISOString(),
+        message_type: messageType as 'text' | 'file' | 'image' | 'video',
+        file_url: fileUrl || null,
+        file_name: fileName || null,
+        file_size: fileSize || null,
+        replied_to_message_id: replyingTo?.id || null,
+        sender: {
+          username: user.user_metadata?.username || 'You',
+          display_name: user.user_metadata?.display_name || 'You',
+          avatar_url: user.user_metadata?.avatar_url || null
+        },
+        read_receipts: [],
+        replied_to_message: replyingTo || undefined
+      };
+      
+      setMessages(prev => [...prev, optimisticMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
