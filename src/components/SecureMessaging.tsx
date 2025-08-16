@@ -409,18 +409,24 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const decodeMessage = async (content: any, conversationId: string) => {
     try {
       if (typeof content === 'string') {
-        // First try military-grade decryption
+        // Handle Postgres bytea returned as hex (e.g. "\\x...")
+        let base64Payload = content;
+        if (content.startsWith('\\x')) {
+          const hex = content.slice(2);
+          const bytes = new Uint8Array(hex.match(/.{2}/g)?.map((b) => parseInt(b, 16)) || []);
+          // Bytes are ASCII of the base64 string we stored
+          base64Payload = new TextDecoder().decode(bytes);
+        }
+
         const { encryptionService } = await import('@/lib/encryption');
         try {
-          const decrypted = await encryptionService.decryptMessage(content, conversationId);
-          return decrypted;
-        } catch (decryptError) {
-          console.log('Military encryption decryption failed, trying base64 fallback');
+          // Try military-grade decryption first
+          return await encryptionService.decryptMessage(base64Payload, conversationId);
+        } catch {
+          // Fallback for legacy base64-only messages
           try {
-            // Fallback for old base64 encoded messages
-            return atob(content);
-          } catch (base64Error) {
-            console.log('Base64 decryption also failed');
+            return atob(base64Payload);
+          } catch {
             return 'Unable to decrypt message';
           }
         }
