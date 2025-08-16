@@ -105,6 +105,7 @@ export const MediaModal: React.FC<MediaModalProps> = ({
             <video
               src={mediaUrl}
               controls
+              loop
               className="max-w-full max-h-full animate-scale-in shadow-2xl rounded-lg border border-white/10"
               style={{ maxHeight: '85vh', maxWidth: '90vw' }}
               autoPlay={false}
