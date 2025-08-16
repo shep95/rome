@@ -874,7 +874,9 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         )}
         
         {/* Typing Indicator */}
-        <TypingIndicator conversationId={conversationId} currentUserId={user?.id} />
+        {user?.id && (
+          <TypingIndicator conversationId={conversationId} currentUserId={user.id} />
+        )}
         
         <div ref={messagesEndRef} />
       </div>
