@@ -176,7 +176,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
         return {
           id: msg.id,
-          content: decodeMessage(msg.encrypted_content),
+          content: await decodeMessage(msg.encrypted_content, conversationId),
           sender_id: msg.sender_id,
           created_at: msg.created_at,
           message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
@@ -313,8 +313,9 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         }
       }
 
-      // Simple base64 encoding for demo (use real encryption in production)
-      const encryptedContent = btoa(messageContent);
+      // Use proper encryption - messages are encrypted with conversation ID as password
+      const { encryptionService } = await import('@/lib/encryption');
+      const encryptedContent = await encryptionService.encryptMessage(messageContent, conversationId);
       
       const { error } = await supabase
         .from('messages')
@@ -405,24 +406,20 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Helper function to decode messages (handles both base64 and bytea formats)
-  const decodeMessage = (encryptedContent: any): string => {
+  const decodeMessage = async (content: any, conversationId: string) => {
     try {
-      if (typeof encryptedContent === 'string') {
-        // Handle bytea format (e.g., "\\x61475635")
-        if (encryptedContent.startsWith('\\x')) {
-          const hex = encryptedContent.slice(2);
-          const bytes = hex.match(/.{2}/g)?.map(byte => parseInt(byte, 16)) || [];
-          const binaryString = String.fromCharCode(...bytes);
-          return atob(binaryString);
+      if (typeof content === 'string') {
+        const { encryptionService } = await import('@/lib/encryption');
+        try {
+          return await encryptionService.decryptMessage(content, conversationId);
+        } catch (decryptError) {
+          // Fallback for old base64 encoded messages
+          return atob(content);
         }
-        // Handle base64 format
-        return atob(encryptedContent);
       }
-      return 'Unable to decode message';
+      return content;
     } catch (error) {
-      console.error('Error decoding message:', error);
-      return 'Unable to decode message';
+      return content;
     }
   };
 

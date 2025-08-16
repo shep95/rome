@@ -154,7 +154,8 @@ export const SecureFiles: React.FC = () => {
         // Text content only
         filePath = `text/${user.id}/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
         fileSize = newFileContent.length;
-        encryptedContent = btoa(newFileContent.trim()); // Simple base64 encoding
+        const { encryptionService } = await import('@/lib/encryption');
+        encryptedContent = await encryptionService.encryptMessage(newFileContent.trim(), accessCode);
       }
 
       // Create file record
@@ -322,7 +323,20 @@ export const SecureFiles: React.FC = () => {
       
       // Handle text content - create a formatted "screenshot"
       if (file.content_type === 'text/plain') {
-        const content = atob(file.encrypted_key); // Decode base64
+        // Decrypt the content using the access code as password
+        const { encryptionService } = await import('@/lib/encryption');
+        let content: string;
+        try {
+          content = await encryptionService.decryptMessage(file.encrypted_key.toString(), accessCode);
+        } catch (decryptError) {
+          // Fallback for old base64 encoded files
+          try {
+            content = atob(file.encrypted_key.toString());
+          } catch {
+            toast.error('Invalid access code or corrupted file');
+            return;
+          }
+        }
         
         // Create formatted HTML document
         const htmlContent = createTextScreenshot(content, file.filename);
