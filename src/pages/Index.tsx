@@ -37,8 +37,12 @@ const Index = () => {
       />
       
       {/* 3D Marquee Section */}
-      <section className="relative bg-background">
-        <ThreeDMarquee images={images} />
+      <section className="relative bg-background py-20">
+        <div className="container mx-auto px-4">
+          <div className="aspect-video rounded-3xl border border-primary/20 shadow-[0_0_50px_hsl(var(--primary)/0.3)] overflow-hidden bg-gradient-to-br from-background/80 to-background backdrop-blur-sm">
+            <ThreeDMarquee images={images} />
+          </div>
+        </div>
       </section>
       
       <AuthModal 
