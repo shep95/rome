@@ -4,7 +4,6 @@ import { BackgroundPaths } from "@/components/ui/background-paths";
 import { AuthModal } from "@/components/ui/auth-modal";
 import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GlowingSection } from "@/components/GlowingSection";
-import { DigitalGridSection } from "@/components/DigitalGridSection";
 import { ScrollDownButton } from "@/components/ui/scroll-down-button";
 import { useAuth } from '@/hooks/useAuth';
 
@@ -49,19 +48,9 @@ const Index = () => {
         
         {/* Scroll Down Button */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <ScrollDownButton targetId="digital-grid-section" />
-        </div>
-      </section>
-      
-      {/* Digital Grid Section */}
-      <div id="digital-grid-section" className="relative">
-        <DigitalGridSection />
-        
-        {/* Scroll Down Button */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
           <ScrollDownButton targetId="glowing-section" />
         </div>
-      </div>
+      </section>
       
       {/* Glowing Effects Section */}
       <div id="glowing-section" className="relative">
