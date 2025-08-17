@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { SpotlightButton } from "@/components/ui/spotlight-button";
+import { ScrollDownButton } from "@/components/ui/scroll-down-button";
 
 function FloatingPaths({ position }: { position: number }) {
     const paths = Array.from({ length: 36 }, (_, i) => ({
@@ -120,6 +121,11 @@ export function BackgroundPaths({
                         Military Grade Secured Messaging App
                     </motion.div>
                 </motion.div>
+            </div>
+            
+            {/* Scroll Down Button */}
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+                <ScrollDownButton targetId="marquee-section" />
             </div>
             
             {/* Watermark */}
