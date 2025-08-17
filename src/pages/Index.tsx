@@ -26,8 +26,8 @@ const Index = () => {
     "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
     "/lovable-uploads/0a445d99-d5c0-4f1d-9c79-5b2d8b4073df.png",
   ];
-  // Repeat to fill the marquee evenly while only using your 3 images
-  const images = Array.from({ length: 48 }, (_, i) => baseImages[i % baseImages.length]);
+  // Repeat to create more rows and fill the screen
+  const images = Array.from({ length: 84 }, (_, i) => baseImages[i % baseImages.length]);
 
   return (
     <>
@@ -39,9 +39,7 @@ const Index = () => {
       {/* 3D Marquee Section */}
       <section className="relative min-h-screen bg-background flex items-center justify-center py-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-7xl mx-auto rounded-3xl bg-primary/5 p-8 ring-1 ring-border/10">
-            <ThreeDMarquee images={images} />
-          </div>
+          <ThreeDMarquee images={images} />
         </div>
       </section>
       
