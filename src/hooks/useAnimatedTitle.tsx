@@ -1,46 +1,31 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
-export const useAnimatedTitle = (title: string, speed: number = 150) => {
-  const animationRef = useRef<number>();
-  const startTimeRef = useRef<number>();
-  const currentIndexRef = useRef<number>(0);
-
+// Smooth, resilient tab-title scroller that avoids hook order issues
+export const useAnimatedTitle = (title: string, speed: number = 120) => {
   useEffect(() => {
-    const paddedTitle = title + ' • '; // Add separator for smooth loop
-    const fullLength = paddedTitle.length;
-    let lastUpdateTime = 0;
+    const separator = ' • ';
+    const padded = title + separator; // smooth loop
+    const fullLen = padded.length;
+    const viewLen = title.length; // visible slice length
 
-    const smoothAnimate = (currentTime: number) => {
-      if (!startTimeRef.current) {
-        startTimeRef.current = currentTime;
-        lastUpdateTime = currentTime;
-      }
+    let index = 0;
+    let intervalId: number | undefined;
 
-      // Update every 'speed' milliseconds for smooth consistent scrolling
-      if (currentTime - lastUpdateTime >= speed) {
-        const displayTitle = paddedTitle.slice(currentIndexRef.current) + 
-                           paddedTitle.slice(0, currentIndexRef.current);
-        
-        // Smooth character-by-character scrolling
-        document.title = displayTitle.slice(0, title.length);
-        
-        currentIndexRef.current = (currentIndexRef.current + 1) % fullLength;
-        lastUpdateTime = currentTime;
-      }
-
-      // Continue animation regardless of tab visibility
-      animationRef.current = requestAnimationFrame(smoothAnimate);
+    const tick = () => {
+      const display = padded.slice(index) + padded.slice(0, index);
+      document.title = display.slice(0, viewLen);
+      index = (index + 1) % fullLen;
     };
 
-    // Start the animation
-    animationRef.current = requestAnimationFrame(smoothAnimate);
+    // Start interval (setInterval continues even on background tabs, though throttled)
+    intervalId = window.setInterval(tick, speed);
 
-    // Cleanup on unmount
+    // Initial render
+    tick();
+
+    // Cleanup
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      // Reset to original title
+      if (intervalId) window.clearInterval(intervalId);
       document.title = title;
     };
   }, [title, speed]);
