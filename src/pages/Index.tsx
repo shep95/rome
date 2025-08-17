@@ -46,15 +46,7 @@ const Index = () => {
     "/lovable-uploads/b38fa270-f406-490d-b842-56eed7c7e3e8.png",
     "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
     "/lovable-uploads/7f73dccf-ccd6-4600-b986-327c2f4e8daa.png",
-    "/lovable-uploads/b38fa270-f406-490d-b842-56eed7c7e3e8.png",
-    "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
-    "/lovable-uploads/7f73dccf-ccd6-4600-b986-327c2f4e8daa.png",
-    "/lovable-uploads/b38fa270-f406-490d-b842-56eed7c7e3e8.png",
-    "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
-    "/lovable-uploads/7f73dccf-ccd6-4600-b986-327c2f4e8daa.png",
-    "/lovable-uploads/b38fa270-f406-490d-b842-56eed7c7e3e8.png",
-    "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
-  ];
+  ].filter(Boolean);
 
   return (
     <>

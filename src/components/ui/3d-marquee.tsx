@@ -56,8 +56,8 @@ export const ThreeDMarquee = ({
                       }}
                       key={imageIndex + image}
                       src={image}
-                      alt={`Image ${imageIndex + 1}`}
-                      className="aspect-[970/700] rounded-lg object-cover ring ring-gray-950/5 hover:shadow-2xl"
+                      alt={`ROME App Screenshot ${imageIndex + 1}`}
+                      className="w-full h-auto rounded-lg object-contain ring ring-gray-950/5 hover:shadow-2xl bg-background"
                       width={970}
                       height={700}
                     />
