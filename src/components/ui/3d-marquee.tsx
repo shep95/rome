@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 export const ThreeDMarquee = ({
   images,
@@ -10,35 +11,58 @@ export const ThreeDMarquee = ({
   images: string[];
   className?: string;
 }) => {
-  // Split the images array into 6 equal parts for better coverage
-  const chunkSize = Math.ceil(images.length / 6);
-  const chunks = Array.from({ length: 6 }, (_, colIndex) => {
+  const [windowSize, setWindowSize] = useState({ width: 1200, height: 800 });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    // Set initial size
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Adjust chunk size based on screen size for better mobile experience
+  const getChunkConfig = () => {
+    if (windowSize.width < 640) return { columns: 3, chunkSize: Math.ceil(images.length / 3) };
+    if (windowSize.width < 768) return { columns: 4, chunkSize: Math.ceil(images.length / 4) };
+    return { columns: 6, chunkSize: Math.ceil(images.length / 6) };
+  };
+
+  const { columns, chunkSize } = getChunkConfig();
+  const chunks = Array.from({ length: columns }, (_, colIndex) => {
     const start = colIndex * chunkSize;
     return images.slice(start, start + chunkSize);
   });
   
   return (
-    <div className={cn("w-full h-screen overflow-hidden", className)}>
+    <div className={cn("w-full h-screen overflow-hidden touch-pan-y", className)}>
       <div className="w-full h-full flex items-center justify-center">
         <div
+          className="grid gap-2 sm:gap-3 md:gap-4 w-[280px] sm:w-[600px] md:w-[1000px] lg:w-[1400px] h-[400px] sm:h-[600px] md:h-[800px] lg:h-[1000px] -mt-10 sm:-mt-15 md:-mt-20"
           style={{
+            gridTemplateColumns: `repeat(${columns}, 1fr)`,
             transform: "rotateX(45deg) rotateY(0deg) rotateZ(-35deg)",
             transformStyle: "preserve-3d",
           }}
-          className="grid grid-cols-6 gap-4 w-[1400px] h-[1000px] -mt-20"
         >
           {chunks.map((subarray, colIndex) => (
             <motion.div
               animate={{ 
-                y: colIndex % 2 === 0 ? [0, 50, 0] : [0, -50, 0] 
+                y: colIndex % 2 === 0 ? [0, 30, 0] : [0, -30, 0] 
               }}
               transition={{
-                duration: colIndex % 2 === 0 ? 12 : 16,
+                duration: colIndex % 2 === 0 ? 8 : 12,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
               key={colIndex + "marquee"}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-2 sm:gap-3 md:gap-4"
             >
               {subarray.map((image, imageIndex) => (
                 <motion.img
@@ -46,15 +70,25 @@ export const ThreeDMarquee = ({
                     scale: 1.05,
                     z: 50,
                   }}
+                  whileTap={{
+                    scale: 0.95,
+                  }}
                   transition={{
-                    duration: 0.3,
-                    ease: "easeInOut",
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 25,
                   }}
                   key={imageIndex + image}
                   src={image}
                   alt={`Image ${imageIndex + 1}`}
-                  className="w-full h-32 rounded-lg object-cover shadow-lg hover:shadow-2xl"
+                  className="w-full h-20 sm:h-24 md:h-28 lg:h-32 rounded-md sm:rounded-lg object-cover shadow-md sm:shadow-lg hover:shadow-xl sm:hover:shadow-2xl will-change-transform"
                   loading="lazy"
+                  draggable={false}
+                  style={{
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none',
+                    WebkitTouchCallout: 'none',
+                  }}
                 />
               ))}
             </motion.div>
