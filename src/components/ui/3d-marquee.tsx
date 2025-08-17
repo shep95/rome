@@ -10,9 +10,9 @@ export const ThreeDMarquee = ({
   images: string[];
   className?: string;
 }) => {
-  // Split the images array into 6 equal parts for better coverage
-  const chunkSize = Math.ceil(images.length / 6);
-  const chunks = Array.from({ length: 6 }, (_, colIndex) => {
+  // Split the images array into 10 equal parts for maximum coverage
+  const chunkSize = Math.ceil(images.length / 10);
+  const chunks = Array.from({ length: 10 }, (_, colIndex) => {
     const start = colIndex * chunkSize;
     return images.slice(start, start + chunkSize);
   });
@@ -20,31 +20,12 @@ export const ThreeDMarquee = ({
   return (
     <div className={cn("w-full h-screen overflow-hidden", className)}>
       <div className="w-full h-full flex items-center justify-center">
-        {/* Background scattered images */}
-        <div className="absolute inset-0 overflow-hidden">
-          {Array.from({ length: 12 }, (_, i) => (
-            <img
-              key={`bg-${i}`}
-              src={images[i % images.length]}
-              alt=""
-              className="absolute w-20 h-16 rounded object-cover opacity-20"
-              style={{
-                left: `${(i * 8) + 5}%`,
-                top: `${(i * 6) + 10}%`,
-                transform: `rotate(${i * 25}deg) scale(0.8)`,
-                zIndex: 0
-              }}
-            />
-          ))}
-        </div>
-        
         <div
           style={{
             transform: "rotateX(45deg) rotateY(0deg) rotateZ(-35deg)",
             transformStyle: "preserve-3d",
-            zIndex: 10
           }}
-          className="grid grid-cols-6 gap-4 w-[1400px] h-[1000px] -mt-20 relative"
+          className="grid grid-cols-10 gap-2 w-[2000px] h-[1400px] -mt-10"
         >
           {chunks.map((subarray, colIndex) => (
             <motion.div
@@ -72,7 +53,7 @@ export const ThreeDMarquee = ({
                   key={imageIndex + image}
                   src={image}
                   alt={`Image ${imageIndex + 1}`}
-                  className="w-full h-32 rounded-lg object-cover shadow-lg hover:shadow-2xl"
+                  className="w-full h-40 rounded-lg object-cover shadow-lg hover:shadow-2xl"
                   loading="lazy"
                 />
               ))}
