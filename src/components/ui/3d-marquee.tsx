@@ -19,17 +19,17 @@ export const ThreeDMarquee = ({
   return (
     <div
       className={cn(
-        "w-full h-[90vh] overflow-hidden",
+        "mx-auto block h-[800px] overflow-hidden rounded-2xl max-sm:h-[600px]",
         className,
       )}
     >
       <div className="flex size-full items-center justify-center">
-        <div className="w-full h-full">
+        <div className="size-[1720px] shrink-0 scale-50 sm:scale-75 lg:scale-100">
           <div
             style={{
               transform: "rotateX(55deg) rotateY(0deg) rotateZ(-45deg)",
             }}
-            className="relative left-1/2 -translate-x-1/2 top-0 grid size-full origin-center grid-cols-4 gap-6 transform-3d"
+            className="relative left-1/2 -translate-x-1/2 top-52 sm:top-64 grid size-full origin-center grid-cols-4 gap-8 transform-3d"
           >
             {chunks.map((subarray, colIndex) => (
               <motion.div
@@ -57,10 +57,10 @@ export const ThreeDMarquee = ({
                       key={imageIndex + image}
                       src={image}
                       alt={`Image ${imageIndex + 1}`}
-                      className="w-[560px] h-[360px] rounded-lg object-contain hover:shadow-2xl"
+                      className="w-[970px] h-[700px] rounded-lg object-contain ring-1 ring-border/20 bg-background/40 hover:shadow-2xl"
                       loading="lazy"
-                      width={560}
-                      height={360}
+                      width={970}
+                      height={700}
                     />
                   </div>
                 ))}
