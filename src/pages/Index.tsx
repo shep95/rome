@@ -62,12 +62,14 @@ const Index = () => {
         onSignUpClick={() => setIsAuthModalOpen(true)} 
       />
       
-      {/* Floating 3D Marquee Section */}
-      <div className="fixed top-20 right-8 z-50 max-w-md">
-        <div className="rounded-2xl bg-background/80 backdrop-blur-lg border border-border/50 shadow-xl p-4">
-          <ThreeDMarquee images={images} className="h-[400px]" />
+      {/* 3D Marquee Section */}
+      <section className="relative min-h-screen bg-background flex items-center justify-center py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-7xl mx-auto rounded-3xl bg-primary/5 p-8 ring-1 ring-border/10">
+            <ThreeDMarquee images={images} />
+          </div>
         </div>
-      </div>
+      </section>
       
       <AuthModal 
         isOpen={isAuthModalOpen} 
