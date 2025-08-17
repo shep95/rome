@@ -37,8 +37,40 @@ const Index = () => {
       />
       
       {/* 3D Marquee Section */}
-      <section className="relative bg-background py-20">
-        <div className="container mx-auto px-4">
+      <section className="relative bg-background py-20 overflow-hidden">
+        {/* Top Pattern */}
+        <div className="absolute top-0 left-0 w-full h-32 opacity-20">
+          <div className="grid grid-cols-12 gap-2 h-full px-4">
+            {Array.from({ length: 48 }, (_, i) => (
+              <div 
+                key={i} 
+                className="w-full h-4 bg-gradient-to-r from-primary/10 to-transparent rounded-sm"
+                style={{ 
+                  animationDelay: `${i * 0.1}s`,
+                  transform: `rotate(${i * 7.5}deg)` 
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        
+        {/* Right Pattern */}
+        <div className="absolute top-20 right-0 w-32 h-full opacity-20">
+          <div className="grid grid-rows-8 gap-2 h-full py-4">
+            {Array.from({ length: 32 }, (_, i) => (
+              <div 
+                key={i} 
+                className="h-full w-4 bg-gradient-to-b from-primary/10 to-transparent rounded-sm"
+                style={{ 
+                  animationDelay: `${i * 0.15}s`,
+                  transform: `rotate(${i * 11.25}deg)` 
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="aspect-video rounded-3xl border border-primary/20 shadow-[0_0_50px_hsl(var(--primary)/0.3)] overflow-hidden bg-gradient-to-br from-background/80 to-background backdrop-blur-sm">
             <ThreeDMarquee images={images} />
           </div>
