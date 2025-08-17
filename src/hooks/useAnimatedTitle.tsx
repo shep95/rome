@@ -1,26 +1,44 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
-export const useAnimatedTitle = (title: string, speed: number = 300) => {
+export const useAnimatedTitle = (title: string, speed: number = 150) => {
+  const animationRef = useRef<number>();
+  const startTimeRef = useRef<number>();
+  const currentIndexRef = useRef<number>(0);
+
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-    let currentIndex = 0;
-    const titleLength = title.length;
     const paddedTitle = title + ' • '; // Add separator for smooth loop
     const fullLength = paddedTitle.length;
+    let lastUpdateTime = 0;
 
-    const animateTitle = () => {
-      const displayTitle = paddedTitle.slice(currentIndex) + paddedTitle.slice(0, currentIndex);
-      document.title = displayTitle.slice(0, titleLength);
-      currentIndex = (currentIndex + 1) % fullLength;
+    const smoothAnimate = (currentTime: number) => {
+      if (!startTimeRef.current) {
+        startTimeRef.current = currentTime;
+        lastUpdateTime = currentTime;
+      }
+
+      // Update every 'speed' milliseconds for smooth consistent scrolling
+      if (currentTime - lastUpdateTime >= speed) {
+        const displayTitle = paddedTitle.slice(currentIndexRef.current) + 
+                           paddedTitle.slice(0, currentIndexRef.current);
+        
+        // Smooth character-by-character scrolling
+        document.title = displayTitle.slice(0, title.length);
+        
+        currentIndexRef.current = (currentIndexRef.current + 1) % fullLength;
+        lastUpdateTime = currentTime;
+      }
+
+      // Continue animation regardless of tab visibility
+      animationRef.current = requestAnimationFrame(smoothAnimate);
     };
 
-    // Start animation
-    intervalId = setInterval(animateTitle, speed);
+    // Start the animation
+    animationRef.current = requestAnimationFrame(smoothAnimate);
 
     // Cleanup on unmount
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
       }
       // Reset to original title
       document.title = title;

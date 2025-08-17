@@ -12,7 +12,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  useAnimatedTitle("ROME | Secured Military Grade Communication App | ZORAK CORP", 200);
+  useAnimatedTitle("ROME | Secured Military Grade Communication App | ZORAK CORP", 120);
   
   return (
     <Routes>
