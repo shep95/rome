@@ -53,7 +53,7 @@ export const ThreeDMarquee = ({
                   key={imageIndex + image}
                   src={image}
                   alt={`Image ${imageIndex + 1}`}
-                  className="w-full h-32 rounded-lg object-cover shadow-lg hover:shadow-2xl"
+                  className="w-full h-40 rounded-lg object-cover shadow-lg hover:shadow-2xl"
                   loading="lazy"
                 />
               ))}
