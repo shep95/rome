@@ -207,7 +207,10 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       
       let query = supabase
         .from('messages')
-        .select('*')
+        .select(`
+          id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata,
+          profiles:sender_id ( username, display_name, avatar_url )
+        `)
         .eq('conversation_id', conversationId)
         .gte('created_at', userJoinedAt) // Only show messages from when user joined
         .order('created_at', { ascending: false })
@@ -227,142 +230,35 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       const messagesToProcess = messagesData || [];
       
       // Reverse to get chronological order and decrypt messages
-      const decryptedMessages = await Promise.all(messagesToProcess.reverse().map(async (msg) => {
-        // Get sender profile
-        let senderProfile = null;
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('username, display_name, avatar_url')
-            .eq('id', msg.sender_id)
-            .single();
-          senderProfile = profile;
-        } catch (error) {
-          console.log('Profile not found for sender:', msg.sender_id);
-        }
+      const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse().map(async (msg) => {
+        // Use embedded sender profile (no extra queries)
+        const senderProfile = (msg as any).profiles || null;
 
         // Decrypt message content
         const decryptedContent = await decodeMessage(msg.data_payload, conversationId);
         
-        // Handle file metadata - support both old (unencrypted) and new (encrypted) formats
-        let fileMetadata = null;
-        let signedUrl = null;
-        let fileName = null;
-        
-        if (msg.encrypted_file_metadata) {
-          // New encrypted format
+        // Handle file metadata - prefer encrypted metadata when present
+        let signedUrl: string | null = null;
+        let fileName: string | null = null;
+        if ((msg as any).encrypted_file_metadata) {
           try {
-            const decryptedFileMetadata = await decodeMessage(msg.encrypted_file_metadata, conversationId);
-            fileMetadata = JSON.parse(decryptedFileMetadata);
-            fileName = fileMetadata.file_name;
-            
-            // Generate signed URL for secure files
-            if (fileMetadata.file_url && fileMetadata.file_url.includes('secure-files')) {
+            const decryptedFileMetadata = await decodeMessage((msg as any).encrypted_file_metadata, conversationId);
+            const fileMetadata = JSON.parse(decryptedFileMetadata);
+            fileName = fileMetadata.file_name || null;
+            if (fileMetadata.file_url && String(fileMetadata.file_url).includes('secure-files')) {
               signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
             } else {
-              signedUrl = fileMetadata.file_url;
+              signedUrl = fileMetadata.file_url || null;
             }
-          } catch (error) {
-            console.error('Error decrypting file metadata:', error);
+          } catch (e) {
+            console.error('Error decrypting file metadata:', e);
           }
         } else if (msg.file_url || msg.file_name) {
-          // Old unencrypted format - fallback for existing messages
-          fileName = msg.file_name;
-          if (msg.file_url && msg.file_url.includes('secure-files')) {
+          fileName = msg.file_name || null;
+          if (msg.file_url && String(msg.file_url).includes('secure-files')) {
             signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
           } else {
-            signedUrl = msg.file_url;
-          }
-        }
-        
-        // Get read receipts for this message
-        let readBy: any[] = [];
-        try {
-          const { data: reads } = await supabase
-            .from('message_reads')
-            .select(`
-              user_id,
-              read_at,
-              profiles (
-                username,
-                display_name,
-                avatar_url
-              )
-            `)
-            .eq('message_id', msg.id);
-          
-          readBy = reads?.map(read => ({
-            user_id: read.user_id,
-            read_at: read.read_at,
-            profile: read.profiles
-          })) || [];
-        } catch (error) {
-          console.log('Error loading read receipts for message:', msg.id);
-        }
-        
-        // Get replied-to message if exists
-        let repliedToMessage: Message | undefined = undefined;
-        if (msg.replied_to_message_id) {
-          try {
-            // For now, we'll need to fetch the replied message separately
-            // since we don't have the joined data structure properly set up
-            const { data: repliedMsg } = await supabase
-              .from('messages')
-              .select('*')
-              .eq('id', msg.replied_to_message_id)
-              .single();
-            
-            if (!repliedMsg) return;
-            const repliedContent = await decodeMessage(repliedMsg.data_payload, conversationId);
-            
-            // Handle replied message file metadata - support both old and new formats
-            let repliedFileMetadata = null;
-            let repliedSignedUrl = null;
-            let repliedFileName = null;
-            
-            if (repliedMsg.encrypted_file_metadata) {
-              // New encrypted format
-              try {
-                const decryptedRepliedFileMetadata = await decodeMessage(repliedMsg.encrypted_file_metadata, conversationId);
-                repliedFileMetadata = JSON.parse(decryptedRepliedFileMetadata);
-                repliedFileName = repliedFileMetadata.file_name;
-                
-                if (repliedFileMetadata.file_url && repliedFileMetadata.file_url.includes('secure-files')) {
-                  repliedSignedUrl = await getSignedUrlForSecureFiles(repliedFileMetadata.file_url);
-                } else {
-                  repliedSignedUrl = repliedFileMetadata.file_url;
-                }
-              } catch (error) {
-                console.error('Error decrypting replied message file metadata:', error);
-              }
-            } else if (repliedMsg.file_url || repliedMsg.file_name) {
-              // Old unencrypted format - fallback for existing messages
-              repliedFileName = repliedMsg.file_name;
-              if (repliedMsg.file_url && repliedMsg.file_url.includes('secure-files')) {
-                repliedSignedUrl = await getSignedUrlForSecureFiles(repliedMsg.file_url);
-              } else {
-                repliedSignedUrl = repliedMsg.file_url;
-              }
-            }
-            
-            repliedToMessage = {
-              id: repliedMsg.id,
-              content: repliedContent,
-              sender_id: repliedMsg.sender_id,
-              created_at: repliedMsg.created_at,
-              message_type: (repliedMsg.message_type as 'text' | 'file' | 'image' | 'video' | undefined),
-              file_url: repliedSignedUrl,
-              file_name: repliedFileName,
-              file_size: repliedMsg.file_size,
-              sender: {
-                username: 'Unknown',
-                display_name: 'Unknown User',
-                avatar_url: null
-              },
-              read_receipts: []
-            };
-          } catch (error) {
-            console.log('Error loading replied-to message:', msg.replied_to_message_id);
+            signedUrl = msg.file_url || null;
           }
         }
         
@@ -371,18 +267,18 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           content: decryptedContent,
           sender_id: msg.sender_id,
           created_at: msg.created_at,
-          message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video') || 'text',
-          file_url: signedUrl || null,
-          file_name: fileName || null,
+          message_type: (msg.message_type as any) || 'text',
+          file_url: signedUrl,
+          file_name: fileName,
           file_size: msg.file_size || null,
           replied_to_message_id: msg.replied_to_message_id,
           sender: {
             username: senderProfile?.username || 'Unknown',
             display_name: senderProfile?.display_name || 'Unknown User',
-            avatar_url: senderProfile?.avatar_url || null
+            avatar_url: senderProfile?.avatar_url || null,
           },
-          read_receipts: [],
-          replied_to_message: repliedToMessage
+          read_receipts: [], // Lazy-load if needed to avoid N+1 queries
+          replied_to_message: undefined,
         };
 
         return message;

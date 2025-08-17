@@ -109,8 +109,8 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
       const newUnreadCounts: {[key: string]: number} = {};
 
-      // For each conversation, count unread messages after last_read_at
-      for (const convId of conversationIds) {
+      // For each conversation, count unread messages after last_read_at (in parallel)
+      await Promise.all(conversationIds.map(async (convId) => {
         const lastReadAt = lastReadMap[convId] || null;
         let query = supabase
           .from('messages')
@@ -122,7 +122,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
         }
         const { count } = await query;
         newUnreadCounts[convId] = count || 0;
-      }
+      }));
 
       setUnreadCounts(newUnreadCounts);
 
@@ -258,79 +258,69 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
       console.log('Participant data:', participantData);
 
-      if (participantData) {
-        const directChats: Conversation[] = [];
-        const groups: Conversation[] = [];
+        if (participantData) {
+          const allConvs = participantData.map((p: any) => p.conversations).filter(Boolean);
 
-        for (const p of participantData) {
-          const conv = p.conversations;
-          console.log('Processing conversation:', conv);
-          
-          if (conv && conv.type === 'direct') {
-            // Get other participant for direct chats
-            const { data: otherParticipants, error: otherError } = await supabase
+          // Separate direct and group conversation IDs
+          const directConvs = allConvs.filter((c: any) => c.type === 'direct');
+          const groupConvs = allConvs.filter((c: any) => c.type === 'group');
+
+          const directConvIds = directConvs.map((c: any) => c.id);
+
+          // Fetch 'other user' for all direct chats in ONE query
+          let otherMap: Record<string, { user_id: string }> = {};
+          if (directConvIds.length > 0) {
+            const { data: others, error: othersError } = await supabase
               .from('conversation_participants')
-              .select('user_id')
-              .eq('conversation_id', conv.id)
-              .neq('user_id', user?.id)
+              .select('conversation_id, user_id')
+              .in('conversation_id', directConvIds)
+              .neq('user_id', user?.id as string)
               .is('left_at', null);
 
-            if (otherError) {
-              console.error('Error fetching other participants:', otherError);
-              continue;
-            }
+            if (!othersError && others) {
+              others.forEach((o) => { otherMap[o.conversation_id] = { user_id: o.user_id }; });
 
-            console.log('Other participants:', otherParticipants);
+              const otherUserIds = Array.from(new Set(others.map((o) => o.user_id)));
+              if (otherUserIds.length > 0) {
+                const { data: profiles } = await supabase
+                  .from('profiles')
+                  .select('id, username, display_name, avatar_url')
+                  .in('id', otherUserIds);
 
-            let otherUserName = 'Unknown User';
-            let otherUserAvatar = '';
-            if (otherParticipants && otherParticipants[0]) {
-              const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('username, display_name, avatar_url')
-                .eq('id', otherParticipants[0].user_id)
-                .single();
+                const profileMap: Record<string, any> = {};
+                (profiles || []).forEach((p) => { profileMap[p.id] = p; });
 
-              if (profileError) {
-                console.error('Error fetching profile:', profileError);
-              } else {
-                console.log('Profile data:', profile);
-                otherUserName = profile?.display_name || profile?.username || 'Unknown User';
-                otherUserAvatar = profile?.avatar_url || '';
+                // Build direct chats list
+                const directChats: Conversation[] = directConvs.map((conv: any) => {
+                  const other = otherMap[conv.id];
+                  const prof = other ? profileMap[other.user_id] : null;
+                  return {
+                    id: conv.id,
+                    type: 'direct',
+                    name: prof?.display_name || prof?.username || 'Unknown User',
+                    avatar_url: prof?.avatar_url || '',
+                    updated_at: conv.updated_at,
+                  } as Conversation;
+                });
+
+                setConversations(directChats);
               }
             }
-
-            const directChat = {
-              id: conv.id,
-              type: conv.type as 'direct',
-              name: otherUserName,
-              avatar_url: otherUserAvatar,
-              updated_at: conv.updated_at
-            };
-            
-            console.log('Adding direct chat:', directChat);
-            directChats.push(directChat);
-          } else if (conv && conv.type === 'group') {
-            const groupChat = {
-              id: conv.id,
-              type: conv.type as 'group',
-              name: conv.name || 'Unnamed Group',
-              avatar_url: conv.avatar_url,
-              updated_at: conv.updated_at,
-              created_by: conv.created_by
-            };
-            
-            console.log('Adding group chat:', groupChat);
-            groups.push(groupChat);
+          } else {
+            setConversations([]);
           }
-        }
 
-        console.log('Final direct chats:', directChats);
-        console.log('Final groups:', groups);
-        
-        setConversations(directChats);
-        setGroupChats(groups);
-      }
+          // Build groups without extra queries
+          const groups: Conversation[] = groupConvs.map((conv: any) => ({
+            id: conv.id,
+            type: 'group',
+            name: conv.name || 'Unnamed Group',
+            avatar_url: conv.avatar_url,
+            updated_at: conv.updated_at,
+            created_by: conv.created_by,
+          }));
+          setGroupChats(groups);
+        }
     } catch (error) {
       console.error('Error loading conversations:', error);
     }
