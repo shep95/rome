@@ -38,9 +38,9 @@ const Index = () => {
       />
       
       {/* 3D Marquee Section */}
-      <section className="relative bg-background py-20">
-        <div className="container mx-auto px-4">
-          <div className="aspect-video rounded-3xl border border-primary/20 shadow-[0_0_50px_hsl(var(--primary)/0.3)] overflow-hidden bg-gradient-to-br from-background/80 to-background backdrop-blur-sm">
+      <section className="relative bg-background py-12 sm:py-16 md:py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="aspect-video rounded-2xl sm:rounded-3xl border border-primary/20 shadow-[0_0_30px_hsl(var(--primary)/0.2)] sm:shadow-[0_0_50px_hsl(var(--primary)/0.3)] overflow-hidden bg-gradient-to-br from-background/80 to-background backdrop-blur-sm">
             <ThreeDMarquee images={images} />
           </div>
         </div>
