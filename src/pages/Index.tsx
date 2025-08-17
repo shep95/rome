@@ -21,20 +21,13 @@ const Index = () => {
     navigate('/dashboard');
   };
 
-  const images = [
-    "/lovable-uploads/b38fa270-f406-490d-b842-56eed7c7e3e8.png",
-    "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
-    "/lovable-uploads/0a445d99-d5c0-4f1d-9c79-5b2d8b4073df.png",
-    "/lovable-uploads/b38fa270-f406-490d-b842-56eed7c7e3e8.png",
-    "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
-    "/lovable-uploads/0a445d99-d5c0-4f1d-9c79-5b2d8b4073df.png",
-    "/lovable-uploads/b38fa270-f406-490d-b842-56eed7c7e3e8.png",
-    "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
-    "/lovable-uploads/0a445d99-d5c0-4f1d-9c79-5b2d8b4073df.png",
+  const baseImages = [
     "/lovable-uploads/b38fa270-f406-490d-b842-56eed7c7e3e8.png",
     "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
     "/lovable-uploads/0a445d99-d5c0-4f1d-9c79-5b2d8b4073df.png",
   ];
+  // Repeat to fill the marquee evenly while only using your 3 images
+  const images = Array.from({ length: 48 }, (_, i) => baseImages[i % baseImages.length]);
 
   return (
     <>
