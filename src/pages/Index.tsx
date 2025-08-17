@@ -4,6 +4,7 @@ import { BackgroundPaths } from "@/components/ui/background-paths";
 import { AuthModal } from "@/components/ui/auth-modal";
 import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GlowingSection } from "@/components/GlowingSection";
+import { ScrollDownButton } from "@/components/ui/scroll-down-button";
 import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
@@ -38,22 +39,36 @@ const Index = () => {
       />
       
       {/* 3D Marquee Section */}
-      <section className="relative bg-background py-12 sm:py-16 md:py-20">
+      <section id="marquee-section" className="relative bg-background py-12 sm:py-16 md:py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="aspect-video rounded-2xl sm:rounded-3xl border border-primary/20 shadow-[0_0_30px_hsl(var(--primary)/0.2)] sm:shadow-[0_0_50px_hsl(var(--primary)/0.3)] overflow-hidden bg-gradient-to-br from-background/80 to-background backdrop-blur-sm">
             <ThreeDMarquee images={images} />
           </div>
         </div>
+        
+        {/* Scroll Down Button */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+          <ScrollDownButton targetId="glowing-section" />
+        </div>
       </section>
       
       {/* Glowing Effects Section */}
-      <GlowingSection />
+      <div id="glowing-section" className="relative">
+        <GlowingSection />
+        
+        {/* Scroll Down Button */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+          <ScrollDownButton targetId="auth-section" />
+        </div>
+      </div>
       
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={handleAuthSuccess}
-      />
+      <div id="auth-section">
+        <AuthModal 
+          isOpen={isAuthModalOpen} 
+          onClose={() => setIsAuthModalOpen(false)}
+          onSuccess={handleAuthSuccess}
+        />
+      </div>
     </>
   );
 };
