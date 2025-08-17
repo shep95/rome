@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BackgroundPaths } from "@/components/ui/background-paths";
 import { AuthModal } from "@/components/ui/auth-modal";
 import { ThreeDMarquee } from "@/components/ui/3d-marquee";
+import { GlowingSection } from "@/components/GlowingSection";
 import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
@@ -44,6 +45,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      {/* Glowing Effects Section */}
+      <GlowingSection />
       
       <AuthModal 
         isOpen={isAuthModalOpen} 
