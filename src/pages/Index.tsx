@@ -38,36 +38,40 @@ const Index = () => {
       
       {/* 3D Marquee Section */}
       <section className="relative bg-background py-20 overflow-hidden">
-        {/* Top Pattern */}
-        <div className="absolute top-0 left-0 w-full h-32 opacity-20">
-          <div className="grid grid-cols-12 gap-2 h-full px-4">
-            {Array.from({ length: 48 }, (_, i) => (
-              <div 
-                key={i} 
-                className="w-full h-4 bg-gradient-to-r from-primary/10 to-transparent rounded-sm"
-                style={{ 
-                  animationDelay: `${i * 0.1}s`,
-                  transform: `rotate(${i * 7.5}deg)` 
-                }}
-              />
-            ))}
-          </div>
+        {/* Top Pattern - Scattered Images */}
+        <div className="absolute top-0 left-0 w-full h-40 opacity-30 overflow-hidden">
+          {Array.from({ length: 8 }, (_, i) => (
+            <img
+              key={`top-${i}`}
+              src={baseImages[i % baseImages.length]}
+              alt=""
+              className="absolute w-16 h-12 rounded object-cover shadow-lg"
+              style={{
+                left: `${(i * 12) + 5}%`,
+                top: `${Math.sin(i) * 20 + 10}px`,
+                transform: `rotate(${i * 15}deg)`,
+                animationDelay: `${i * 0.2}s`
+              }}
+            />
+          ))}
         </div>
         
-        {/* Right Pattern */}
-        <div className="absolute top-20 right-0 w-32 h-full opacity-20">
-          <div className="grid grid-rows-8 gap-2 h-full py-4">
-            {Array.from({ length: 32 }, (_, i) => (
-              <div 
-                key={i} 
-                className="h-full w-4 bg-gradient-to-b from-primary/10 to-transparent rounded-sm"
-                style={{ 
-                  animationDelay: `${i * 0.15}s`,
-                  transform: `rotate(${i * 11.25}deg)` 
-                }}
-              />
-            ))}
-          </div>
+        {/* Right Pattern - Scattered Images */}
+        <div className="absolute top-20 right-0 w-40 h-full opacity-30 overflow-hidden">
+          {Array.from({ length: 6 }, (_, i) => (
+            <img
+              key={`right-${i}`}
+              src={baseImages[i % baseImages.length]}
+              alt=""
+              className="absolute w-16 h-12 rounded object-cover shadow-lg"
+              style={{
+                right: `${Math.cos(i) * 30 + 10}px`,
+                top: `${(i * 15) + 10}%`,
+                transform: `rotate(${i * -20}deg)`,
+                animationDelay: `${i * 0.3}s`
+              }}
+            />
+          ))}
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
