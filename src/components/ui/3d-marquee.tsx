@@ -40,14 +40,17 @@ export const ThreeDMarquee = ({
     return images.slice(start, start + chunkSize);
   });
   
+  const isMobile = windowSize.width < 640;
+  const gridTransform = isMobile ? "rotateX(25deg) rotateY(0deg) rotateZ(-20deg)" : "rotateX(45deg) rotateY(0deg) rotateZ(-35deg)";
+  
   return (
-    <div className={cn("w-full h-screen overflow-hidden touch-pan-y", className)}>
-      <div className="w-full h-full flex items-center justify-center">
+    <div className={cn("w-full h-screen overflow-visible touch-pan-y", className)}>
+      <div className="w-full h-full min-h-[320px] flex items-center justify-center" style={{ perspective: isMobile ? 800 : 1400 }}>
         <div
           className="grid gap-2 sm:gap-3 md:gap-4 w-[280px] sm:w-[600px] md:w-[1000px] lg:w-[1400px] h-[400px] sm:h-[600px] md:h-[800px] lg:h-[1000px] -mt-10 sm:-mt-15 md:-mt-20"
           style={{
             gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            transform: "rotateX(45deg) rotateY(0deg) rotateZ(-35deg)",
+            transform: gridTransform,
             transformStyle: "preserve-3d",
           }}
         >
@@ -82,12 +85,15 @@ export const ThreeDMarquee = ({
                   src={image}
                   alt={`Image ${imageIndex + 1}`}
                   className="w-full h-20 sm:h-24 md:h-28 lg:h-32 rounded-md sm:rounded-lg object-cover shadow-md sm:shadow-lg hover:shadow-xl sm:hover:shadow-2xl will-change-transform"
-                  loading="lazy"
+                  loading={isMobile ? "eager" : "lazy"}
+                  fetchPriority={isMobile ? "high" : "auto"}
+                  sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 33vw"
                   draggable={false}
                   style={{
                     WebkitUserSelect: 'none',
                     userSelect: 'none',
                     WebkitTouchCallout: 'none',
+                    backfaceVisibility: 'hidden',
                   }}
                 />
               ))}
