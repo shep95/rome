@@ -20,12 +20,31 @@ export const ThreeDMarquee = ({
   return (
     <div className={cn("w-full h-screen overflow-hidden", className)}>
       <div className="w-full h-full flex items-center justify-center">
+        {/* Background scattered images */}
+        <div className="absolute inset-0 overflow-hidden">
+          {Array.from({ length: 12 }, (_, i) => (
+            <img
+              key={`bg-${i}`}
+              src={images[i % images.length]}
+              alt=""
+              className="absolute w-20 h-16 rounded object-cover opacity-20"
+              style={{
+                left: `${(i * 8) + 5}%`,
+                top: `${(i * 6) + 10}%`,
+                transform: `rotate(${i * 25}deg) scale(0.8)`,
+                zIndex: 0
+              }}
+            />
+          ))}
+        </div>
+        
         <div
           style={{
             transform: "rotateX(45deg) rotateY(0deg) rotateZ(-35deg)",
             transformStyle: "preserve-3d",
+            zIndex: 10
           }}
-          className="grid grid-cols-6 gap-4 w-[1400px] h-[1000px] -mt-20"
+          className="grid grid-cols-6 gap-4 w-[1400px] h-[1000px] -mt-20 relative"
         >
           {chunks.map((subarray, colIndex) => (
             <motion.div
