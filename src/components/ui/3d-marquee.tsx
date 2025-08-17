@@ -10,63 +10,55 @@ export const ThreeDMarquee = ({
   images: string[];
   className?: string;
 }) => {
-  // Split the images array into 4 equal parts
-  const chunkSize = Math.ceil(images.length / 4);
-  const chunks = Array.from({ length: 4 }, (_, colIndex) => {
+  // Split the images array into 6 equal parts for better coverage
+  const chunkSize = Math.ceil(images.length / 6);
+  const chunks = Array.from({ length: 6 }, (_, colIndex) => {
     const start = colIndex * chunkSize;
     return images.slice(start, start + chunkSize);
   });
+  
   return (
-    <div
-      className={cn(
-        "mx-auto block h-[800px] overflow-hidden rounded-2xl max-sm:h-[600px]",
-        className,
-      )}
-    >
-      <div className="flex size-full items-center justify-center">
-        <div className="size-[1720px] shrink-0 scale-50 sm:scale-75 lg:scale-100">
-          <div
-            style={{
-              transform: "rotateX(55deg) rotateY(0deg) rotateZ(-45deg)",
-            }}
-            className="relative left-1/2 -translate-x-1/2 top-52 sm:top-64 grid size-full origin-center grid-cols-4 gap-8 transform-3d"
-          >
-            {chunks.map((subarray, colIndex) => (
-              <motion.div
-                animate={{ y: colIndex % 2 === 0 ? 100 : -100 }}
-                transition={{
-                  duration: colIndex % 2 === 0 ? 10 : 15,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                }}
-                key={colIndex + "marquee"}
-                className="flex flex-col items-start gap-8"
-              >
-                <GridLineVertical className="-left-4" offset="80px" />
-                {subarray.map((image, imageIndex) => (
-                  <div className="relative" key={imageIndex + image}>
-                    <GridLineHorizontal className="-top-4" offset="20px" />
-                    <motion.img
-                      whileHover={{
-                        y: -10,
-                      }}
-                      transition={{
-                        duration: 0.3,
-                        ease: "easeInOut",
-                      }}
-                      key={imageIndex + image}
-                      src={image}
-                      alt={`Image ${imageIndex + 1}`}
-                      className="w-[970px] h-[700px] rounded-lg object-contain ring-1 ring-border/20 bg-background/40 hover:shadow-2xl"
-                      loading="lazy"
-                      width={970}
-                      height={700}
-                    />
-                  </div>
-                ))}
-              </motion.div>
-            ))}
-          </div>
+    <div className={cn("w-full h-screen overflow-hidden", className)}>
+      <div className="w-full h-full flex items-center justify-center">
+        <div
+          style={{
+            transform: "rotateX(45deg) rotateY(0deg) rotateZ(-35deg)",
+            transformStyle: "preserve-3d",
+          }}
+          className="grid grid-cols-6 gap-4 w-[1400px] h-[1000px] -mt-20"
+        >
+          {chunks.map((subarray, colIndex) => (
+            <motion.div
+              animate={{ 
+                y: colIndex % 2 === 0 ? [0, 50, 0] : [0, -50, 0] 
+              }}
+              transition={{
+                duration: colIndex % 2 === 0 ? 12 : 16,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              key={colIndex + "marquee"}
+              className="flex flex-col gap-4"
+            >
+              {subarray.map((image, imageIndex) => (
+                <motion.img
+                  whileHover={{
+                    scale: 1.05,
+                    z: 50,
+                  }}
+                  transition={{
+                    duration: 0.3,
+                    ease: "easeInOut",
+                  }}
+                  key={imageIndex + image}
+                  src={image}
+                  alt={`Image ${imageIndex + 1}`}
+                  className="w-full h-32 rounded-lg object-cover shadow-lg hover:shadow-2xl"
+                  loading="lazy"
+                />
+              ))}
+            </motion.div>
+          ))}
         </div>
       </div>
     </div>
