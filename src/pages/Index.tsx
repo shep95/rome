@@ -26,8 +26,8 @@ const Index = () => {
     "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
     "/lovable-uploads/0a445d99-d5c0-4f1d-9c79-5b2d8b4073df.png",
   ];
-  // Create more images to fill the 8-column grid densely
-  const images = Array.from({ length: 240 }, (_, i) => baseImages[i % baseImages.length]);
+  // Create more images to fill the 10-column grid completely
+  const images = Array.from({ length: 300 }, (_, i) => baseImages[i % baseImages.length]);
 
   return (
     <>
