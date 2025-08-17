@@ -10,9 +10,9 @@ export const ThreeDMarquee = ({
   images: string[];
   className?: string;
 }) => {
-  // Split the images array into 6 equal parts for better coverage
-  const chunkSize = Math.ceil(images.length / 6);
-  const chunks = Array.from({ length: 6 }, (_, colIndex) => {
+  // Split the images array into 8 equal parts for denser coverage
+  const chunkSize = Math.ceil(images.length / 8);
+  const chunks = Array.from({ length: 8 }, (_, colIndex) => {
     const start = colIndex * chunkSize;
     return images.slice(start, start + chunkSize);
   });
@@ -25,7 +25,7 @@ export const ThreeDMarquee = ({
             transform: "rotateX(45deg) rotateY(0deg) rotateZ(-35deg)",
             transformStyle: "preserve-3d",
           }}
-          className="grid grid-cols-6 gap-4 w-[1400px] h-[1000px] -mt-20"
+          className="grid grid-cols-8 gap-3 w-[1600px] h-[1200px] -mt-20"
         >
           {chunks.map((subarray, colIndex) => (
             <motion.div
