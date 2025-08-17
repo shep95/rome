@@ -1,31 +1,48 @@
 import { useEffect } from 'react';
 
 // Smooth, resilient tab-title scroller that avoids hook order issues
-export const useAnimatedTitle = (title: string, speed: number = 120) => {
+export const useAnimatedTitle = (title: string, speed: number = 60) => {
   useEffect(() => {
     const separator = ' • ';
-    const padded = title + separator; // smooth loop
-    const fullLen = padded.length;
-    const viewLen = title.length; // visible slice length
-
-    let index = 0;
-    let intervalId: number | undefined;
-
-    const tick = () => {
-      const display = padded.slice(index) + padded.slice(0, index);
-      document.title = display.slice(0, viewLen);
-      index = (index + 1) % fullLen;
+    const fullText = title + separator;
+    const duplicatedText = fullText + fullText; // Create seamless loop
+    
+    let position = 0;
+    let animationId: number;
+    
+    const animate = () => {
+      // Smooth pixel-by-pixel movement instead of character jumps
+      const currentText = duplicatedText.substring(
+        Math.floor(position), 
+        Math.floor(position) + title.length
+      );
+      
+      document.title = currentText;
+      
+      // Increment by smaller steps for smoother movement
+      position += 0.5;
+      
+      // Reset when we've moved one full cycle
+      if (position >= fullText.length) {
+        position = 0;
+      }
+      
+      animationId = requestAnimationFrame(animate);
     };
-
-    // Start interval (setInterval continues even on background tabs, though throttled)
-    intervalId = window.setInterval(tick, speed);
-
-    // Initial render
-    tick();
-
-    // Cleanup
+    
+    // Use requestAnimationFrame for smooth 60fps animation
+    const startAnimation = () => {
+      animationId = requestAnimationFrame(animate);
+    };
+    
+    // Add slight delay for smoother start
+    const timeoutId = setTimeout(startAnimation, 100);
+    
     return () => {
-      if (intervalId) window.clearInterval(intervalId);
+      clearTimeout(timeoutId);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
       document.title = title;
     };
   }, [title, speed]);
