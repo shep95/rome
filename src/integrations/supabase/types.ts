@@ -155,13 +155,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "message_reads_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "messages_safe"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "message_reads_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -259,13 +252,6 @@ export type Database = {
             columns: ["replied_to_message_id"]
             isOneToOne: false
             referencedRelation: "messages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_replied_to_message_id_fkey"
-            columns: ["replied_to_message_id"]
-            isOneToOne: false
-            referencedRelation: "messages_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -566,80 +552,7 @@ export type Database = {
       }
     }
     Views: {
-      messages_safe: {
-        Row: {
-          content_status: string | null
-          conversation_id: string | null
-          created_at: string | null
-          file_name: string | null
-          file_size: number | null
-          id: string | null
-          message_type: string | null
-          sender_id: string | null
-          sequence_number: number | null
-        }
-        Insert: {
-          content_status?: never
-          conversation_id?: string | null
-          created_at?: string | null
-          file_name?: string | null
-          file_size?: number | null
-          id?: string | null
-          message_type?: string | null
-          sender_id?: string | null
-          sequence_number?: number | null
-        }
-        Update: {
-          content_status?: never
-          conversation_id?: string | null
-          created_at?: string | null
-          file_name?: string | null
-          file_size?: number | null
-          id?: string | null
-          message_type?: string | null
-          sender_id?: string | null
-          sequence_number?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      secure_files_safe: {
-        Row: {
-          content_type: string | null
-          created_at: string | null
-          encryption_status: string | null
-          file_size: number | null
-          filename: string | null
-          id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          content_type?: string | null
-          created_at?: string | null
-          encryption_status?: never
-          file_size?: number | null
-          filename?: string | null
-          id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          content_type?: string | null
-          created_at?: string | null
-          encryption_status?: never
-          file_size?: number | null
-          filename?: string | null
-          id?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       cleanup_expired_rate_limits: {
