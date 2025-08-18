@@ -172,13 +172,6 @@ export type Database = {
             foreignKeyName: "message_reads_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "message_reads_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "user_search"
             referencedColumns: ["id"]
           },
@@ -624,30 +617,6 @@ export type Database = {
           },
         ]
       }
-      public_profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          display_name: string | null
-          id: string | null
-          username: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          id?: string | null
-          username?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          id?: string | null
-          username?: string | null
-        }
-        Relationships: []
-      }
       secure_files_safe: {
         Row: {
           content_type: string | null
@@ -723,6 +692,15 @@ export type Database = {
       mark_messages_as_read: {
         Args: { p_conversation_id: string; p_up_to_message_id?: string }
         Returns: undefined
+      }
+      search_profiles: {
+        Args: { search_term?: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          id: string
+          username: string
+        }[]
       }
       update_last_read_at: {
         Args: { p_conversation_id: string }
