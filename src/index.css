@@ -3,10 +3,25 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Scrollbar - Modern Glass Effect */
+/* Legacy browser support */
+.legacy-browser * {
+  box-sizing: border-box;
+}
+
+.legacy-browser {
+  font-family: Arial, sans-serif;
+}
+
+/* Custom Scrollbar - Modern Glass Effect with fallbacks */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
+}
+
+/* Fallback scrollbar for non-webkit browsers */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 133, 58, 0.3) transparent;
 }
 
 ::-webkit-scrollbar-track {
@@ -192,4 +207,58 @@ All colors MUST be HSL.
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .safe-left { padding-left: env(safe-area-inset-left); }
   .safe-right { padding-right: env(safe-area-inset-right); }
+
+  /* Legacy browser compatibility utilities */
+  .legacy-browser .grid-responsive {
+    display: block;
+  }
+  
+  .legacy-browser .grid-responsive > * {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  /* CSS Grid fallback for legacy browsers */
+  @supports not (display: grid) {
+    .grid-responsive {
+      display: block;
+    }
+    
+    .grid-responsive > * {
+      display: inline-block;
+      width: 48%;
+      margin: 1%;
+      vertical-align: top;
+    }
+  }
+  
+  /* Flexbox fallback for legacy browsers */
+  @supports not (display: flex) {
+    .flex {
+      display: table;
+      width: 100%;
+    }
+    
+    .flex > * {
+      display: table-cell;
+      vertical-align: middle;
+    }
+  }
+  
+  /* Modern feature detection and fallbacks */
+  @supports not (backdrop-filter: blur(10px)) {
+    .backdrop-blur-sm {
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+  }
+  
+  /* Animation performance optimizations for older devices */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
