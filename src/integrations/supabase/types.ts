@@ -168,13 +168,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "message_reads_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_search"
-            referencedColumns: ["id"]
-          },
         ]
       }
       message_requests: {
@@ -644,30 +637,6 @@ export type Database = {
           filename?: string | null
           id?: string | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      user_search: {
-        Row: {
-          avatar_url: string | null
-          display_name: string | null
-          email: string | null
-          id: string | null
-          username: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          display_name?: string | null
-          email?: string | null
-          id?: string | null
-          username?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          display_name?: string | null
-          email?: string | null
-          id?: string | null
-          username?: string | null
         }
         Relationships: []
       }
