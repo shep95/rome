@@ -9,7 +9,6 @@ interface User {
   username: string;
   display_name: string;
   avatar_url?: string;
-  email: string;
 }
 
 interface UserSearchInputProps {
@@ -39,14 +38,13 @@ export const UserSearchInput: React.FC<UserSearchInputProps> = ({
   const searchUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('user_search')
-        .select('*')
-        .or(`username.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%`)
-        .not('id', 'in', `(${excludeUserIds.join(',')})`)
-        .limit(10);
+        .rpc('search_profiles', { search_term: searchQuery });
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Filter out excluded user IDs
+      const filteredUsers = (data || []).filter(user => !excludeUserIds.includes(user.id));
+      setUsers(filteredUsers);
       setIsOpen(true);
     } catch (error) {
       console.error('Error searching users:', error);
