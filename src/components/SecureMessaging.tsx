@@ -91,36 +91,36 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
         img.src = cachedWallpaper;
       }
 
-      // Hydrate from cache first to avoid flicker/reload on tab return
+      // Reset state for new conversation
+      setMessages([]);
+      setHasLoadedMessages(false);
+
+      // Try to hydrate from cache
       const cacheKey = `convMsg:${conversationId}`;
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
         try {
           const parsed = JSON.parse(cached) as Message[];
-          if (Array.isArray(parsed)) {
+          if (Array.isArray(parsed) && parsed.length > 0) {
             setMessages(parsed);
             setHasLoadedMessages(true);
           }
         } catch {
           // ignore parse errors
         }
-      } else {
-        setHasLoadedMessages(false);
       }
 
       loadConversationDetails();
       loadUserWallpaper(); // Still refresh in background for updates
       const cleanup = setupRealtimeSubscription();
-      (async () => {
-        try {
-          await loadMessages(); // refresh in background without clearing UI
-          setHasLoadedMessages(true);
-        } catch (error) {
-          console.error('Failed to load messages:', error);
-          // If background load fails, we still have cache to show
-          setHasLoadedMessages(true);
-        }
-      })();
+      
+      // Load messages immediately, don't wait for background
+      loadMessages().then(() => {
+        setHasLoadedMessages(true);
+      }).catch((error) => {
+        console.error('Failed to load messages:', error);
+        setHasLoadedMessages(true);
+      });
       return () => {
         if (cleanup) cleanup();
         // Clear typing status on unmount
@@ -273,8 +273,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
           file_size: msg.file_size || null,
           replied_to_message_id: msg.replied_to_message_id,
           sender: {
-            username: senderProfile?.username || 'Unknown',
-            display_name: senderProfile?.display_name || 'Unknown User',
+            username: senderProfile?.username || `User${msg.sender_id.slice(-4)}`,
+            display_name: senderProfile?.display_name || senderProfile?.username || `User${msg.sender_id.slice(-4)}`,
             avatar_url: senderProfile?.avatar_url || null,
           },
           read_receipts: [], // Lazy-load if needed to avoid N+1 queries

@@ -297,7 +297,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                   return {
                     id: conv.id,
                     type: 'direct',
-                    name: prof?.display_name || prof?.username || 'Unknown User',
+                    name: prof?.display_name || prof?.username || `User${other?.user_id?.slice(-4) || 'XXXX'}`,
                     avatar_url: prof?.avatar_url || '',
                     updated_at: conv.updated_at,
                   } as Conversation;
