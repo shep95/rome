@@ -59,7 +59,7 @@ export const ReconnectModal: React.FC<ReconnectModalProps> = ({ isOpen, onClose 
     setLoading(true);
     try {
       // Get all past conversation participants (including deleted conversations)
-      // We'll look for users who had conversations with current user but don't have active ones
+      // Use LEFT JOIN to include participants whose conversations were deleted
       const { data: allParticipants, error: participantsError } = await supabase
         .from('conversation_participants')
         .select(`
@@ -67,13 +67,12 @@ export const ReconnectModal: React.FC<ReconnectModalProps> = ({ isOpen, onClose 
           conversation_id,
           joined_at,
           left_at,
-          conversations!inner(
+          conversations(
             type,
             created_at
           )
         `)
-        .neq('user_id', user.id)
-        .eq('conversations.type', 'direct'); // Only direct conversations
+        .neq('user_id', user.id);
 
       if (participantsError) throw participantsError;
 
@@ -95,7 +94,16 @@ export const ReconnectModal: React.FC<ReconnectModalProps> = ({ isOpen, onClose 
         // Skip if this conversation is still active
         if (activeConversationIds.has(participant.conversation_id)) return;
 
-        const lastInteraction = participant.left_at || participant.conversations.created_at;
+        // For deleted conversations, conversations will be null
+        // For existing conversations, only include direct conversations  
+        if (participant.conversations && participant.conversations.type !== 'direct') return;
+
+        // Use left_at if available, otherwise use conversation created_at (for existing conversations)
+        // For deleted conversations where conversations is null, use joined_at as fallback
+        const lastInteraction = participant.left_at || 
+                               (participant.conversations?.created_at) || 
+                               participant.joined_at;
+        
         const existing = pastContacts.get(participant.user_id);
         
         if (!existing || new Date(lastInteraction) > new Date(existing.last_interaction)) {
