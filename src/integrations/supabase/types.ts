@@ -127,6 +127,27 @@ export type Database = {
         }
         Relationships: []
       }
+      deleted_direct_contacts: {
+        Row: {
+          deleted_at: string
+          id: string
+          other_user_id: string
+          user_id: string
+        }
+        Insert: {
+          deleted_at?: string
+          id?: string
+          other_user_id: string
+          user_id: string
+        }
+        Update: {
+          deleted_at?: string
+          id?: string
+          other_user_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       file_security_scans: {
         Row: {
           created_at: string

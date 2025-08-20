@@ -94,6 +94,9 @@ export const DirectChatSettings: React.FC<DirectChatSettingsProps> = ({
   const handleDeleteConversation = async () => {
     setLoading(true);
     try {
+      // Get the other participant's ID to track deleted contact
+      const otherParticipant = participants.find(p => p.user_id !== user?.id);
+      
       // Delete messages first
       await supabase
         .from('messages')
@@ -113,6 +116,19 @@ export const DirectChatSettings: React.FC<DirectChatSettingsProps> = ({
         .eq('id', conversationId);
 
       if (error) throw error;
+
+      // Track deleted contact for reconnection
+      if (otherParticipant && user) {
+        await supabase
+          .from('deleted_direct_contacts')
+          .upsert({
+            user_id: user.id,
+            other_user_id: otherParticipant.user_id,
+            deleted_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id,other_user_id'
+          });
+      }
 
       toast({
         title: "Success",

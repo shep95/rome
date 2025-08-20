@@ -85,6 +85,14 @@ export const ReconnectModal: React.FC<ReconnectModalProps> = ({ isOpen, onClose 
 
       if (activeError) throw activeError;
 
+      // Get explicitly deleted contacts
+      const { data: deletedContacts, error: deletedError } = await supabase
+        .from('deleted_direct_contacts')
+        .select('other_user_id, deleted_at')
+        .eq('user_id', user.id);
+
+      if (deletedError) throw deletedError;
+
       const activeConversationIds = new Set(activeConversations?.map(c => c.conversation_id) || []);
 
       // Filter out users who still have active conversations with current user
@@ -112,6 +120,14 @@ export const ReconnectModal: React.FC<ReconnectModalProps> = ({ isOpen, onClose 
             last_interaction: lastInteraction
           });
         }
+      });
+
+      // Add explicitly deleted contacts (these take priority with their deleted timestamp)
+      deletedContacts?.forEach(contact => {
+        pastContacts.set(contact.other_user_id, {
+          user_id: contact.other_user_id,
+          last_interaction: contact.deleted_at
+        });
       });
 
       // Get profiles for these users
