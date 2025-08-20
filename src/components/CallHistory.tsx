@@ -117,7 +117,7 @@ export const CallHistory = ({ isOpen, onClose }: CallHistoryProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-full mx-4 sm:max-w-lg md:max-w-xl lg:max-w-2xl h-[90vh] sm:h-[80vh] p-0 overflow-hidden">
+      <DialogContent className="w-[95vw] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl h-[95vh] sm:h-[90vh] md:h-[85vh] lg:h-[80vh] p-0 overflow-hidden m-2 sm:m-4" onInteractOutside={() => onClose()}>
         {/* Glassmorphic background */}
         <div className="absolute inset-0 bg-background/20 backdrop-blur-xl border border-border/50 rounded-lg" />
         
