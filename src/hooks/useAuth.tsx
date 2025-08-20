@@ -31,7 +31,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Load and persist user profile data
         if (session?.user) {
-          // Security codes are never stored in localStorage for security
+          // Store user security code when user signs in
+          if (session.user.user_metadata?.security_code) {
+            localStorage.setItem('userSecurityCode', session.user.user_metadata.security_code);
+          }
           
           // Try to restore from backup first
           const backupData = sessionStorage.getItem(`rome-backup-${session.user.email}`);
@@ -78,8 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
           }, 0);
         } else {
-          // Clear security-sensitive data when user logs out - but keep profile data in backup
-          // Security codes are never stored in localStorage
+          // Clear stored data when user logs out - but keep profile data in backup
+          localStorage.removeItem('userSecurityCode');
           // Don't clear profile images and wallpapers - they're backed up
         }
       }
@@ -93,7 +96,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       // Load profile data if user is already logged in
       if (session?.user) {
-        // Security codes are never stored in localStorage for security
+        if (session.user.user_metadata?.security_code) {
+          localStorage.setItem('userSecurityCode', session.user.user_metadata.security_code);
+        }
         
         // Try to restore from backup first
         const backupData = sessionStorage.getItem(`rome-backup-${session.user.email}`);
@@ -328,7 +333,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // Clear security-related data only (keep profile data)
-      // Security codes are never stored in localStorage
+      localStorage.removeItem('securityCode');
+      localStorage.removeItem('userSecurityCode');
       
       // Clear secure storage
       await SecurityUtils.clearSecureStorage();
