@@ -175,6 +175,11 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            navigator.clipboard.writeText('Screenshots disabled').catch(() => {});
+          }
+          const shieldEl = document.getElementById('rome-screenshot-shield');
+          if (shieldEl) { shieldEl.style.display = 'block'; setTimeout(() => { const el = document.getElementById('rome-screenshot-shield'); if (el) el.style.display = 'none'; }, 2000); }
           toast({
             title: "Screenshot Blocked",
             description: "Screenshots are disabled for privacy protection.",
@@ -207,6 +212,11 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+          navigator.clipboard.writeText('Screenshots disabled').catch(() => {});
+        }
+        const shieldEl = document.getElementById('rome-screenshot-shield');
+        if (shieldEl) { shieldEl.style.display = 'block'; setTimeout(() => { const el = document.getElementById('rome-screenshot-shield'); if (el) el.style.display = 'none'; }, 2000); }
         toast({
           title: "Screenshot Blocked",
           description: "Screenshots are disabled for privacy protection.",
@@ -250,7 +260,6 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
           -webkit-touch-callout: none !important;
           -webkit-tap-highlight-color: transparent !important;
         }
-        
         body {
           -webkit-app-region: no-drag !important;
           -webkit-user-drag: none !important;
@@ -259,7 +268,6 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
           -o-user-drag: none !important;
           user-drag: none !important;
         }
-        
         /* Allow normal interaction with form elements */
         input, textarea, select, button, [contenteditable] {
           -webkit-user-select: text !important;
@@ -268,13 +276,11 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
           pointer-events: auto !important;
           -webkit-touch-callout: auto !important;
         }
-        
-        /* Hide content when screenshot is detected */
+        /* Hide content when printing */
         @media print {
           body { display: none !important; }
           * { display: none !important; }
         }
-        
         /* Disable image saving */
         img {
           -webkit-user-drag: none !important;
@@ -284,8 +290,35 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
           user-drag: none !important;
           pointer-events: none !important;
         }
+        /* Screenshot shield overlay */
+        #rome-screenshot-shield {
+          position: fixed;
+          inset: 0;
+          background: black;
+          opacity: 0.98;
+          z-index: 2147483647; /* Max */
+          display: none;
+        }
       `;
       document.head.appendChild(style);
+
+      // Create shield overlay element
+      let shield = document.getElementById('rome-screenshot-shield') as HTMLDivElement | null;
+      if (!shield) {
+        shield = document.createElement('div');
+        shield.id = 'rome-screenshot-shield';
+        document.body.appendChild(shield);
+      }
+
+      const showShield = () => {
+        if (!shield) return;
+        shield.style.display = 'block';
+        // Auto-hide after 2 seconds
+        setTimeout(() => {
+          if (shield) shield.style.display = 'none';
+        }, 2000);
+      };
+
 
       // Mobile-specific screenshot detection
       const detectMobileScreenshot = () => {

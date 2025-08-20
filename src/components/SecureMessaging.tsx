@@ -827,8 +827,8 @@ if (!append && user && conversationId) {
     setTranslatingMessageId(messageId);
     
     try {
-      // Get user's preferred language (fallback to English)
-      const userLanguage = navigator.language.split('-')[0] || 'en';
+      // Always translate to English for consistency
+      const userLanguage = 'en';
       
       // Use Supabase Edge Function to avoid CORS issues and rate limits
       const { data, error } = await supabase.functions.invoke('translate', {
