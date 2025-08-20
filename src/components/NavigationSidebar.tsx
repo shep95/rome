@@ -21,8 +21,7 @@ import {
   FileText,
   LogOut,
   MoreVertical,
-  UserPlus,
-  Bell
+  UserPlus
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -30,7 +29,6 @@ import { SettingsModal } from './SettingsModal';
 import { CallHistory } from './CallHistory';
 import { AboutUs } from './AboutUs';
 import { InboxModal } from './InboxModal';
-import { Updates } from './Updates';
 
 interface NavigationSidebarProps {
   activeSection: string;
@@ -54,7 +52,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const [isCallHistoryOpen, setIsCallHistoryOpen] = useState(false);
   const [isAboutUsOpen, setIsAboutUsOpen] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
-  const [isUpdatesOpen, setIsUpdatesOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -117,10 +114,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   const handleInboxClick = () => {
     setIsInboxOpen(true);
-  };
-
-  const handleUpdatesClick = () => {
-    setIsUpdatesOpen(true);
   };
 
   const handleSignOut = async () => {
@@ -210,18 +203,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         >
           <UserPlus className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
           <span className="text-sm font-medium">Reconnect</span>
-        </Button>
-        
-        <Button
-          onClick={() => {
-            handleUpdatesClick();
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
-        >
-          <Bell className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Updates</span>
         </Button>
         
         <Button
@@ -465,11 +446,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       <AboutUs
         isOpen={isAboutUsOpen}
         onClose={() => setIsAboutUsOpen(false)}
-      />
-
-      <Updates
-        isOpen={isUpdatesOpen}
-        onClose={() => setIsUpdatesOpen(false)}
       />
     </>
   );
