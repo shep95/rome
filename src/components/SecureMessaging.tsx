@@ -259,7 +259,15 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
 
   const decryptedContent = await decodeMessage(
     msg.data_payload,
-    [conversationId, user?.id || '', msg.sender_id, conversationDetails?.created_by].filter(Boolean) as string[]
+    [
+      conversationId,
+      user?.id || '',
+      msg.sender_id,
+      conversationDetails?.created_by,
+      [user?.id || '', msg.sender_id].filter(Boolean).sort().join(':'),
+      `${user?.id || ''}:${msg.sender_id}`,
+      `${msg.sender_id}:${user?.id || ''}`
+    ].filter(Boolean) as string[]
   );
   // Handle file metadata - prefer encrypted metadata when present
   let signedUrl: string | null = null;
@@ -268,7 +276,15 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
     try {
       const decryptedFileMetadata = await decodeMessage(
         msg.encrypted_file_metadata,
-        [conversationId, user?.id || '', msg.sender_id, conversationDetails?.created_by].filter(Boolean) as string[]
+        [
+          conversationId,
+          user?.id || '',
+          msg.sender_id,
+          conversationDetails?.created_by,
+          [user?.id || '', msg.sender_id].filter(Boolean).sort().join(':'),
+          `${user?.id || ''}:${msg.sender_id}`,
+          `${msg.sender_id}:${user?.id || ''}`
+        ].filter(Boolean) as string[]
       );
       const fileMetadata = JSON.parse(decryptedFileMetadata);
       fileName = fileMetadata.file_name || null;
