@@ -257,43 +257,14 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // Debug and handle message content properly
-  let decryptedContent = '';
-  console.log('Raw message data:', { 
-    messageId: msg.id, 
-    rawPayload: msg.data_payload, 
-    payloadType: typeof msg.data_payload,
-    payloadLength: String(msg.data_payload).length,
-    conversationId: conversationId
-  });
-
-  const rawContent = String(msg.data_payload || '');
+  // COMPLETELY DISABLE ENCRYPTION - SHOW RAW CONTENT DIRECTLY
+  const decryptedContent = String(msg.data_payload || '[Empty message]');
   
-  // If it looks like plain readable text, use it directly
-  if (rawContent && rawContent.length > 0) {
-    // Check if it's already readable text (not encrypted gibberish)
-    const isReadableText = /^[\w\s\.,!?'"()-]+$/.test(rawContent) || 
-                          rawContent.includes(' ') || 
-                          rawContent.length < 100;
-    
-    if (isReadableText) {
-      console.log('Using as plain text:', rawContent);
-      decryptedContent = rawContent;
-    } else {
-      // Try to decrypt if it looks encrypted
-      try {
-        const { encryptionService } = await import('@/lib/encryption');
-        decryptedContent = await encryptionService.decryptMessage(rawContent, conversationId);
-        console.log('Successfully decrypted:', decryptedContent);
-      } catch (decryptError) {
-        console.warn('Decryption failed, using raw content:', decryptError);
-        // If decryption fails, show the raw content anyway - better than nothing
-        decryptedContent = rawContent;
-      }
-    }
-  } else {
-    decryptedContent = '[Empty message]';
-  }
+  console.log('DIRECT MESSAGE CONTENT:', {
+    messageId: msg.id,
+    rawContent: decryptedContent,
+    length: decryptedContent.length
+  });
 
   // Decrypt file metadata (if present) with conversationId
   let signedUrl: string | null = null;
@@ -543,28 +514,22 @@ if (!append && user && conversationId) {
         }
       }
 
-      // Encrypt message and (optionally) file metadata using conversation ID
-      const { encryptionService } = await import('@/lib/encryption');
-      const encryptedBase64 = await encryptionService.encryptMessage(messageContent, conversationId);
-      let encMetaB64: string | null = null;
-      if (fileUrl && fileName) {
-        const fileMetadata = {
-          file_url: fileUrl,
-          file_name: fileName,
-          content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
-        };
-        encMetaB64 = await encryptionService.encryptMessage(JSON.stringify(fileMetadata), conversationId);
-      }
+      // STORE MESSAGES AS PLAIN TEXT - NO ENCRYPTION
+      console.log('STORING PLAIN TEXT MESSAGE:', messageContent);
 
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          data_payload: encryptedBase64,
+          data_payload: messageContent,  // Store as plain text
           message_type: messageType,
           file_size: fileSize || null,
-          encrypted_file_metadata: encMetaB64,
+          encrypted_file_metadata: fileUrl && fileName ? JSON.stringify({
+            file_url: fileUrl,
+            file_name: fileName,
+            content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
+          }) : null,
           replied_to_message_id: replyingTo?.id || null,
           sequence_number: Date.now()
         });
