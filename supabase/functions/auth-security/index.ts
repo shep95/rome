@@ -60,8 +60,8 @@ serve(async (req) => {
         const id = String(identifier || '');
         if (!id) throw new Error('identifier required');
 
-        // window: 5 minutes, max 5 tries
-        const windowMins = 5;
+        // window: 1 minute, max 5 tries
+        const windowMins = 1;
         const max = 5;
         const now = new Date();
         const windowStart = new Date(now.getTime() - windowMins * 60000).toISOString();
@@ -85,7 +85,7 @@ serve(async (req) => {
         const id = String(identifier || '');
         if (!id) throw new Error('identifier required');
         const now = new Date();
-        const expires = new Date(now.getTime() + 5 * 60000).toISOString();
+        const expires = new Date(now.getTime() + 1 * 60000).toISOString();
         await supabase.from('rate_limits').insert({
           identifier: id,
           action: metadata?.action || 'generic',

@@ -250,7 +250,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         toast({
           variant: "destructive",
           title: "Too many attempts",
-          description: `Account temporarily locked. ${rateCheck.remainingAttempts} attempts remaining.`
+          description: `Please wait before trying again. ${rateCheck.remainingAttempts} attempts remaining.`
         });
         return { error: { message: "Rate limited" } };
       }
