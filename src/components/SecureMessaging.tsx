@@ -520,17 +520,19 @@ if (!append && user && conversationId) {
 
       // Military-grade encryption - messages are encrypted with conversation ID as password
       const { encryptionService } = await import('@/lib/encryption');
-      const encryptedContent = await encryptionService.encryptMessage(messageContent, conversationId);
+      const encryptedBase64 = await encryptionService.encryptMessage(messageContent, conversationId);
+      const encryptedBytes = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
       
       // Encrypt file metadata if present
-      let encryptedFileMetadata = null;
+      let encryptedFileMetadata: Uint8Array | null = null;
       if (fileUrl && fileName) {
         const fileMetadata = {
           file_url: fileUrl,
           file_name: fileName,
           content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
         };
-        encryptedFileMetadata = await encryptionService.encryptMessage(JSON.stringify(fileMetadata), conversationId);
+        const encMetaB64 = await encryptionService.encryptMessage(JSON.stringify(fileMetadata), conversationId);
+        encryptedFileMetadata = Uint8Array.from(atob(encMetaB64), (c) => c.charCodeAt(0));
       }
       
       const { error } = await supabase
@@ -538,10 +540,10 @@ if (!append && user && conversationId) {
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          data_payload: encryptedContent,
+          data_payload: encryptedBase64,
           message_type: messageType,
           file_size: fileSize || null,
-          encrypted_file_metadata: encryptedFileMetadata,
+          encrypted_file_metadata: encryptedFileMetadata ? btoa(String.fromCharCode(...encryptedFileMetadata)) : null,
           replied_to_message_id: replyingTo?.id || null,
           sequence_number: Date.now()
         });
@@ -800,40 +802,36 @@ if (!append && user && conversationId) {
     try {
       console.log('Decoding message content:', { content, candidateKeys, contentType: typeof content });
       
-      let textPayload = '';
-      
-      // Handle different content formats from database
+      let base64Payload = '';
+      let originalString: string | null = null;
+
+      const toBase64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
+
+      // Normalize from DB formats to base64 of raw encrypted bytes
       if (typeof content === 'string') {
-        textPayload = content;
-        
-        // Handle Postgres bytea returned as hex (e.g. "\\x...")
+        originalString = content;
         if (content.startsWith('\\x')) {
           const hex = content.slice(2);
           const bytes = new Uint8Array(hex.match(/.{2}/g)?.map((b) => parseInt(b, 16)) || []);
-          textPayload = new TextDecoder().decode(bytes);
+          base64Payload = toBase64(bytes);
+        } else if (/^[A-Za-z0-9+/]+={0,2}$/.test(content.trim())) {
+          base64Payload = content.trim();
+        } else {
+          // Looks like a plain text message (legacy unencrypted)
+          return content;
         }
       } else if (content && typeof content === 'object' && content.type === 'Buffer' && Array.isArray(content.data)) {
-        // Handle Buffer object from Supabase
         const bytes = new Uint8Array(content.data);
-        textPayload = new TextDecoder().decode(bytes);
+        base64Payload = toBase64(bytes);
       } else if (content && typeof content === 'object' && content.data) {
-        // Handle other buffer-like objects
         const bytes = new Uint8Array(Object.values(content.data));
-        textPayload = new TextDecoder().decode(bytes);
+        base64Payload = toBase64(bytes);
       } else {
         return content || 'Empty message';
       }
 
-      console.log('Text payload after extraction:', textPayload);
-
       const isReadable = (txt: string) =>
         /^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F\u2000-\u206F\u2070-\u209F\u20A0-\u20CF\u2100-\u214F\u2160-\u218F]*$/.test(txt);
-
-      // If it looks like plain readable text (and not obvious base64), return it directly
-      if (isReadable(textPayload) && !/^[A-Za-z0-9+/]+={0,2}$/.test(textPayload.trim())) {
-        console.log('Returning as plain text');
-        return textPayload;
-      }
 
       // Try decrypting with multiple candidate keys
       try {
@@ -841,33 +839,29 @@ if (!append && user && conversationId) {
         for (const key of candidateKeys) {
           try {
             if (!key) continue;
-            const decrypted = await encryptionService.decryptMessage(textPayload, key);
+            const decrypted = await encryptionService.decryptMessage(base64Payload, key);
             if (decrypted && isReadable(decrypted)) {
-              console.log('Decryption succeeded with key');
+              console.log('Decryption succeeded with a candidate key');
               return decrypted;
             }
           } catch (e) {
-            // try next
+            // try next key
           }
         }
       } catch (e) {
-        console.warn('Encryption service not available:', e);
+        console.warn('Encryption service import failed:', e);
       }
 
-      // Try base64 decode and UTF-8 interpretation as a last fallback (legacy unencrypted content)
+      // Fallback: interpret payload bytes as UTF-8 (legacy plain text stored in bytea)
       try {
-        const binary = atob(textPayload);
+        const binary = atob(base64Payload);
         const bytes = new Uint8Array(binary.split('').map((c) => c.charCodeAt(0)));
         const utf8 = new TextDecoder().decode(bytes);
-        if (utf8 && isReadable(utf8)) {
-          return utf8;
-        }
-      } catch (e) {
-        console.log('Base64 decode failed as fallback');
-      }
+        if (utf8 && isReadable(utf8)) return utf8;
+      } catch {}
 
-      // Last resort - if the payload itself is readable, show it; otherwise show placeholder
-      if (isReadable(textPayload)) return textPayload;
+      // Last resort: if original looked readable, show it; otherwise placeholder
+      if (originalString && isReadable(originalString)) return originalString;
       return 'Unable to decrypt message';
     } catch (error) {
       console.error('Message decoding error:', error);
