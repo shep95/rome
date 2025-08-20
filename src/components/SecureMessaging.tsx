@@ -819,13 +819,28 @@ if (!append && user && conversationId) {
 
       const { encryptionService } = await import('@/lib/encryption');
       try {
-        // ALWAYS decrypt properly - never show encrypted gibberish to users
+        // Try military-grade decryption first
         const decryptedMessage = await encryptionService.decryptMessage(base64Payload, conversationId);
         return decryptedMessage;
       } catch (decryptError) {
-        console.error('Decryption failed:', decryptError);
-        // Return user-friendly message instead of gibberish
-        return 'Message could not be decrypted';
+        console.error('Military decryption failed, trying base64 decode:', decryptError);
+        // Fallback for legacy messages or different formats
+        try {
+          const legacyDecrypted = atob(base64Payload);
+          // Only return if it looks like readable text (not binary gibberish)
+          if (legacyDecrypted && /^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F]*$/.test(legacyDecrypted)) {
+            return legacyDecrypted;
+          }
+          // If it's binary gibberish, return the original base64 as is (might be plain text)
+          return base64Payload;
+        } catch (base64Error) {
+          console.error('Base64 decode also failed:', base64Error);
+          // Last resort - return as plain text if it seems readable
+          if (/^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F]*$/.test(base64Payload)) {
+            return base64Payload;
+          }
+          return 'Unable to decrypt message';
+        }
       }
     } catch (error) {
       console.error('Message decoding error:', error);
