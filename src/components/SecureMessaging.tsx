@@ -1061,7 +1061,7 @@ if (!append && user && conversationId) {
 
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-2 relative custom-scrollbar md:mt-0 mt-16 md:mb-0 mb-20"
+        className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 relative custom-scrollbar md:mt-0 mt-16 md:mb-0 mb-20"
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',
@@ -1086,7 +1086,7 @@ if (!append && user && conversationId) {
             </div>
           )
         ) : (
-          <div className="space-y-2 w-full px-0 sm:px-0">
+          <div className="space-y-3 sm:space-y-4 w-full px-2 sm:px-0">
             {/* Load older messages button */}
             {hasMoreMessages && messages.length > 0 && (
               <div className="flex justify-center">
@@ -1105,13 +1105,13 @@ if (!append && user && conversationId) {
               <div
                 key={message.id}
                 data-message-id={message.id}
-                className={`flex items-end gap-2 mb-2 w-full ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                className={`flex items-end gap-2 sm:gap-3 relative z-10 w-full ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
               >
                 {/* Avatar for others */}
                         {message.sender_id !== user?.id && (
-                          <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-full border border-border/50 flex-shrink-0 mb-1">
-                            <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-full" />
-                            <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-full">
+                          <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
+                            <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-lg" />
+                            <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-lg">
                               {message.sender?.display_name?.[0] || 
                                message.sender?.username?.[0] || 
                                'U'}
@@ -1119,10 +1119,10 @@ if (!append && user && conversationId) {
                           </Avatar>
                         )}
                 
-                <div className={`flex flex-col max-w-[80%] sm:max-w-[75%] ${message.sender_id === user?.id ? 'items-end' : 'items-start'}`}>
-                  {/* Username for others - only show on mobile */}
+                <div className="flex flex-col max-w-[90%] sm:max-w-[85%] md:max-w-sm lg:max-w-md xl:max-w-lg 2xl:max-w-xl">
+                  {/* Username for others */}
                       {message.sender_id !== user?.id && (
-                        <p className="text-xs text-muted-foreground mb-1 px-1 sm:hidden">
+                        <p className="text-xs text-muted-foreground mb-1 px-1">
                           {message.sender?.display_name || 
                            message.sender?.username || 
                            'Unknown User'}
@@ -1131,16 +1131,16 @@ if (!append && user && conversationId) {
                   
                   <div className="relative group">
                     <div
-                      className={`px-3 py-2 rounded-2xl text-white shadow-sm max-w-full ${
+                      className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl backdrop-blur-xl border-2 text-white ${
                         message.sender_id === user?.id
-                          ? 'bg-blue-500 rounded-br-md'
-                          : 'bg-gray-600 rounded-bl-md'
-                      } break-words overflow-wrap-anywhere word-break`}
+                          ? 'bg-primary/30 border-primary/30'
+                          : 'bg-card/20 border-border/30'
+                      } transition-all duration-300 hover:backdrop-blur-2xl group-hover:border-primary/40 max-w-full overflow-hidden`}
                       style={{
+                        backdropFilter: 'blur(20px) saturate(150%)',
+                        WebkitBackdropFilter: 'blur(20px) saturate(150%)',
                         wordWrap: 'break-word',
-                        overflowWrap: 'anywhere',
-                        wordBreak: 'break-word',
-                        hyphens: 'auto'
+                        overflowWrap: 'break-word'
                       }}
                     >
                       {/* Reply Preview */}
@@ -1182,7 +1182,7 @@ if (!append && user && conversationId) {
                                        src={message.file_url!} 
                                        alt={message.file_name || 'Image'}
                                        className="max-w-full w-full rounded-lg max-h-64 object-cover cursor-pointer block"
-                                       style={{ maxWidth: '250px', height: 'auto' }}
+                                       style={{ maxWidth: '100%', height: 'auto' }}
                                        onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
                                        onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
                                      />
@@ -1257,11 +1257,11 @@ if (!append && user && conversationId) {
                           {/* Show caption if not equal to filename */}
                           {message.content && message.content.trim() && message.content !== message.file_name && (
                             <div className="space-y-2">
-                              <div className="text-sm leading-relaxed break-words break-all whitespace-pre-wrap font-sans">
+                              <pre className="text-sm leading-relaxed break-words break-all whitespace-pre-wrap font-sans">
                                 {message.isTranslated && message.translatedContent 
                                   ? message.translatedContent 
                                   : message.content}
-                              </div>
+                              </pre>
                               <div className="flex items-center gap-2">
                                 <Button
                                   size="sm"
@@ -1298,13 +1298,13 @@ editingMessageId === message.id ? (
       <Button size="sm" onClick={cancelEditing} variant="outline">Cancel</Button>
     </div>
   </div>
-                ) : (
+) : (
   <div className="space-y-2">
-    <div className="text-sm leading-relaxed break-words break-all whitespace-pre-wrap font-sans">
+    <pre className="text-sm leading-relaxed break-words break-all whitespace-pre-wrap font-sans">
       {message.isTranslated && message.translatedContent 
         ? message.translatedContent 
         : message.content}
-    </div>
+    </pre>
     {message.message_type === 'text' && (
       <div className="flex items-center gap-2">
         <Button
@@ -1414,9 +1414,9 @@ editingMessageId === message.id ? (
                 
                 {/* Avatar for current user */}
                 {message.sender_id === user?.id && (
-                  <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-full border border-border/50 flex-shrink-0 mb-1">
-                    <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-full" />
-                    <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-full">
+                  <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
+                    <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-lg" />
+                    <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-lg">
                       {message.sender?.display_name?.[0] || 
                        message.sender?.username?.[0] || 
                        'Y'}
