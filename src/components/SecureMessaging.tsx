@@ -1026,10 +1026,17 @@ if (!append && user && conversationId) {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
+    <div 
+      className="flex-1 flex flex-col bg-background overflow-hidden h-full w-full max-w-full" 
+      style={{ 
+        height: 'calc(var(--app-vh, 1vh) * 100)',
+        minWidth: 0,
+        maxWidth: '100vw'
+      }}
+    >
       {/* Chat Header - responsive positioning */}
-      <div className="p-3 sm:p-4 border-b border-border bg-card/50 md:relative fixed top-0 left-0 right-0 z-50 md:rounded-none rounded-b-2xl md:backdrop-blur-none backdrop-blur-xl">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <div className="p-3 sm:p-4 border-b border-border bg-card/50 md:relative fixed top-0 left-0 right-0 z-50 md:rounded-none rounded-b-2xl md:backdrop-blur-none backdrop-blur-xl w-full max-w-full" style={{ minWidth: 0, maxWidth: '100vw' }}>
+        <div className="flex items-center gap-2 sm:gap-3 w-full max-w-full" style={{ minWidth: 0, maxWidth: '100vw' }}>
           {/* Back button for mobile */}
           {onBackToMessages && (
             <Button
@@ -1435,7 +1442,7 @@ editingMessageId === message.id ? (
       </div>
 
       {/* Message Input - floating on mobile */}
-      <div className="p-3 sm:p-4 border-t border-border bg-card/50 backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:rounded-none rounded-t-3xl md:w-auto w-full min-h-16">
+      <div className="p-3 sm:p-4 border-t border-border bg-card/50 backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:rounded-none rounded-t-3xl md:w-auto w-full min-h-16 max-w-full" style={{ minWidth: 0, maxWidth: '100vw' }}>
         {/* Reply Preview */}
         {replyingTo && (
           <div className="mb-3 bg-card/80 backdrop-blur-sm border border-border rounded-lg p-3">

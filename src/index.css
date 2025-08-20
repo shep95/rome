@@ -186,10 +186,57 @@ All colors MUST be HSL.
     }
   }
 
-  /* Prevent zoom on input focus on iOS */
+/* Prevent zoom on input focus on iOS */
+input, textarea, select {
+  font-size: 16px !important;
+  transform: none !important;
+}
+
+/* Fix mobile zoom issues */
+@media screen and (max-width: 768px) {
+  html, body {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    -webkit-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+    zoom: 1 !important;
+    transform: none !important;
+  }
+  
+  #root {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    min-width: 0 !important;
+  }
+  
+  /* Fix all containers */
+  .container, div {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Prevent horizontal scroll */
+  * {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    -webkit-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+  }
+  
+  /* Input elements specific fixes */
   input, textarea, select {
     font-size: 16px !important;
+    -webkit-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+    transform: none !important;
+    zoom: 1 !important;
   }
+}
 
   @media (max-width: 767px) {
     /* Ensure proper touch targets */
