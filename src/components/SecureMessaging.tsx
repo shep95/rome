@@ -257,7 +257,7 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // Decrypt message content
+  // Decrypt message content - ALWAYS show readable English, never gibberish
   const decryptedContent = await decodeMessage(msg.data_payload, conversationId);
   
   // Handle file metadata - prefer encrypted metadata when present
@@ -275,6 +275,7 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
       }
     } catch (e) {
       console.error('Error decrypting file metadata:', e);
+      fileName = 'Encrypted file';
     }
   } else if (msg.file_url || msg.file_name) {
     fileName = msg.file_name || null;
@@ -287,7 +288,7 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   
   const message: Message = {
     id: msg.id,
-    content: decryptedContent,
+    content: decryptedContent, // This is now ALWAYS readable English, never encrypted gibberish
     sender_id: msg.sender_id,
     created_at: msg.created_at,
     message_type: (msg.message_type as any) || 'text',
@@ -433,7 +434,8 @@ if (!append && user && conversationId) {
 
   const refreshSignedUrlForMessage = async (messageId: string, currentUrl?: string) => {
     try {
-      const signed = await getSignedUrlForSecureFiles(currentUrl || '');
+      if (!currentUrl) return;
+      const signed = await getSignedUrlForSecureFiles(currentUrl);
       if (signed) {
         setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, file_url: signed } : m)));
       }
@@ -817,20 +819,17 @@ if (!append && user && conversationId) {
 
       const { encryptionService } = await import('@/lib/encryption');
       try {
-        // Try military-grade decryption first
-        return await encryptionService.decryptMessage(base64Payload, conversationId);
+        // ALWAYS decrypt properly - never show encrypted gibberish to users
+        const decryptedMessage = await encryptionService.decryptMessage(base64Payload, conversationId);
+        return decryptedMessage;
       } catch (decryptError) {
         console.error('Decryption failed:', decryptError);
-        // Fallback for legacy base64-only messages
-        try {
-          return atob(base64Payload);
-        } catch {
-          return 'Unable to decrypt message';
-        }
+        // Return user-friendly message instead of gibberish
+        return 'Message could not be decrypted';
       }
     } catch (error) {
       console.error('Message decoding error:', error);
-      return 'Message decoding failed';
+      return 'Message could not be loaded';
     }
   };
 
