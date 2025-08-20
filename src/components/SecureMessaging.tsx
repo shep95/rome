@@ -794,53 +794,69 @@ if (!append && user && conversationId) {
 
   const decodeMessage = async (content: any, conversationId: string) => {
     try {
-      let base64Payload = '';
+      console.log('Decoding message content:', { content, conversationId, contentType: typeof content });
       
+      let textPayload = '';
+      
+      // Handle different content formats from database
       if (typeof content === 'string') {
+        textPayload = content;
+        
         // Handle Postgres bytea returned as hex (e.g. "\\x...")
-        base64Payload = content;
         if (content.startsWith('\\x')) {
           const hex = content.slice(2);
           const bytes = new Uint8Array(hex.match(/.{2}/g)?.map((b) => parseInt(b, 16)) || []);
-          // Bytes are ASCII of the base64 string we stored
-          base64Payload = new TextDecoder().decode(bytes);
+          textPayload = new TextDecoder().decode(bytes);
         }
       } else if (content && typeof content === 'object' && content.type === 'Buffer' && Array.isArray(content.data)) {
         // Handle Buffer object from Supabase
         const bytes = new Uint8Array(content.data);
-        base64Payload = new TextDecoder().decode(bytes);
+        textPayload = new TextDecoder().decode(bytes);
       } else if (content && typeof content === 'object' && content.data) {
         // Handle other buffer-like objects
         const bytes = new Uint8Array(Object.values(content.data));
-        base64Payload = new TextDecoder().decode(bytes);
+        textPayload = new TextDecoder().decode(bytes);
       } else {
         return content || 'Empty message';
       }
 
-      const { encryptionService } = await import('@/lib/encryption');
+      console.log('Text payload after extraction:', textPayload);
+
+      // If it looks like plain readable text, return it directly
+      if (/^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F\u2000-\u206F\u2070-\u209F\u20A0-\u20CF\u2100-\u214F\u2160-\u218F]*$/.test(textPayload) && 
+          !textPayload.includes('=') && textPayload.length < 200) {
+        console.log('Returning as plain text');
+        return textPayload;
+      }
+
+      // Try base64 decode first for legacy messages
       try {
-        // Try military-grade decryption first
-        const decryptedMessage = await encryptionService.decryptMessage(base64Payload, conversationId);
+        const base64Decoded = atob(textPayload);
+        console.log('Base64 decoded:', base64Decoded);
+        
+        // If base64 decode gives us readable text, use it
+        if (base64Decoded && /^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F\u2000-\u206F\u2070-\u209F\u20A0-\u20CF\u2100-\u214F\u2160-\u218F]*$/.test(base64Decoded)) {
+          return base64Decoded;
+        }
+      } catch (e) {
+        console.log('Base64 decode failed, trying encryption');
+      }
+
+      // Try military encryption as last resort
+      try {
+        const { encryptionService } = await import('@/lib/encryption');
+        const decryptedMessage = await encryptionService.decryptMessage(textPayload, conversationId);
+        console.log('Military decryption succeeded');
         return decryptedMessage;
       } catch (decryptError) {
-        console.error('Military decryption failed, trying base64 decode:', decryptError);
-        // Fallback for legacy messages or different formats
-        try {
-          const legacyDecrypted = atob(base64Payload);
-          // Only return if it looks like readable text (not binary gibberish)
-          if (legacyDecrypted && /^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F]*$/.test(legacyDecrypted)) {
-            return legacyDecrypted;
-          }
-          // If it's binary gibberish, return the original base64 as is (might be plain text)
-          return base64Payload;
-        } catch (base64Error) {
-          console.error('Base64 decode also failed:', base64Error);
-          // Last resort - return as plain text if it seems readable
-          if (/^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F]*$/.test(base64Payload)) {
-            return base64Payload;
-          }
-          return 'Unable to decrypt message';
+        console.log('Military decryption failed:', decryptError.message);
+        
+        // Return the original text if it seems readable
+        if (/^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F\u2000-\u206F\u2070-\u209F\u20A0-\u20CF\u2100-\u214F\u2160-\u218F]*$/.test(textPayload)) {
+          return textPayload;
         }
+        
+        return 'Message format not supported';
       }
     } catch (error) {
       console.error('Message decoding error:', error);
