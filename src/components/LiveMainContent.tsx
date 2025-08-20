@@ -435,11 +435,11 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   return (
     <div className="flex h-screen">
       {/* Left Panel - Hidden on mobile when conversation is selected */}
-      <div className={`${selectedConversation ? 'hidden md:block' : 'block'} w-full md:w-96 border-r border-border flex flex-col`}>
-        {/* Tab Navigation */}
-        <div className="p-4 border-b border-border flex-shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-foreground font-semibold">
+      <div className={`${selectedConversation ? 'hidden md:block' : 'block'} w-full md:w-96 lg:w-[400px] xl:w-[450px] border-r border-border flex flex-col`}>
+        {/* Tab Navigation - Enhanced for tablet */}
+        <div className="p-4 md:p-5 lg:p-6 border-b border-border flex-shrink-0">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <h3 className="text-foreground font-semibold text-base md:text-lg lg:text-xl">
               {selectedTab === 'conversations' ? 'Direct Messages' : 'Group Chats'}
             </h3>
             <div className="flex items-center space-x-2">
@@ -447,27 +447,27 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 size="sm" 
                 variant="outline"
                 onClick={selectedTab === 'conversations' ? handleNewMessage : handleNewGroup}
-                className="text-muted-foreground"
+                className="text-muted-foreground hover:text-primary hover:border-primary/50 md:h-9 md:w-9 lg:h-10 lg:w-10"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
             </div>
           </div>
-          <div className="flex space-x-1 bg-card rounded-lg p-1 border border-border">
+          <div className="flex space-x-1 bg-card rounded-lg p-1.5 md:p-2 border border-border shadow-sm">
             <button
               onClick={() => handleTabChange('conversations')}
-              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all relative ${
+              className={`flex-1 flex items-center justify-center space-x-2 md:space-x-3 py-3 md:py-4 lg:py-5 px-3 md:px-4 lg:px-6 rounded-md text-sm md:text-base lg:text-lg font-medium transition-all relative ${
                 selectedTab === 'conversations'
-                  ? 'bg-primary text-primary-foreground shadow-md'
-                  : 'text-foreground hover:text-primary hover:bg-primary/10'
+                  ? 'bg-primary text-primary-foreground shadow-md transform scale-[1.02]'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10 hover:scale-[1.01]'
               }`}
             >
-              <MessageCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Chats</span>
+              <MessageCircle className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" />
+              <span className="font-semibold">Chats</span>
               {directUnreadTotal > 0 && (
                 <Badge 
                   variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center bg-red-500 hover:bg-red-500"
+                  className="absolute -top-1 -right-1 h-5 w-5 md:h-6 md:w-6 p-0 text-xs md:text-sm flex items-center justify-center bg-red-500 hover:bg-red-500 shadow-lg"
                 >
                   {directUnreadTotal > 99 ? '99+' : directUnreadTotal}
                 </Badge>
@@ -475,18 +475,18 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
             </button>
             <button
               onClick={() => handleTabChange('groups')}
-              className={`flex-1 flex items-center justify-center space-x-1 md:space-x-2 py-3 px-3 md:px-4 rounded-md text-xs md:text-sm font-medium transition-all relative ${
+              className={`flex-1 flex items-center justify-center space-x-2 md:space-x-3 py-3 md:py-4 lg:py-5 px-3 md:px-4 lg:px-6 rounded-md text-sm md:text-base lg:text-lg font-medium transition-all relative ${
                 selectedTab === 'groups'
-                  ? 'bg-primary text-primary-foreground shadow-md'
-                  : 'text-foreground hover:text-primary hover:bg-primary/10'
+                  ? 'bg-primary text-primary-foreground shadow-md transform scale-[1.02]'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10 hover:scale-[1.01]'
               }`}
             >
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Groups</span>
+              <Users className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" />
+              <span className="font-semibold">Groups</span>
               {groupUnreadTotal > 0 && (
                 <Badge 
                   variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center bg-red-500 hover:bg-red-500"
+                  className="absolute -top-1 -right-1 h-5 w-5 md:h-6 md:w-6 p-0 text-xs md:text-sm flex items-center justify-center bg-red-500 hover:bg-red-500 shadow-lg"
                 >
                   {groupUnreadTotal > 99 ? '99+' : groupUnreadTotal}
                 </Badge>
@@ -495,31 +495,39 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           </div>
         </div>
         
-        {/* Conversation List */}
-        <ScrollArea className="flex-1 p-3 md:p-4 custom-scrollbar">
-          <div className="space-y-2">
+        {/* Conversation List - Enhanced for tablet */}
+        <ScrollArea className="flex-1 p-3 md:p-4 lg:p-5 custom-scrollbar">
+          <div className="space-y-2 md:space-y-3">
             {selectedTab === 'conversations' && conversations.map((conv) => (
               <Card 
                 key={conv.id} 
-                className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all ${
-                  selectedConversation === conv.id ? 'ring-2 ring-primary bg-primary/10' : ''
+                className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] ${
+                  selectedConversation === conv.id ? 'ring-2 ring-primary bg-primary/10 shadow-lg' : ''
                 }`}
                 onClick={() => setSelectedConversation(conv.id)}
               >
-                <CardContent className="p-3">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0">
+                <CardContent className="p-3 md:p-4 lg:p-5">
+                  <div className="flex items-center space-x-3 md:space-x-4">
+                    <Avatar className="h-10 w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-lg border border-border/50 flex-shrink-0">
                       <AvatarImage src={conv.avatar_url} className="rounded-lg object-cover" />
-                      <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
+                      <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-sm md:text-base lg:text-lg font-semibold">
                         {conv.name?.[0] || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-foreground font-medium truncate">{conv.name}</h4>
-                      <p className="text-sm text-muted-foreground truncate">
+                      <h4 className="text-foreground font-medium truncate text-sm md:text-base lg:text-lg">{conv.name}</h4>
+                      <p className="text-xs md:text-sm lg:text-base text-muted-foreground truncate mt-1">
                         Click to open chat
                       </p>
                     </div>
+                    {unreadCounts[conv.id] > 0 && (
+                      <Badge 
+                        variant="destructive"
+                        className="bg-red-500 hover:bg-red-500 text-white font-semibold text-xs md:text-sm px-2 py-1 md:px-3 md:py-1.5"
+                      >
+                        {unreadCounts[conv.id] > 99 ? '99+' : unreadCounts[conv.id]}
+                      </Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -528,19 +536,19 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
             {selectedTab === 'groups' && groupChats.map((group) => (
               <Card 
                 key={group.id} 
-                className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all ${
-                  selectedConversation === group.id ? 'ring-2 ring-primary bg-primary/10' : ''
+                className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] ${
+                  selectedConversation === group.id ? 'ring-2 ring-primary bg-primary/10 shadow-lg' : ''
                 }`}
               >
-                <CardContent className="p-3">
-                  <div className="flex items-center space-x-3">
+                <CardContent className="p-3 md:p-4 lg:p-5">
+                  <div className="flex items-center space-x-3 md:space-x-4">
                     <Avatar 
-                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-border/50 flex-shrink-0"
+                      className="h-10 w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-lg border border-border/50 flex-shrink-0"
                       onClick={() => setSelectedConversation(group.id)}
                     >
                       <AvatarImage src={group.avatar_url} className="rounded-lg object-cover" />
-                      <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-xs sm:text-sm">
-                        <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-sm md:text-base lg:text-lg font-semibold">
+                        <Users className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" />
                       </AvatarFallback>
                     </Avatar>
                     <div 
@@ -548,27 +556,38 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                       onClick={() => setSelectedConversation(group.id)}
                     >
                       <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-medium text-foreground truncate pr-2">{group.name}</h4>
+                        <h4 className="text-sm md:text-base lg:text-lg font-medium text-foreground truncate pr-2">{group.name}</h4>
                         <div className="flex items-center space-x-2">
-                          <span className="text-xs text-muted-foreground flex-shrink-0">
+                          <span className="text-xs md:text-sm text-muted-foreground flex-shrink-0">
                             {new Date(group.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                           {group.created_by === user?.id && (
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 hover:bg-primary/20"
+                              className="h-6 w-6 md:h-8 md:w-8 lg:h-9 lg:w-9 hover:bg-primary/20"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedGroupForSettings(group.id);
                               }}
                             >
-                              <Settings className="h-3 w-3" />
+                              <Settings className="h-3 w-3 md:h-4 md:w-4" />
                             </Button>
                           )}
                         </div>
                       </div>
+                      <p className="text-xs md:text-sm lg:text-base text-muted-foreground truncate mt-1">
+                        Group Chat
+                      </p>
                     </div>
+                    {unreadCounts[group.id] > 0 && (
+                      <Badge 
+                        variant="destructive"
+                        className="bg-red-500 hover:bg-red-500 text-white font-semibold text-xs md:text-sm px-2 py-1 md:px-3 md:py-1.5"
+                      >
+                        {unreadCounts[group.id] > 99 ? '99+' : unreadCounts[group.id]}
+                      </Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>
