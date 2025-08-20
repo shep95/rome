@@ -1257,7 +1257,7 @@ if (!append && user && conversationId) {
                           {/* Show caption if not equal to filename */}
                           {message.content && message.content.trim() && message.content !== message.file_name && (
                             <div className="space-y-2">
-                              <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">
+                              <pre className="text-sm leading-relaxed break-words break-all whitespace-pre-wrap font-sans">
                                 {message.isTranslated && message.translatedContent 
                                   ? message.translatedContent 
                                   : message.content}
@@ -1300,7 +1300,7 @@ editingMessageId === message.id ? (
   </div>
 ) : (
   <div className="space-y-2">
-    <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">
+    <pre className="text-sm leading-relaxed break-words break-all whitespace-pre-wrap font-sans">
       {message.isTranslated && message.translatedContent 
         ? message.translatedContent 
         : message.content}
