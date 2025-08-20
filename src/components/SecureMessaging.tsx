@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
@@ -36,10 +36,6 @@ interface Message {
       avatar_url: string;
     };
   }[];
-  edited_at?: string | null;
-  edit_count?: number;
-  translatedContent?: string;
-  isTranslated?: boolean;
 }
 
 interface FilePreview {
@@ -81,11 +77,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     url: '',
     type: 'image'
   });
-const [hasMoreMessages, setHasMoreMessages] = useState(true);
-const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
-const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-const [editText, setEditText] = useState('');
-const [translatingMessageId, setTranslatingMessageId] = useState<string | null>(null);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
 
   useEffect(() => {
     if (conversationId && user) {
@@ -212,15 +205,16 @@ const [translatingMessageId, setTranslatingMessageId] = useState<string | null>(
       const limit = append ? 30 : 50;
       const olderThan = append && messages.length > 0 ? messages[0].created_at : undefined;
       
-let query = supabase
-  .from('messages')
-  .select(`
-    id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata, edited_at, edit_count
-  `)
-  .eq('conversation_id', conversationId)
-  .gte('created_at', userJoinedAt) // Only show messages from when user joined
-  .order('created_at', { ascending: false })
-  .limit(limit);
+      let query = supabase
+        .from('messages')
+        .select(`
+          id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata,
+          profiles:sender_id ( username, display_name, avatar_url )
+        `)
+        .eq('conversation_id', conversationId)
+        .gte('created_at', userJoinedAt) // Only show messages from when user joined
+        .order('created_at', { ascending: false })
+        .limit(limit);
       
       // If appending (loading older messages), get messages older than current oldest
       if (olderThan) {
@@ -231,114 +225,78 @@ let query = supabase
 
       if (error) throw error;
       
-// If appending, prepend new messages to existing ones
-// Otherwise, replace all messages with fresh data
-const messagesToProcess = messagesData || [];
-
-// Fetch sender profiles in one query for accurate names/avatars
-const senderIds = Array.from(new Set((messagesToProcess as any[]).map((m: any) => m.sender_id)));
-let profileMap = new Map<string, { username: string | null; display_name: string | null; avatar_url: string | null }>();
-if (senderIds.length > 0) {
-  try {
-    const { data: profilesData } = await supabase
-      .from('profiles')
-      .select('id, username, display_name, avatar_url')
-      .in('id', senderIds as string[]);
-    (profilesData || []).forEach((p: any) => {
-      profileMap.set(p.id, { username: p.username, display_name: p.display_name, avatar_url: p.avatar_url });
-    });
-  } catch (e) {
-    console.warn('Failed to load profiles for messages:', e);
-  }
-}
-
-// Reverse to get chronological order and decrypt messages
-const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse().map(async (msg: any) => {
-  // Lookup sender profile from map
-  const senderProfile = profileMap.get(msg.sender_id) || null;
-
-  // EMERGENCY FIX - JUST SHOW THE MESSAGES WITHOUT ENCRYPTION NONSENSE
-  let decryptedContent = '';
-  
-  console.log('EMERGENCY DEBUG - Raw message data:', msg.data_payload);
-
-  // If it's a Buffer from database, convert it and try to decrypt
-  if (msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer') {
-    try {
-      const bufferData = new Uint8Array(msg.data_payload.data);
-      const base64String = btoa(String.fromCharCode(...bufferData));
+      // If appending, prepend new messages to existing ones
+      // Otherwise, replace all messages with fresh data
+      const messagesToProcess = messagesData || [];
       
-      // Try to decrypt with conversation ID
-      const { encryptionService } = await import('@/lib/encryption');
-      decryptedContent = await encryptionService.decryptMessage(base64String, conversationId);
-      console.log('✅ DECRYPTION SUCCESS:', decryptedContent);
-    } catch (error) {
-      console.error('❌ DECRYPTION FAILED:', error);
-      decryptedContent = '[Old encrypted message - send new messages to see them properly]';
-    }
-  } else {
-    // Handle regular string data (new messages)
-    decryptedContent = String(msg.data_payload || '[Empty message]');
-    console.log('✅ PLAIN TEXT MESSAGE:', decryptedContent);
-  }
+      // Reverse to get chronological order and decrypt messages
+      const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse().map(async (msg) => {
+        // Use embedded sender profile (no extra queries)
+        const senderProfile = (msg as any).profiles || null;
 
-  // Decrypt file metadata (if present) with conversationId
-  let signedUrl: string | null = null;
-  let fileName: string | null = null;
-  if (msg.encrypted_file_metadata) {
-    try {
-      const { encryptionService } = await import('@/lib/encryption');
-      const decryptedMeta = await encryptionService.decryptMessage(String(msg.encrypted_file_metadata), conversationId);
-      const fileMetadata = JSON.parse(decryptedMeta);
-      fileName = fileMetadata.file_name || null;
-      if (fileMetadata.file_url) {
-        signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
+        // Decrypt message content
+        const decryptedContent = await decodeMessage(msg.data_payload, conversationId);
+        
+        // Handle file metadata - prefer encrypted metadata when present
+        let signedUrl: string | null = null;
+        let fileName: string | null = null;
+        if ((msg as any).encrypted_file_metadata) {
+          try {
+            const decryptedFileMetadata = await decodeMessage((msg as any).encrypted_file_metadata, conversationId);
+            const fileMetadata = JSON.parse(decryptedFileMetadata);
+            fileName = fileMetadata.file_name || null;
+            if (fileMetadata.file_url && String(fileMetadata.file_url).includes('secure-files')) {
+              signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
+            } else {
+              signedUrl = fileMetadata.file_url || null;
+            }
+          } catch (e) {
+            console.error('Error decrypting file metadata:', e);
+          }
+        } else if (msg.file_url || msg.file_name) {
+          fileName = msg.file_name || null;
+          if (msg.file_url && String(msg.file_url).includes('secure-files')) {
+            signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
+          } else {
+            signedUrl = msg.file_url || null;
+          }
+        }
+        
+        const message: Message = {
+          id: msg.id,
+          content: decryptedContent,
+          sender_id: msg.sender_id,
+          created_at: msg.created_at,
+          message_type: (msg.message_type as any) || 'text',
+          file_url: signedUrl,
+          file_name: fileName,
+          file_size: msg.file_size || null,
+          replied_to_message_id: msg.replied_to_message_id,
+          sender: {
+            username: senderProfile?.username || `User${msg.sender_id.slice(-4)}`,
+            display_name: senderProfile?.display_name || senderProfile?.username || `User${msg.sender_id.slice(-4)}`,
+            avatar_url: senderProfile?.avatar_url || null,
+          },
+          read_receipts: [], // Lazy-load if needed to avoid N+1 queries
+          replied_to_message: undefined,
+        };
+
+        return message;
+      }));
+      
+      // Update messages state based on whether we're appending or replacing
+      if (append && decryptedMessages.length > 0) {
+        // Prepend older messages to the beginning of the array
+        setMessages(prev => [...decryptedMessages, ...prev]);
+      } else {
+        // Replace all messages with fresh data
+        setMessages(decryptedMessages);
       }
-    } catch (e) {
-      console.error('Error decrypting file metadata:', e);
-    }
-  } else if (msg.file_url) {
-    fileName = msg.file_name || null;
-    signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
-  }
-  
-  const message: Message = {
-    id: msg.id,
-    content: decryptedContent,
-    sender_id: msg.sender_id,
-    created_at: msg.created_at,
-    message_type: (msg.message_type as any) || 'text',
-    file_url: signedUrl,
-    file_name: fileName,
-    file_size: msg.file_size || null,
-    replied_to_message_id: msg.replied_to_message_id,
-    sender: {
-      username: senderProfile?.username || `user_${msg.sender_id.slice(0, 6)}`,
-      display_name: senderProfile?.display_name || senderProfile?.username || `user_${msg.sender_id.slice(0, 6)}`,
-      avatar_url: senderProfile?.avatar_url || null,
-    },
-    read_receipts: [],
-    replied_to_message: undefined,
-    edited_at: msg.edited_at || null,
-    edit_count: typeof msg.edit_count === 'number' ? msg.edit_count : 0,
-  };
-
-  return message;
-}));
-
-// Update messages state based on whether we're appending or replacing
-if (append && decryptedMessages.length > 0) {
-  // Prepend older messages to the beginning of the array
-  setMessages(prev => [...decryptedMessages, ...prev]);
-} else {
-  // Replace all messages with fresh data
-  setMessages(decryptedMessages);
-}
-
-// Mark messages as read when viewing them (only for fresh loads, not appends)
-if (!append && user && conversationId) {
-  markMessagesAsRead();
-}
+      
+      // Mark messages as read when viewing them (only for fresh loads, not appends)
+      if (!append && user && conversationId) {
+        markMessagesAsRead();
+      }
     } catch (error) {
       console.error('Error loading messages:', error);
     }
@@ -404,35 +362,16 @@ if (!append && user && conversationId) {
   // Generate a signed URL for private 'secure-files' bucket
   const getSignedUrlForSecureFiles = async (urlOrPath: string): Promise<string | null> => {
     try {
-      if (!urlOrPath) return null;
-      let input = urlOrPath;
-
-      // If it's a full URL, reduce to pathname
-      try {
-        if (input.startsWith('http')) {
-          input = new URL(input).pathname;
+      let path = urlOrPath;
+      if (urlOrPath.startsWith('http')) {
+        const marker = '/secure-files/';
+        const idx = urlOrPath.indexOf(marker);
+        if (idx !== -1) {
+          path = urlOrPath.substring(idx + marker.length);
+        } else {
+          return null;
         }
-      } catch {}
-
-      const marker = '/secure-files/';
-      let path: string;
-
-      const idx = input.indexOf(marker);
-      if (idx !== -1) {
-        path = input.substring(idx + marker.length);
-      } else if (input.startsWith('secure-files/')) {
-        path = input.substring('secure-files/'.length);
-      } else {
-        // Assume it's already a bucket-relative path
-        path = input.replace(/^\/+/, '');
       }
-
-      // Guard against signed route patterns that still include router prefix
-      if (path.includes('/object/sign/')) {
-        const idx2 = path.indexOf(marker);
-        if (idx2 !== -1) path = path.substring(idx2 + marker.length);
-      }
-
       const { data, error } = await supabase
         .storage
         .from('secure-files')
@@ -450,8 +389,7 @@ if (!append && user && conversationId) {
 
   const refreshSignedUrlForMessage = async (messageId: string, currentUrl?: string) => {
     try {
-      if (!currentUrl) return;
-      const signed = await getSignedUrlForSecureFiles(currentUrl);
+      const signed = await getSignedUrlForSecureFiles(currentUrl || '');
       if (signed) {
         setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, file_url: signed } : m)));
       }
@@ -530,27 +468,33 @@ if (!append && user && conversationId) {
         }
       }
 
-      // STORE NEW MESSAGES AS PLAIN TEXT - NO ENCRYPTION AT ALL
-      console.log('📤 STORING MESSAGE AS PLAIN TEXT:', messageContent);
-
+      // Military-grade encryption - messages are encrypted with conversation ID as password
+      const { encryptionService } = await import('@/lib/encryption');
+      const encryptedContent = await encryptionService.encryptMessage(messageContent, conversationId);
+      
+      // Encrypt file metadata if present
+      let encryptedFileMetadata = null;
+      if (fileUrl && fileName) {
+        const fileMetadata = {
+          file_url: fileUrl,
+          file_name: fileName,
+          content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
+        };
+        encryptedFileMetadata = await encryptionService.encryptMessage(JSON.stringify(fileMetadata), conversationId);
+      }
+      
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          data_payload: messageContent,  // Plain text - NO ENCRYPTION
+          data_payload: encryptedContent,
           message_type: messageType,
           file_size: fileSize || null,
-          encrypted_file_metadata: fileUrl && fileName ? JSON.stringify({
-            file_url: fileUrl,
-            file_name: fileName,
-            content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
-          }) : null,
+          encrypted_file_metadata: encryptedFileMetadata,
           replied_to_message_id: replyingTo?.id || null,
           sequence_number: Date.now()
         });
-
-      console.log('💾 DATABASE INSERT RESULT:', { error });
 
       if (error) throw error;
       
@@ -723,153 +667,51 @@ if (!append && user && conversationId) {
     }
   };
 
-  const startEditing = (msg: Message) => {
-    setEditingMessageId(msg.id);
-    setEditText(msg.content);
-  };
-
-  const cancelEditing = () => {
-    setEditingMessageId(null);
-    setEditText('');
-  };
-
-  const translateMessage = async (messageId: string, content: string) => {
-    if (translatingMessageId === messageId) return; // Already translating
-    
-    setTranslatingMessageId(messageId);
-    
-    try {
-      // Get user's preferred language (fallback to English)
-      const userLanguage = navigator.language.split('-')[0] || 'en';
-      
-      // Simple translation service - in production, use Google Translate API or similar
-      const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(content)}&langpair=auto|${userLanguage}`);
-      const data = await response.json();
-      
-      if (data.responseStatus === 200 && data.responseData?.translatedText) {
-        const translatedText = data.responseData.translatedText;
-        
-        // Update the message with translation
-        setMessages(prev => prev.map(msg => 
-          msg.id === messageId 
-            ? { ...msg, translatedContent: translatedText, isTranslated: true }
-            : msg
-        ));
-      } else {
-        toast.error('Translation failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Translation error:', error);
-      toast.error('Translation service unavailable.');
-    } finally {
-      setTranslatingMessageId(null);
-    }
-  };
-
-  const toggleTranslation = (messageId: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId 
-        ? { ...msg, isTranslated: !msg.isTranslated }
-        : msg
-    ));
-  };
-
-  const saveEdit = async () => {
-    if (!editingMessageId || !conversationId || !user) return;
-    const target = messages.find(m => m.id === editingMessageId);
-    if (!target) return;
-    try {
-      const { encryptionService } = await import('@/lib/encryption');
-      const encrypted = await encryptionService.encryptMessage(editText, conversationId);
-
-      const { error } = await supabase
-        .from('messages')
-        .update({ data_payload: encrypted, edited_at: new Date().toISOString(), edit_count: (target.edit_count || 0) + 1 })
-        .eq('id', editingMessageId)
-        .eq('sender_id', user.id);
-
-      if (error) throw error;
-
-      setMessages(prev => prev.map(m => m.id === editingMessageId ? { ...m, content: editText, edited_at: new Date().toISOString(), edit_count: (m.edit_count || 0) + 1 } : m));
-      cancelEditing();
-      toast.success('Message edited');
-    } catch (e) {
-      console.error('Edit failed:', e);
-      toast.error('Failed to edit message');
-    }
-  };
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const decodeMessage = async (content: any, candidateKeys: string[]) => {
+  const decodeMessage = async (content: any, conversationId: string) => {
     try {
-      console.log('Decoding message content:', { content, candidateKeys, contentType: typeof content });
-      
       let base64Payload = '';
-      let originalString: string | null = null;
-
-      const toBase64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
-
-      // Normalize from DB formats to base64 of raw encrypted bytes
+      
       if (typeof content === 'string') {
-        originalString = content;
+        // Handle Postgres bytea returned as hex (e.g. "\\x...")
+        base64Payload = content;
         if (content.startsWith('\\x')) {
           const hex = content.slice(2);
           const bytes = new Uint8Array(hex.match(/.{2}/g)?.map((b) => parseInt(b, 16)) || []);
-          base64Payload = toBase64(bytes);
-        } else if (/^[A-Za-z0-9+/]+={0,2}$/.test(content.trim())) {
-          base64Payload = content.trim();
-        } else {
-          // Looks like a plain text message (legacy unencrypted)
-          return content;
+          // Bytes are ASCII of the base64 string we stored
+          base64Payload = new TextDecoder().decode(bytes);
         }
       } else if (content && typeof content === 'object' && content.type === 'Buffer' && Array.isArray(content.data)) {
+        // Handle Buffer object from Supabase
         const bytes = new Uint8Array(content.data);
-        base64Payload = toBase64(bytes);
+        base64Payload = new TextDecoder().decode(bytes);
       } else if (content && typeof content === 'object' && content.data) {
+        // Handle other buffer-like objects
         const bytes = new Uint8Array(Object.values(content.data));
-        base64Payload = toBase64(bytes);
+        base64Payload = new TextDecoder().decode(bytes);
       } else {
         return content || 'Empty message';
       }
 
-      const isReadable = (txt: string) =>
-        /^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F\u2000-\u206F\u2070-\u209F\u20A0-\u20CF\u2100-\u214F\u2160-\u218F]*$/.test(txt);
-
-      // Try decrypting with multiple candidate keys
+      const { encryptionService } = await import('@/lib/encryption');
       try {
-        const { encryptionService } = await import('@/lib/encryption');
-        for (const key of candidateKeys) {
-          try {
-            if (!key) continue;
-            const decrypted = await encryptionService.decryptMessage(base64Payload, key);
-            if (decrypted && isReadable(decrypted)) {
-              console.log('Decryption succeeded with a candidate key');
-              return decrypted;
-            }
-          } catch (e) {
-            // try next key
-          }
+        // Try military-grade decryption first
+        return await encryptionService.decryptMessage(base64Payload, conversationId);
+      } catch (decryptError) {
+        console.error('Decryption failed:', decryptError);
+        // Fallback for legacy base64-only messages
+        try {
+          return atob(base64Payload);
+        } catch {
+          return 'Unable to decrypt message';
         }
-      } catch (e) {
-        console.warn('Encryption service import failed:', e);
       }
-
-      // Fallback: interpret payload bytes as UTF-8 (legacy plain text stored in bytea)
-      try {
-        const binary = atob(base64Payload);
-        const bytes = new Uint8Array(binary.split('').map((c) => c.charCodeAt(0)));
-        const utf8 = new TextDecoder().decode(bytes);
-        if (utf8 && isReadable(utf8)) return utf8;
-      } catch {}
-
-      // Last resort: if original looked readable, show it; otherwise placeholder
-      if (originalString && isReadable(originalString)) return originalString;
-      return 'Unable to decrypt message';
     } catch (error) {
       console.error('Message decoding error:', error);
-      return 'Message could not be loaded';
+      return 'Message decoding failed';
     }
   };
 
@@ -1056,176 +898,94 @@ if (!append && user && conversationId) {
                         </div>
                       )}
                       
-                      {message.message_type !== 'text' ? (
+                      {message.file_url ? (
                         <div className="space-y-2">
-                          {message.file_url ? (
-                            (() => {
-                              const extFromName = message.file_name?.split('.').pop()?.toLowerCase();
-                              const ext = extFromName || getFileExtFromUrl(message.file_url || '');
-                              const isImage = !!ext && /(jpg|jpeg|png|gif|webp|svg)$/i.test(ext);
-                              const isVideo = !!ext && /(mp4|webm|ogg|avi|mov)$/i.test(ext);
-                              const downloadHref = makeDownloadUrl(message.file_url!, message.file_name || undefined);
+                          {(() => {
+                            const extFromName = message.file_name?.split('.').pop()?.toLowerCase();
+                            const ext = extFromName || getFileExtFromUrl(message.file_url || '');
+                            const isImage = !!ext && /(jpg|jpeg|png|gif|webp|svg)$/i.test(ext);
+                            const isVideo = !!ext && /(mp4|webm|ogg|avi|mov)$/i.test(ext);
+                            const downloadHref = makeDownloadUrl(message.file_url!, message.file_name || undefined);
 
-                              if (isImage) {
-                                return (
-                                  <div className="space-y-2">
-                                     <img 
-                                       src={message.file_url!} 
-                                       alt={message.file_name || 'Image'}
-                                       className="max-w-full w-full rounded-lg max-h-64 object-cover cursor-pointer block"
-                                       style={{ maxWidth: '100%', height: 'auto' }}
-                                       onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
-                                       onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
-                                     />
-                                    <div className="flex gap-3 text-xs">
-                                      <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
-                                        Download
-                                      </a>
-                                    </div>
-                                  </div>
-                                );
-                              } else if (isVideo) {
-                                return (
-                                   <div className="space-y-2">
-                                     <div 
-                                       className="relative cursor-pointer"
-                                       onClick={() => openMediaModal(message.file_url!, 'video', message.file_name, message.file_size)}
-                                     >
-                                       <video 
-                                         src={message.file_url!}
-                                         className="max-w-full w-full rounded-lg max-h-64 block pointer-events-none"
-                                         style={{ maxWidth: '100%', height: 'auto' }}
-                                         onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
-                                       />
-                                       <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
-                                         <div className="bg-white/90 rounded-full p-2">
-                                           <Video className="h-6 w-6 text-black" />
-                                         </div>
-                                       </div>
-                                     </div>
-                                    <div className="flex gap-3 text-xs">
-                                      <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
-                                        Download
-                                      </a>
-                                    </div>
-                                  </div>
-                                );
-                              } else {
-                                return (
-                                  <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
-                                    <File className="h-8 w-8 text-white/80" />
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium truncate">{message.file_name || 'File'}</p>
-                                      <p className="text-xs text-white/70">
-                                        {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'Attachment'}
-                                      </p>
-                                    </div>
-                                    <a 
-                                      href={downloadHref} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-xs underline text-white/80 hover:text-white"
-                                    >
+                            if (isImage) {
+                              return (
+                                <div className="space-y-2">
+                                   <img 
+                                     src={message.file_url!} 
+                                     alt={message.file_name || 'Image'}
+                                     className="max-w-full w-full rounded-lg max-h-64 object-cover cursor-pointer block"
+                                     style={{ maxWidth: '100%', height: 'auto' }}
+                                     onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
+                                     onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
+                                   />
+                                  <div className="flex gap-3 text-xs">
+                                    <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
                                       Download
                                     </a>
                                   </div>
-                                );
-                              }
-                            })()
-                          ) : (
-                            <div className="flex items-center justify-between gap-3 p-3 bg-background/30 rounded-lg border border-border/30">
-                              <div className="text-xs text-white/80">
-                                Media is protected. Load to view.
-                                {message.file_name && (
-                                  <div className="mt-1 opacity-80">{message.file_name}</div>
-                                )}
-                              </div>
-                              <Button size="sm" variant="secondary" onClick={() => loadMessages()} className="h-7 px-2 text-xs">
-                                Load media
-                              </Button>
-                            </div>
-                          )}
+                                </div>
+                              );
+                            } else if (isVideo) {
+                              return (
+                                 <div className="space-y-2">
+                                   <div 
+                                     className="relative cursor-pointer"
+                                     onClick={() => openMediaModal(message.file_url!, 'video', message.file_name, message.file_size)}
+                                   >
+                                     <video 
+                                       src={message.file_url!}
+                                       className="max-w-full w-full rounded-lg max-h-64 block pointer-events-none"
+                                       style={{ maxWidth: '100%', height: 'auto' }}
+                                       onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
+                                     />
+                                     <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                                       <div className="bg-white/90 rounded-full p-2">
+                                         <Video className="h-6 w-6 text-black" />
+                                       </div>
+                                     </div>
+                                   </div>
+                                  <div className="flex gap-3 text-xs">
+                                    <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
+                                      Download
+                                    </a>
+                                  </div>
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
+                                  <File className="h-8 w-8 text-white/80" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">File</p>
+                                    <p className="text-xs text-white/70">
+                                      {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'Attachment'}
+                                    </p>
+                                  </div>
+                                  <a 
+                                    href={downloadHref} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-xs underline text-white/80 hover:text-white"
+                                  >
+                                    Download
+                                  </a>
+                                </div>
+                              );
+                            }
+                          })()}
                           {/* Show caption if not equal to filename */}
                           {message.content && message.content.trim() && message.content !== message.file_name && (
-                            <div className="space-y-2">
-                              <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">
-                                {message.isTranslated && message.translatedContent 
-                                  ? message.translatedContent 
-                                  : message.content}
-                              </pre>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    if (message.translatedContent) {
-                                      toggleTranslation(message.id);
-                                    } else {
-                                      translateMessage(message.id, message.content);
-                                    }
-                                  }}
-                                  disabled={translatingMessageId === message.id}
-                                  className="h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity"
-                                >
-                                  <Languages className="h-3 w-3 mr-1" />
-                                  {translatingMessageId === message.id ? 'Translating...' : 
-                                   message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
-                                </Button>
-                              </div>
-                            </div>
+                            <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">{message.content}</pre>
                           )}
                         </div>
                       ) : (
-editingMessageId === message.id ? (
-  <div className="space-y-2">
-    <textarea
-      value={editText}
-      onChange={(e) => setEditText(e.target.value)}
-      className="w-full rounded-md bg-background/40 border border-border/40 p-2 text-sm"
-      rows={3}
-    />
-    <div className="flex gap-2">
-      <Button size="sm" onClick={saveEdit} variant="default">Save</Button>
-      <Button size="sm" onClick={cancelEditing} variant="outline">Cancel</Button>
-    </div>
-  </div>
-) : (
-  <div className="space-y-2">
-    <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">
-      {message.isTranslated && message.translatedContent 
-        ? message.translatedContent 
-        : message.content}
-    </pre>
-    {message.message_type === 'text' && (
-      <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => {
-            if (message.translatedContent) {
-              toggleTranslation(message.id);
-            } else {
-              translateMessage(message.id, message.content);
-            }
-          }}
-          disabled={translatingMessageId === message.id}
-          className="h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity"
-        >
-          <Languages className="h-3 w-3 mr-1" />
-          {translatingMessageId === message.id ? 'Translating...' : 
-           message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
-        </Button>
-      </div>
-    )}
-  </div>
-)
+                        <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">{message.content}</pre>
                       )}
                       
                       <div className="flex items-center justify-between mt-2">
-<p className="text-xs opacity-70">
-  {new Date(message.created_at).toLocaleTimeString()}
-  {message.edited_at ? ' • edited' : ''}
-</p>
+                        <p className="text-xs opacity-70">
+                          {new Date(message.created_at).toLocaleTimeString()}
+                        </p>
                         
                         {/* Read receipts for sent messages */}
                         {message.sender_id === user?.id && message.read_receipts && message.read_receipts.length > 0 && (
@@ -1261,44 +1021,33 @@ editingMessageId === message.id ? (
                           <MoreVertical className="h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
-<DropdownMenuContent align="end" className="backdrop-blur-xl bg-card/80 border-border/30">
-  <DropdownMenuItem
-    onClick={() => setReplyingTo(message)}
-    className="hover:bg-primary/10"
-  >
-    <Reply className="h-4 w-4 mr-2" />
-    Reply
-  </DropdownMenuItem>
-  {message.sender_id === user?.id && (
-    <DropdownMenuItem
-      className="hover:bg-primary/10"
-      onSelect={(e) => {
-        e.preventDefault();
-        startEditing(message);
-      }}
-    >
-      Edit Message
-    </DropdownMenuItem>
-  )}
-  {/* Only show delete option for messages sent by current user */}
-  {message.sender_id === user?.id && (
-    <ThanosSnapEffect
-      onAnimationComplete={() => deleteMessage(message.id, true)}
-      trigger={deletingMessageId === message.id}
-    >
-      <DropdownMenuItem
-        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-        onSelect={(e) => {
-          e.preventDefault();
-          setDeletingMessageId(message.id);
-        }}
-      >
-        <Trash2 className="h-4 w-4 mr-2" />
-        Delete Message
-      </DropdownMenuItem>
-    </ThanosSnapEffect>
-  )}
-</DropdownMenuContent>
+                      <DropdownMenuContent align="end" className="backdrop-blur-xl bg-card/80 border-border/30">
+                        <DropdownMenuItem
+                          onClick={() => setReplyingTo(message)}
+                          className="hover:bg-primary/10"
+                        >
+                          <Reply className="h-4 w-4 mr-2" />
+                          Reply
+                        </DropdownMenuItem>
+                        {/* Only show delete option for messages sent by current user */}
+                        {message.sender_id === user?.id && (
+                          <ThanosSnapEffect
+                            onAnimationComplete={() => deleteMessage(message.id, true)}
+                            trigger={deletingMessageId === message.id}
+                          >
+                            <DropdownMenuItem
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                setDeletingMessageId(message.id);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Message
+                            </DropdownMenuItem>
+                          </ThanosSnapEffect>
+                        )}
+                      </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>

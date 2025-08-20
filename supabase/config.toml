@@ -1,7 +1,7 @@
 project_id = "mnijromffaalvpadojbj"
 
 [functions.auth-security]
-verify_jwt = true
+verify_jwt = false
 
 [functions.crypto-utils]
 verify_jwt = true

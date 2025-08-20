@@ -124,45 +124,6 @@ export type Database = {
         }
         Relationships: []
       }
-      file_security_scans: {
-        Row: {
-          created_at: string
-          file_id: string | null
-          file_path: string
-          file_size: number
-          file_type: string
-          id: string
-          scan_results: Json | null
-          scan_status: string
-          scanned_at: string | null
-          threat_detected: string | null
-        }
-        Insert: {
-          created_at?: string
-          file_id?: string | null
-          file_path: string
-          file_size: number
-          file_type: string
-          id?: string
-          scan_results?: Json | null
-          scan_status?: string
-          scanned_at?: string | null
-          threat_detected?: string | null
-        }
-        Update: {
-          created_at?: string
-          file_id?: string | null
-          file_path?: string
-          file_size?: number
-          file_type?: string
-          id?: string
-          scan_results?: Json | null
-          scan_status?: string
-          scanned_at?: string | null
-          threat_detected?: string | null
-        }
-        Relationships: []
-      }
       message_reads: {
         Row: {
           created_at: string
@@ -237,8 +198,6 @@ export type Database = {
           conversation_id: string
           created_at: string
           data_payload: string
-          edit_count: number | null
-          edited_at: string | null
           encrypted_file_metadata: string | null
           entropy_vector: string | null
           file_name: string | null
@@ -254,8 +213,6 @@ export type Database = {
           conversation_id: string
           created_at?: string
           data_payload: string
-          edit_count?: number | null
-          edited_at?: string | null
           encrypted_file_metadata?: string | null
           entropy_vector?: string | null
           file_name?: string | null
@@ -271,8 +228,6 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           data_payload?: string
-          edit_count?: number | null
-          edited_at?: string | null
           encrypted_file_metadata?: string | null
           entropy_vector?: string | null
           file_name?: string | null
@@ -327,51 +282,6 @@ export type Database = {
           private_key?: string
           public_key?: string
           used_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      password_security: {
-        Row: {
-          created_at: string
-          failed_attempts: number | null
-          hash_algorithm: string
-          hash_rounds: number
-          id: string
-          last_changed_at: string
-          locked_until: string | null
-          password_hash: string
-          previous_hashes: Json | null
-          salt: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          failed_attempts?: number | null
-          hash_algorithm?: string
-          hash_rounds?: number
-          id?: string
-          last_changed_at?: string
-          locked_until?: string | null
-          password_hash: string
-          previous_hashes?: Json | null
-          salt: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          failed_attempts?: number | null
-          hash_algorithm?: string
-          hash_rounds?: number
-          id?: string
-          last_changed_at?: string
-          locked_until?: string | null
-          password_hash?: string
-          previous_hashes?: Json | null
-          salt?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -475,48 +385,6 @@ export type Database = {
           id?: string
           secure_payload?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      security_audit_logs: {
-        Row: {
-          additional_data: Json | null
-          device_fingerprint: string | null
-          event_description: string
-          event_type: string
-          id: string
-          ip_address: unknown | null
-          risk_level: string
-          session_id: string | null
-          timestamp: string
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          additional_data?: Json | null
-          device_fingerprint?: string | null
-          event_description: string
-          event_type: string
-          id?: string
-          ip_address?: unknown | null
-          risk_level?: string
-          session_id?: string | null
-          timestamp?: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          additional_data?: Json | null
-          device_fingerprint?: string | null
-          event_description?: string
-          event_type?: string
-          id?: string
-          ip_address?: unknown | null
-          risk_level?: string
-          session_id?: string | null
-          timestamp?: string
-          user_agent?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -640,51 +508,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_sessions: {
-        Row: {
-          created_at: string
-          device_fingerprint: string | null
-          expires_at: string
-          id: string
-          ip_address: unknown | null
-          is_active: boolean
-          last_activity: string
-          refresh_expires_at: string
-          refresh_token: string
-          session_token: string
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          device_fingerprint?: string | null
-          expires_at: string
-          id?: string
-          ip_address?: unknown | null
-          is_active?: boolean
-          last_activity?: string
-          refresh_expires_at: string
-          refresh_token: string
-          session_token: string
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          device_fingerprint?: string | null
-          expires_at?: string
-          id?: string
-          ip_address?: unknown | null
-          is_active?: boolean
-          last_activity?: string
-          refresh_expires_at?: string
-          refresh_token?: string
-          session_token?: string
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       webauthn_credentials: {
         Row: {
           backup_eligible: boolean | null
@@ -736,10 +559,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      cleanup_expired_security_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       create_direct_conversation: {
         Args: { _name: string; _other_user_id: string }
         Returns: string
@@ -750,33 +569,6 @@ export type Database = {
       }
       generate_entropy_vector: {
         Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_conversation_participant_profiles: {
-        Args: { conversation_uuid: string }
-        Returns: {
-          avatar_url: string
-          display_name: string
-          id: string
-          username: string
-        }[]
-      }
-      invalidate_all_user_sessions: {
-        Args: { p_user_id: string }
-        Returns: undefined
-      }
-      log_security_event: {
-        Args: {
-          p_additional_data?: Json
-          p_device_fingerprint?: string
-          p_event_description: string
-          p_event_type: string
-          p_ip_address?: string
-          p_risk_level?: string
-          p_session_id?: string
-          p_user_agent?: string
-          p_user_id: string
-        }
         Returns: string
       }
       mark_messages_as_read: {
@@ -803,14 +595,6 @@ export type Database = {
       user_is_conversation_participant: {
         Args: { conversation_id: string; user_id: string }
         Returns: boolean
-      }
-      validate_user_session: {
-        Args: { p_session_token: string }
-        Returns: {
-          expires_at: string
-          is_valid: boolean
-          user_id: string
-        }[]
       }
     }
     Enums: {
