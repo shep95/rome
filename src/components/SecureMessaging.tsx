@@ -257,80 +257,92 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // SMART MESSAGE PROCESSING - Handle both old encrypted and new plain text messages
+  // COMPREHENSIVE MESSAGE DECODING - Handle ALL legacy formats
   let decryptedContent = '';
   
-  console.log('📨 Processing message data:', typeof msg.data_payload);
+  console.log('🔍 Raw data_payload:', msg.data_payload);
+  console.log('🔍 Type:', typeof msg.data_payload);
 
   const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
 
   // Check if it's a Buffer from database (old encrypted messages)
   if (msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer') {
+    console.log('📦 BUFFER TYPE - Processing buffer data...');
     try {
       const bufferData = new Uint8Array(msg.data_payload.data);
       const base64String = btoa(String.fromCharCode(...bufferData));
+      console.log('📦 Buffer converted to base64:', base64String.substring(0, 50) + '...');
       
-      // First try to decrypt with conversation ID (legacy encrypted messages)
-      const { encryptionService } = await import('@/lib/encryption');
-      decryptedContent = await encryptionService.decryptMessage(base64String, conversationId);
-      console.log('✅ DECRYPTION SUCCESS (Buffer):', decryptedContent);
-    } catch (error) {
-      console.error('❌ DECRYPTION FAILED (Buffer):', error);
-      // Fallback: treat buffer as UTF-8 text
+      // Try decryption first
       try {
-        const bufferData = new Uint8Array(msg.data_payload.data);
+        const { encryptionService } = await import('@/lib/encryption');
+        decryptedContent = await encryptionService.decryptMessage(base64String, conversationId);
+        console.log('✅ BUFFER DECRYPTION SUCCESS:', decryptedContent);
+      } catch (decryptError) {
+        console.log('⚠️ Buffer decryption failed, trying as raw text...');
+        // Try as raw UTF-8 text
         decryptedContent = new TextDecoder().decode(bufferData);
-      } catch {
-        decryptedContent = '[Unable to read message]';
+        console.log('✅ BUFFER AS TEXT:', decryptedContent);
       }
+    } catch (error) {
+      console.error('❌ BUFFER PROCESSING FAILED:', error);
+      decryptedContent = '[Unable to read buffer message]';
     }
   } else {
-    // Handle string data
+    // Handle string data - multiple formats possible
     const rawContent = String(msg.data_payload || '');
+    console.log('📝 STRING DATA:', rawContent.substring(0, 100) + (rawContent.length > 100 ? '...' : ''));
+    
     if (rawContent.startsWith('\\x')) {
-      console.log('📦 OLD HEX-ENCODED MESSAGE - decoding...');
+      console.log('🔧 HEX-ENCODED MESSAGE - Decoding...');
       try {
-        // Decode hex string to bytes, then to text
+        // Decode hex string to bytes
         const cleaned = rawContent.replace(/\\x/g, '');
         const bytes: number[] = [];
         for (let i = 0; i < cleaned.length; i += 2) {
           bytes.push(parseInt(cleaned.substr(i, 2), 16));
         }
-        const decoded = new TextDecoder().decode(new Uint8Array(bytes));
+        const decodedText = new TextDecoder().decode(new Uint8Array(bytes));
+        console.log('🔧 Hex decoded to:', decodedText.substring(0, 50) + '...');
 
-        // If it looks like base64, attempt decryption using legacy scheme
-        if (isLikelyBase64(decoded)) {
+        // Check if decoded text looks like base64 (encrypted)
+        if (isLikelyBase64(decodedText)) {
+          console.log('🔐 Decoded text looks like base64, attempting decryption...');
           try {
             const { encryptionService } = await import('@/lib/encryption');
-            decryptedContent = await encryptionService.decryptMessage(decoded, conversationId);
-            console.log('✅ DECRYPTION SUCCESS (Hex->Base64):', decryptedContent);
-          } catch (e) {
-            console.warn('⚠️ Decryption failed for hex-decoded content, showing as plain text');
-            decryptedContent = decoded; // show plain text if decryption fails
+            decryptedContent = await encryptionService.decryptMessage(decodedText, conversationId);
+            console.log('✅ HEX→BASE64→DECRYPT SUCCESS:', decryptedContent);
+          } catch (decryptError) {
+            console.log('⚠️ Decryption failed, using decoded text as-is');
+            decryptedContent = decodedText;
           }
         } else {
-          decryptedContent = decoded; // plain hex-encoded text
+          // Plain text that was hex-encoded
+          decryptedContent = decodedText;
+          console.log('✅ HEX→TEXT SUCCESS:', decryptedContent);
         }
       } catch (error) {
         console.error('❌ HEX DECODE FAILED:', error);
-        decryptedContent = '[Unable to decode message]';
+        decryptedContent = '[Unable to decode hex message]';
       }
     } else if (isLikelyBase64(rawContent)) {
-      // Raw base64 string (legacy encrypted but stored as text)
+      console.log('🔐 BASE64-LIKE STRING - Attempting decryption...');
       try {
         const { encryptionService } = await import('@/lib/encryption');
         decryptedContent = await encryptionService.decryptMessage(rawContent, conversationId);
-        console.log('✅ DECRYPTION SUCCESS (Base64):', decryptedContent);
-      } catch (e) {
-        console.warn('⚠️ Base64-like content failed to decrypt, showing as-is');
+        console.log('✅ BASE64 DECRYPT SUCCESS:', decryptedContent);
+      } catch (error) {
+        console.log('⚠️ Base64 decryption failed, showing as plain text');
         decryptedContent = rawContent;
       }
     } else {
-      // Regular plain text message
+      // Regular plain text message (new format)
       decryptedContent = rawContent;
-      console.log('📝 NEW PLAIN TEXT MESSAGE:', decryptedContent);
+      console.log('✅ PLAIN TEXT MESSAGE:', decryptedContent);
     }
   }
+
+  console.log('🎯 FINAL CONTENT:', decryptedContent);
 
   // Decrypt file metadata (if present) with conversationId
   let signedUrl: string | null = null;
