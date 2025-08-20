@@ -257,13 +257,26 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // Decrypt content using military-grade AES-GCM with conversationId
+  // Decrypt content using military-grade AES-GCM with conversationId, with fallbacks
   let decryptedContent = '';
   try {
     const { encryptionService } = await import('@/lib/encryption');
-    decryptedContent = await encryptionService.decryptMessage(String(msg.data_payload), conversationId);
+    
+    // First try with conversationId (current method)
+    try {
+      decryptedContent = await encryptionService.decryptMessage(String(msg.data_payload), conversationId);
+    } catch {
+      // Fallback: try treating as plain text if it looks readable
+      const rawContent = String(msg.data_payload);
+      if (rawContent && /^[a-zA-Z0-9\s\.,!?'"-]*$/.test(rawContent)) {
+        decryptedContent = rawContent;
+      } else {
+        // If encrypted but can't decrypt, show a user-friendly message
+        decryptedContent = '[Message could not be decrypted]';
+      }
+    }
   } catch {
-    decryptedContent = msg.data_payload || '';
+    decryptedContent = '[Error loading message]';
   }
 
   // Decrypt file metadata (if present) with conversationId
