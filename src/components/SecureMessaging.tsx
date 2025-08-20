@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
@@ -38,6 +38,8 @@ interface Message {
   }[];
   edited_at?: string | null;
   edit_count?: number;
+  translatedContent?: string;
+  isTranslated?: boolean;
 }
 
 interface FilePreview {
@@ -79,10 +81,11 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     url: '',
     type: 'image'
   });
-  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+const [hasMoreMessages, setHasMoreMessages] = useState(true);
 const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
 const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 const [editText, setEditText] = useState('');
+const [translatingMessageId, setTranslatingMessageId] = useState<string | null>(null);
 
   useEffect(() => {
     if (conversationId && user) {
@@ -699,6 +702,47 @@ if (!append && user && conversationId) {
     setEditText('');
   };
 
+  const translateMessage = async (messageId: string, content: string) => {
+    if (translatingMessageId === messageId) return; // Already translating
+    
+    setTranslatingMessageId(messageId);
+    
+    try {
+      // Get user's preferred language (fallback to English)
+      const userLanguage = navigator.language.split('-')[0] || 'en';
+      
+      // Simple translation service - in production, use Google Translate API or similar
+      const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(content)}&langpair=auto|${userLanguage}`);
+      const data = await response.json();
+      
+      if (data.responseStatus === 200 && data.responseData?.translatedText) {
+        const translatedText = data.responseData.translatedText;
+        
+        // Update the message with translation
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, translatedContent: translatedText, isTranslated: true }
+            : msg
+        ));
+      } else {
+        toast.error('Translation failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Translation error:', error);
+      toast.error('Translation service unavailable.');
+    } finally {
+      setTranslatingMessageId(null);
+    }
+  };
+
+  const toggleTranslation = (messageId: string) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, isTranslated: !msg.isTranslated }
+        : msg
+    ));
+  };
+
   const saveEdit = async () => {
     if (!editingMessageId || !conversationId || !user) return;
     const target = messages.find(m => m.id === editingMessageId);
@@ -1031,7 +1075,34 @@ if (!append && user && conversationId) {
                           })()}
                           {/* Show caption if not equal to filename */}
                           {message.content && message.content.trim() && message.content !== message.file_name && (
-                            <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">{message.content}</pre>
+                            <div className="space-y-2">
+                              <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">
+                                {message.isTranslated && message.translatedContent 
+                                  ? message.translatedContent 
+                                  : message.content}
+                              </pre>
+                              {message.message_type === 'text' && (
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      if (message.translatedContent) {
+                                        toggleTranslation(message.id);
+                                      } else {
+                                        translateMessage(message.id, message.content);
+                                      }
+                                    }}
+                                    disabled={translatingMessageId === message.id}
+                                    className="h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity"
+                                  >
+                                    <Languages className="h-3 w-3 mr-1" />
+                                    {translatingMessageId === message.id ? 'Translating...' : 
+                                     message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
                       ) : (
@@ -1049,7 +1120,34 @@ editingMessageId === message.id ? (
     </div>
   </div>
 ) : (
-  <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">{message.content}</pre>
+  <div className="space-y-2">
+    <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">
+      {message.isTranslated && message.translatedContent 
+        ? message.translatedContent 
+        : message.content}
+    </pre>
+    {message.message_type === 'text' && (
+      <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            if (message.translatedContent) {
+              toggleTranslation(message.id);
+            } else {
+              translateMessage(message.id, message.content);
+            }
+          }}
+          disabled={translatingMessageId === message.id}
+          className="h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity"
+        >
+          <Languages className="h-3 w-3 mr-1" />
+          {translatingMessageId === message.id ? 'Translating...' : 
+           message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
+        </Button>
+      </div>
+    )}
+  </div>
 )
                       )}
                       
