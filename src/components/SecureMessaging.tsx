@@ -257,14 +257,47 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // COMPLETELY DISABLE ENCRYPTION - SHOW RAW CONTENT DIRECTLY
-  const decryptedContent = String(msg.data_payload || '[Empty message]');
+  // HANDLE BUFFER DATA FROM DATABASE PROPERLY
+  let decryptedContent = '';
   
-  console.log('DIRECT MESSAGE CONTENT:', {
-    messageId: msg.id,
-    rawContent: decryptedContent,
-    length: decryptedContent.length
+  console.log('Raw database data:', { 
+    messageId: msg.id, 
+    rawPayload: msg.data_payload, 
+    payloadType: typeof msg.data_payload,
+    isBuffer: msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer'
   });
+
+  // Handle Buffer data from database
+  if (msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer') {
+    // Convert Buffer back to string
+    const bufferData = new Uint8Array(msg.data_payload.data);
+    const base64String = btoa(String.fromCharCode(...bufferData));
+    
+    // Try to decrypt the base64 string
+    try {
+      const { encryptionService } = await import('@/lib/encryption');
+      decryptedContent = await encryptionService.decryptMessage(base64String, conversationId);
+      console.log('Successfully decrypted from Buffer:', decryptedContent);
+    } catch (decryptError) {
+      console.warn('Could not decrypt Buffer data, trying as raw text');
+      // If decryption fails, try to interpret as UTF-8 text
+      try {
+        decryptedContent = new TextDecoder().decode(bufferData);
+        console.log('Decoded as UTF-8:', decryptedContent);
+      } catch {
+        decryptedContent = `[Could not decode message - Buffer length: ${bufferData.length}]`;
+      }
+    }
+  } else {
+    // Handle regular string data
+    const rawContent = String(msg.data_payload || '');
+    if (rawContent.trim()) {
+      decryptedContent = rawContent;
+      console.log('Using string data directly:', decryptedContent);
+    } else {
+      decryptedContent = '[Empty message]';
+    }
+  }
 
   // Decrypt file metadata (if present) with conversationId
   let signedUrl: string | null = null;
