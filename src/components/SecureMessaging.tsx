@@ -1026,17 +1026,10 @@ if (!append && user && conversationId) {
   }
 
   return (
-    <div 
-      className="flex-1 flex flex-col bg-background overflow-hidden h-full w-full max-w-full" 
-      style={{ 
-        height: 'calc(var(--app-vh, 1vh) * 100)',
-        minWidth: 0,
-        maxWidth: '100vw'
-      }}
-    >
+    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
       {/* Chat Header - responsive positioning */}
-      <div className="p-3 sm:p-4 border-b border-border bg-card/50 md:relative fixed top-0 left-0 right-0 z-50 md:rounded-none rounded-b-2xl md:backdrop-blur-none backdrop-blur-xl w-full max-w-full" style={{ minWidth: 0, maxWidth: '100vw' }}>
-        <div className="flex items-center gap-2 sm:gap-3 w-full max-w-full" style={{ minWidth: 0, maxWidth: '100vw' }}>
+      <div className="p-3 sm:p-4 border-b border-border bg-card/50 md:relative fixed top-0 left-0 right-0 z-50 md:rounded-none rounded-b-2xl md:backdrop-blur-none backdrop-blur-xl">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Back button for mobile */}
           {onBackToMessages && (
             <Button
@@ -1068,7 +1061,7 @@ if (!append && user && conversationId) {
 
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-2 sm:p-3 lg:p-4 space-y-2 sm:space-y-3 lg:space-y-4 relative custom-scrollbar md:mt-0 mt-14 sm:mt-16 md:mb-0 mb-16 sm:mb-20 lg:mb-24"
+        className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 relative custom-scrollbar md:mt-0 mt-16 md:mb-0 mb-20"
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',
@@ -1093,7 +1086,7 @@ if (!append && user && conversationId) {
             </div>
           )
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4 w-full px-2 sm:px-0">
             {/* Load older messages button */}
             {hasMoreMessages && messages.length > 0 && (
               <div className="flex justify-center">
@@ -1112,7 +1105,7 @@ if (!append && user && conversationId) {
               <div
                 key={message.id}
                 data-message-id={message.id}
-                className={`flex items-end gap-2 sm:gap-3 relative z-10 ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                className={`flex items-end gap-2 sm:gap-3 relative z-10 w-full ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
               >
                 {/* Avatar for others */}
                         {message.sender_id !== user?.id && (
@@ -1126,7 +1119,7 @@ if (!append && user && conversationId) {
                           </Avatar>
                         )}
                 
-                <div className="flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-sm lg:max-w-md xl:max-w-lg 2xl:max-w-xl">
+                <div className="flex flex-col max-w-[90%] sm:max-w-[85%] md:max-w-sm lg:max-w-md xl:max-w-lg 2xl:max-w-xl">
                   {/* Username for others */}
                       {message.sender_id !== user?.id && (
                         <p className="text-xs text-muted-foreground mb-1 px-1">
@@ -1140,12 +1133,14 @@ if (!append && user && conversationId) {
                     <div
                       className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl backdrop-blur-xl border-2 text-white ${
                         message.sender_id === user?.id
-                          ? 'bg-primary/20 border-primary/20'
-                          : 'bg-card/10 border-border/20'
-                      } transition-all duration-300 hover:backdrop-blur-2xl group-hover:border-primary/40`}
+                          ? 'bg-primary/30 border-primary/30'
+                          : 'bg-card/20 border-border/30'
+                      } transition-all duration-300 hover:backdrop-blur-2xl group-hover:border-primary/40 max-w-full overflow-hidden`}
                       style={{
                         backdropFilter: 'blur(20px) saturate(150%)',
                         WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word'
                       }}
                     >
                       {/* Reply Preview */}
@@ -1442,7 +1437,7 @@ editingMessageId === message.id ? (
       </div>
 
       {/* Message Input - floating on mobile */}
-      <div className="p-3 sm:p-4 border-t border-border bg-card/50 backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:rounded-none rounded-t-3xl md:w-auto w-full min-h-16 max-w-full" style={{ minWidth: 0, maxWidth: '100vw' }}>
+      <div className="p-3 sm:p-4 border-t border-border bg-card/50 backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:rounded-none rounded-t-3xl md:w-auto w-full min-h-16">
         {/* Reply Preview */}
         {replyingTo && (
           <div className="mb-3 bg-card/80 backdrop-blur-sm border border-border rounded-lg p-3">

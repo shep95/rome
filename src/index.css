@@ -194,47 +194,100 @@ input, textarea, select {
 
 /* Fix mobile zoom issues */
 @media screen and (max-width: 768px) {
-  html, body {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
+  html {
     -webkit-text-size-adjust: 100% !important;
     -ms-text-size-adjust: 100% !important;
     text-size-adjust: 100% !important;
-    zoom: 1 !important;
-    transform: none !important;
   }
   
-  #root {
-    width: 100vw !important;
-    max-width: 100vw !important;
+  body {
+    -webkit-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
     overflow-x: hidden !important;
-    min-width: 0 !important;
+  }
+}
+
+/* Mobile-specific message layout fixes */
+@media screen and (max-width: 768px) {
+  /* Ensure proper message container display */
+  .flex {
+    display: flex !important;
   }
   
-  /* Fix all containers */
-  .container, div {
-    max-width: 100vw !important;
+  /* Message alignment fixes */
+  .justify-start {
+    justify-content: flex-start !important;
+  }
+  
+  .justify-end {
+    justify-content: flex-end !important;
+  }
+  
+  /* Message bubble width constraints */
+  .max-w-\[85\%\] {
+    max-width: 85% !important;
+  }
+  
+  .max-w-\[75\%\] {
+    max-width: 75% !important;
+  }
+  
+  /* Ensure message visibility and spacing */
+  .flex.items-end {
+    margin-bottom: 0.75rem !important;
+    width: 100% !important;
     box-sizing: border-box !important;
   }
   
-  /* Prevent horizontal scroll */
-  * {
-    max-width: 100vw !important;
-    box-sizing: border-box !important;
-    -webkit-text-size-adjust: 100% !important;
-    -ms-text-size-adjust: 100% !important;
-    text-size-adjust: 100% !important;
+  /* Message text styling */
+  .text-white {
+    color: white !important;
   }
   
-  /* Input elements specific fixes */
-  input, textarea, select {
-    font-size: 16px !important;
-    -webkit-text-size-adjust: 100% !important;
-    -ms-text-size-adjust: 100% !important;
-    text-size-adjust: 100% !important;
-    transform: none !important;
-    zoom: 1 !important;
+/* Mobile messaging improvements */
+@media screen and (max-width: 768px) {
+  /* Messages container */
+  .flex-1.overflow-y-auto {
+    padding: 1rem 0.5rem 1.5rem 0.5rem !important;
+  }
+  
+  /* Message row layout */
+  .flex.items-end {
+    width: 100% !important;
+    margin-bottom: 1rem !important;
+    padding: 0 0.25rem !important;
+    display: flex !important;
+  }
+  
+  /* Message bubbles */
+  .rounded-2xl {
+    border-radius: 1rem !important;
+    max-width: 80% !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  /* Text visibility */
+  .text-white {
+    color: white !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Avatar spacing */
+  .flex-shrink-0 {
+    flex-shrink: 0 !important;
+  }
+  
+  /* Message alignment fix */
+  .justify-start {
+    justify-content: flex-start !important;
+    align-items: flex-end !important;
+  }
+  
+  .justify-end {
+    justify-content: flex-end !important;
+    align-items: flex-end !important;
   }
 }
 
