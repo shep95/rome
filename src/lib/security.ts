@@ -69,69 +69,52 @@ export class SecurityUtils {
     }
   }
 
-  static async validatePassword(password: string): Promise<PasswordValidation> {
-    try {
-      const response = await supabase.functions.invoke('auth-security', {
-        body: {
-          action: 'validate_password_strength',
-          metadata: { password }
-        }
-      });
+static async validatePassword(password: string): Promise<PasswordValidation> {
+  // Client-side validation only; never send raw password to server
+  const checks = {
+    length: password.length >= 12,
+    hasUppercase: /[A-Z]/.test(password),
+    hasLowercase: /[a-z]/.test(password),
+    hasNumbers: /[0-9]/.test(password),
+    hasSpecialChars: /[^A-Za-z0-9]/.test(password),
+    notCommon: !/(password|123456|qwerty|letmein|admin|welcome)/i.test(password)
+  };
+  const score = Object.values(checks).filter(Boolean).length;
+  const strength: 'weak' | 'medium' | 'strong' = score >= 5 ? 'strong' : score >= 3 ? 'medium' : 'weak';
+  return { valid: strength !== 'weak', strength, checks };
+}
 
-      if (response.error) {
-        console.error('Password validation failed:', response.error);
-        return {
-          valid: false,
-          strength: 'weak',
-          checks: {
-            length: false,
-            hasUppercase: false,
-            hasLowercase: false,
-            hasNumbers: false,
-            hasSpecialChars: false,
-            notCommon: false
-          }
-        };
-      }
+static async checkPasswordBreach(password: string): Promise<{ breached: boolean; checkFailed?: boolean }> {
+  try {
+    // Compute SHA-1 hash client-side and use k-anonymity (prefix only sent to server)
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const buffer = await crypto.subtle.digest('SHA-1', data);
+    const bytes = Array.from(new Uint8Array(buffer));
+    const fullHash = bytes.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    const prefix = fullHash.substring(0, 5);
+    const suffix = fullHash.substring(5);
 
-      return response.data;
-    } catch (error) {
-      console.error('Password validation error:', error);
-      return {
-        valid: false,
-        strength: 'weak',
-        checks: {
-          length: false,
-          hasUppercase: false,
-          hasLowercase: false,
-          hasNumbers: false,
-          hasSpecialChars: false,
-          notCommon: false
-        }
-      };
-    }
-  }
+    const response = await supabase.functions.invoke('auth-security', {
+      body: { action: 'check_breach_database', metadata: { hash_prefix: prefix } }
+    });
 
-  static async checkPasswordBreach(password: string): Promise<{ breached: boolean; checkFailed?: boolean }> {
-    try {
-      const response = await supabase.functions.invoke('auth-security', {
-        body: {
-          action: 'check_breach_database',
-          metadata: { password }
-        }
-      });
-
-      if (response.error) {
-        console.error('Breach check failed:', response.error);
-        return { breached: false, checkFailed: true };
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error('Breach check error:', error);
+    if (response.error) {
+      console.error('Breach check failed:', response.error);
       return { breached: false, checkFailed: true };
     }
+
+    const text: string = response.data?.range || '';
+    const breached = text.split('\n').some(line => {
+      const [suf, count] = line.trim().split(':');
+      return suf === suffix && Number(count) > 0;
+    });
+    return { breached };
+  } catch (error) {
+    console.error('Breach check error:', error);
+    return { breached: false, checkFailed: true };
   }
+}
 
   static async generateDeviceFingerprint(): Promise<DeviceFingerprint> {
     try {

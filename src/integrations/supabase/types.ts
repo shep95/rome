@@ -198,6 +198,8 @@ export type Database = {
           conversation_id: string
           created_at: string
           data_payload: string
+          edit_count: number | null
+          edited_at: string | null
           encrypted_file_metadata: string | null
           entropy_vector: string | null
           file_name: string | null
@@ -213,6 +215,8 @@ export type Database = {
           conversation_id: string
           created_at?: string
           data_payload: string
+          edit_count?: number | null
+          edited_at?: string | null
           encrypted_file_metadata?: string | null
           entropy_vector?: string | null
           file_name?: string | null
@@ -228,6 +232,8 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           data_payload?: string
+          edit_count?: number | null
+          edited_at?: string | null
           encrypted_file_metadata?: string | null
           entropy_vector?: string | null
           file_name?: string | null
@@ -570,6 +576,15 @@ export type Database = {
       generate_entropy_vector: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_conversation_participant_profiles: {
+        Args: { conversation_uuid: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          id: string
+          username: string
+        }[]
       }
       mark_messages_as_read: {
         Args: { p_conversation_id: string; p_up_to_message_id?: string }

@@ -36,6 +36,8 @@ interface Message {
       avatar_url: string;
     };
   }[];
+  edited_at?: string | null;
+  edit_count?: number;
 }
 
 interface FilePreview {
@@ -78,7 +80,9 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     type: 'image'
   });
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
-  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
+const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
+const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+const [editText, setEditText] = useState('');
 
   useEffect(() => {
     if (conversationId && user) {
@@ -205,16 +209,15 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
       const limit = append ? 30 : 50;
       const olderThan = append && messages.length > 0 ? messages[0].created_at : undefined;
       
-      let query = supabase
-        .from('messages')
-        .select(`
-          id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata,
-          profiles:sender_id ( username, display_name, avatar_url )
-        `)
-        .eq('conversation_id', conversationId)
-        .gte('created_at', userJoinedAt) // Only show messages from when user joined
-        .order('created_at', { ascending: false })
-        .limit(limit);
+let query = supabase
+  .from('messages')
+  .select(`
+    id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata, edited_at, edit_count
+  `)
+  .eq('conversation_id', conversationId)
+  .gte('created_at', userJoinedAt) // Only show messages from when user joined
+  .order('created_at', { ascending: false })
+  .limit(limit);
       
       // If appending (loading older messages), get messages older than current oldest
       if (olderThan) {
@@ -225,78 +228,97 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
 
       if (error) throw error;
       
-      // If appending, prepend new messages to existing ones
-      // Otherwise, replace all messages with fresh data
-      const messagesToProcess = messagesData || [];
-      
-      // Reverse to get chronological order and decrypt messages
-      const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse().map(async (msg) => {
-        // Use embedded sender profile (no extra queries)
-        const senderProfile = (msg as any).profiles || null;
+// If appending, prepend new messages to existing ones
+// Otherwise, replace all messages with fresh data
+const messagesToProcess = messagesData || [];
 
-        // Decrypt message content
-        const decryptedContent = await decodeMessage(msg.data_payload, conversationId);
-        
-        // Handle file metadata - prefer encrypted metadata when present
-        let signedUrl: string | null = null;
-        let fileName: string | null = null;
-        if ((msg as any).encrypted_file_metadata) {
-          try {
-            const decryptedFileMetadata = await decodeMessage((msg as any).encrypted_file_metadata, conversationId);
-            const fileMetadata = JSON.parse(decryptedFileMetadata);
-            fileName = fileMetadata.file_name || null;
-            if (fileMetadata.file_url && String(fileMetadata.file_url).includes('secure-files')) {
-              signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
-            } else {
-              signedUrl = fileMetadata.file_url || null;
-            }
-          } catch (e) {
-            console.error('Error decrypting file metadata:', e);
-          }
-        } else if (msg.file_url || msg.file_name) {
-          fileName = msg.file_name || null;
-          if (msg.file_url && String(msg.file_url).includes('secure-files')) {
-            signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
-          } else {
-            signedUrl = msg.file_url || null;
-          }
-        }
-        
-        const message: Message = {
-          id: msg.id,
-          content: decryptedContent,
-          sender_id: msg.sender_id,
-          created_at: msg.created_at,
-          message_type: (msg.message_type as any) || 'text',
-          file_url: signedUrl,
-          file_name: fileName,
-          file_size: msg.file_size || null,
-          replied_to_message_id: msg.replied_to_message_id,
-          sender: {
-            username: senderProfile?.username || `User${msg.sender_id.slice(-4)}`,
-            display_name: senderProfile?.display_name || senderProfile?.username || `User${msg.sender_id.slice(-4)}`,
-            avatar_url: senderProfile?.avatar_url || null,
-          },
-          read_receipts: [], // Lazy-load if needed to avoid N+1 queries
-          replied_to_message: undefined,
-        };
+// Fetch sender profiles in one query for accurate names/avatars
+const senderIds = Array.from(new Set((messagesToProcess as any[]).map((m: any) => m.sender_id)));
+let profileMap = new Map<string, { username: string | null; display_name: string | null; avatar_url: string | null }>();
+if (senderIds.length > 0) {
+  try {
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, avatar_url')
+      .in('id', senderIds as string[]);
+    (profilesData || []).forEach((p: any) => {
+      profileMap.set(p.id, { username: p.username, display_name: p.display_name, avatar_url: p.avatar_url });
+    });
+  } catch (e) {
+    console.warn('Failed to load profiles for messages:', e);
+  }
+}
 
-        return message;
-      }));
-      
-      // Update messages state based on whether we're appending or replacing
-      if (append && decryptedMessages.length > 0) {
-        // Prepend older messages to the beginning of the array
-        setMessages(prev => [...decryptedMessages, ...prev]);
+// Reverse to get chronological order and decrypt messages
+const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse().map(async (msg: any) => {
+  // Lookup sender profile from map
+  const senderProfile = profileMap.get(msg.sender_id) || null;
+
+  // Decrypt message content
+  const decryptedContent = await decodeMessage(msg.data_payload, conversationId);
+  
+  // Handle file metadata - prefer encrypted metadata when present
+  let signedUrl: string | null = null;
+  let fileName: string | null = null;
+  if (msg.encrypted_file_metadata) {
+    try {
+      const decryptedFileMetadata = await decodeMessage(msg.encrypted_file_metadata, conversationId);
+      const fileMetadata = JSON.parse(decryptedFileMetadata);
+      fileName = fileMetadata.file_name || null;
+      if (fileMetadata.file_url && String(fileMetadata.file_url).includes('secure-files')) {
+        signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
       } else {
-        // Replace all messages with fresh data
-        setMessages(decryptedMessages);
+        signedUrl = fileMetadata.file_url || null;
       }
-      
-      // Mark messages as read when viewing them (only for fresh loads, not appends)
-      if (!append && user && conversationId) {
-        markMessagesAsRead();
-      }
+    } catch (e) {
+      console.error('Error decrypting file metadata:', e);
+    }
+  } else if (msg.file_url || msg.file_name) {
+    fileName = msg.file_name || null;
+    if (msg.file_url && String(msg.file_url).includes('secure-files')) {
+      signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
+    } else {
+      signedUrl = msg.file_url || null;
+    }
+  }
+  
+  const message: Message = {
+    id: msg.id,
+    content: decryptedContent,
+    sender_id: msg.sender_id,
+    created_at: msg.created_at,
+    message_type: (msg.message_type as any) || 'text',
+    file_url: signedUrl,
+    file_name: fileName,
+    file_size: msg.file_size || null,
+    replied_to_message_id: msg.replied_to_message_id,
+    sender: {
+      username: senderProfile?.username || `user_${msg.sender_id.slice(0, 6)}`,
+      display_name: senderProfile?.display_name || senderProfile?.username || `user_${msg.sender_id.slice(0, 6)}`,
+      avatar_url: senderProfile?.avatar_url || null,
+    },
+    read_receipts: [], // Lazy-load if needed
+    replied_to_message: undefined,
+    edited_at: msg.edited_at || null,
+    edit_count: typeof msg.edit_count === 'number' ? msg.edit_count : 0,
+  };
+
+  return message;
+}));
+
+// Update messages state based on whether we're appending or replacing
+if (append && decryptedMessages.length > 0) {
+  // Prepend older messages to the beginning of the array
+  setMessages(prev => [...decryptedMessages, ...prev]);
+} else {
+  // Replace all messages with fresh data
+  setMessages(decryptedMessages);
+}
+
+// Mark messages as read when viewing them (only for fresh loads, not appends)
+if (!append && user && conversationId) {
+  markMessagesAsRead();
+}
     } catch (error) {
       console.error('Error loading messages:', error);
     }
@@ -667,6 +689,40 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     }
   };
 
+  const startEditing = (msg: Message) => {
+    setEditingMessageId(msg.id);
+    setEditText(msg.content);
+  };
+
+  const cancelEditing = () => {
+    setEditingMessageId(null);
+    setEditText('');
+  };
+
+  const saveEdit = async () => {
+    if (!editingMessageId || !conversationId || !user) return;
+    const target = messages.find(m => m.id === editingMessageId);
+    if (!target) return;
+    try {
+      const { encryptionService } = await import('@/lib/encryption');
+      const encrypted = await encryptionService.encryptMessage(editText, conversationId);
+
+      const { error } = await supabase
+        .from('messages')
+        .update({ data_payload: encrypted, edited_at: new Date().toISOString(), edit_count: (target.edit_count || 0) + 1 })
+        .eq('id', editingMessageId)
+        .eq('sender_id', user.id);
+
+      if (error) throw error;
+
+      setMessages(prev => prev.map(m => m.id === editingMessageId ? { ...m, content: editText, edited_at: new Date().toISOString(), edit_count: (m.edit_count || 0) + 1 } : m));
+      cancelEditing();
+      toast.success('Message edited');
+    } catch (e) {
+      console.error('Edit failed:', e);
+      toast.error('Failed to edit message');
+    }
+  };
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -979,13 +1035,29 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                           )}
                         </div>
                       ) : (
-                        <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">{message.content}</pre>
+editingMessageId === message.id ? (
+  <div className="space-y-2">
+    <textarea
+      value={editText}
+      onChange={(e) => setEditText(e.target.value)}
+      className="w-full rounded-md bg-background/40 border border-border/40 p-2 text-sm"
+      rows={3}
+    />
+    <div className="flex gap-2">
+      <Button size="sm" onClick={saveEdit} variant="default">Save</Button>
+      <Button size="sm" onClick={cancelEditing} variant="outline">Cancel</Button>
+    </div>
+  </div>
+) : (
+  <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap font-sans">{message.content}</pre>
+)
                       )}
                       
                       <div className="flex items-center justify-between mt-2">
-                        <p className="text-xs opacity-70">
-                          {new Date(message.created_at).toLocaleTimeString()}
-                        </p>
+<p className="text-xs opacity-70">
+  {new Date(message.created_at).toLocaleTimeString()}
+  {message.edited_at ? ' • edited' : ''}
+</p>
                         
                         {/* Read receipts for sent messages */}
                         {message.sender_id === user?.id && message.read_receipts && message.read_receipts.length > 0 && (
@@ -1021,33 +1093,44 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
                           <MoreVertical className="h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="backdrop-blur-xl bg-card/80 border-border/30">
-                        <DropdownMenuItem
-                          onClick={() => setReplyingTo(message)}
-                          className="hover:bg-primary/10"
-                        >
-                          <Reply className="h-4 w-4 mr-2" />
-                          Reply
-                        </DropdownMenuItem>
-                        {/* Only show delete option for messages sent by current user */}
-                        {message.sender_id === user?.id && (
-                          <ThanosSnapEffect
-                            onAnimationComplete={() => deleteMessage(message.id, true)}
-                            trigger={deletingMessageId === message.id}
-                          >
-                            <DropdownMenuItem
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              onSelect={(e) => {
-                                e.preventDefault();
-                                setDeletingMessageId(message.id);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete Message
-                            </DropdownMenuItem>
-                          </ThanosSnapEffect>
-                        )}
-                      </DropdownMenuContent>
+<DropdownMenuContent align="end" className="backdrop-blur-xl bg-card/80 border-border/30">
+  <DropdownMenuItem
+    onClick={() => setReplyingTo(message)}
+    className="hover:bg-primary/10"
+  >
+    <Reply className="h-4 w-4 mr-2" />
+    Reply
+  </DropdownMenuItem>
+  {message.sender_id === user?.id && (
+    <DropdownMenuItem
+      className="hover:bg-primary/10"
+      onSelect={(e) => {
+        e.preventDefault();
+        startEditing(message);
+      }}
+    >
+      Edit Message
+    </DropdownMenuItem>
+  )}
+  {/* Only show delete option for messages sent by current user */}
+  {message.sender_id === user?.id && (
+    <ThanosSnapEffect
+      onAnimationComplete={() => deleteMessage(message.id, true)}
+      trigger={deletingMessageId === message.id}
+    >
+      <DropdownMenuItem
+        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+        onSelect={(e) => {
+          e.preventDefault();
+          setDeletingMessageId(message.id);
+        }}
+      >
+        <Trash2 className="h-4 w-4 mr-2" />
+        Delete Message
+      </DropdownMenuItem>
+    </ThanosSnapEffect>
+  )}
+</DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>
