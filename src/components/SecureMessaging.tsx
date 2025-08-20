@@ -1131,12 +1131,14 @@ if (!append && user && conversationId) {
                   
                   <div className="relative group">
                     <div
-                      className={`px-4 py-3 rounded-2xl shadow-sm ${
+                      className={`px-4 py-3 rounded-2xl border shadow-sm ${
                         message.sender_id === user?.id
-                          ? 'bg-primary text-white rounded-br-md'
-                          : 'bg-muted text-foreground rounded-bl-md'
-                      } transition-all duration-200 max-w-full break-words`}
+                          ? 'bg-primary/20 text-white border-primary/30 rounded-br-md'
+                          : 'bg-background/30 text-foreground border-border/30 rounded-bl-md'
+                      } transition-all duration-300 hover:shadow-md max-w-full break-words backdrop-blur-xl`}
                       style={{
+                        backdropFilter: 'blur(16px) saturate(140%)',
+                        WebkitBackdropFilter: 'blur(16px) saturate(140%)',
                         wordWrap: 'break-word',
                         overflowWrap: 'break-word',
                         wordBreak: 'break-word'
@@ -1182,7 +1184,7 @@ if (!append && user && conversationId) {
                                        alt={message.file_name || 'Image'}
                                        className="max-w-full rounded-lg cursor-pointer block"
                                        style={{ 
-                                         maxWidth: '280px', 
+                                         maxWidth: 'min(280px, 80vw)', 
                                          maxHeight: '250px',
                                          width: 'auto',
                                          height: 'auto',
@@ -1207,8 +1209,8 @@ if (!append && user && conversationId) {
                                      >
                                        <video 
                                          src={message.file_url!}
-                                         className="max-w-full w-full rounded-lg max-h-64 block pointer-events-none"
-                                         style={{ maxWidth: '100%', height: 'auto' }}
+                                         className="max-w-full rounded-lg block pointer-events-none"
+                                         style={{ maxWidth: 'min(280px, 80vw)', maxHeight: '250px', width: 'auto', height: 'auto' }}
                                          onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
                                        />
                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
