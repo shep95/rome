@@ -301,12 +301,56 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           </MobileSidebar>
         </>
       ) : (
-        /* Desktop Navigation - Sidebar */
-        <div className="fixed left-2 lg:left-4 xl:left-6 top-2 lg:top-4 bottom-2 lg:bottom-4 z-30">
-          <div className="w-56 lg:w-64 xl:w-72 bg-background/80 backdrop-blur-xl border border-border rounded-2xl h-full">
-            {renderSidebarContent()}
+        <>
+          {/* Tablet Navigation - Shows hamburger menu on tablets */}
+          <div className="xl:hidden">
+            {/* Tablet Top Bar */}
+            <div className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <MobileSidebarTrigger onClick={() => setIsMobileSidebarOpen(true)} />
+                  <img 
+                    src="/lovable-uploads/6ff9b03d-a2fd-4cd2-b509-fb12b4bca3f2.png" 
+                    alt="ROME" 
+                    className="w-8 h-8 object-cover rounded-lg"
+                  />
+                  <h1 className="text-foreground font-bold text-xl">ROME</h1>
+                </div>
+                <div 
+                  onClick={() => setIsProfileModalOpen(true)}
+                  className="cursor-pointer"
+                >
+                  {profileImage ? (
+                    <img 
+                      src={profileImage} 
+                      alt="Profile" 
+                      className="w-10 h-10 object-cover rounded-lg border border-border"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-sm">
+                      {getUserInitial()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Tablet Sidebar */}
+            <MobileSidebar 
+              isOpen={isMobileSidebarOpen} 
+              onToggle={() => setIsMobileSidebarOpen(false)}
+            >
+              {renderSidebarContent()}
+            </MobileSidebar>
           </div>
-        </div>
+
+          {/* Desktop Navigation - Fixed Sidebar (xl screens and up) */}
+          <div className="hidden xl:block fixed left-2 lg:left-4 xl:left-6 top-2 lg:top-4 bottom-2 lg:bottom-4 z-30">
+            <div className="w-56 lg:w-64 xl:w-72 bg-background/80 backdrop-blur-xl border border-border rounded-2xl h-full">
+              {renderSidebarContent()}
+            </div>
+          </div>
+        </>
       )}
 
       {/* Profile Modal */}

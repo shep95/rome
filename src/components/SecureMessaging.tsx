@@ -266,12 +266,19 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
     try {
       decryptedContent = await encryptionService.decryptMessage(String(msg.data_payload), conversationId);
     } catch {
-      // Fallback: try treating as plain text if it looks readable
+      // Fallback: treat as plain text if it doesn't look like encrypted gibberish
       const rawContent = String(msg.data_payload);
-      if (rawContent && /^[a-zA-Z0-9\s\.,!?'"-]*$/.test(rawContent)) {
+      
+      // Check if it's likely encrypted base64 gibberish (long strings of random-looking characters)
+      const isLikelyEncrypted = rawContent.length > 50 && 
+        /^[A-Za-z0-9+/=]+$/.test(rawContent) && 
+        !/\s/.test(rawContent);
+      
+      if (!isLikelyEncrypted && rawContent && rawContent.trim()) {
+        // Treat as plain text if it doesn't look like encrypted data
         decryptedContent = rawContent;
       } else {
-        // If encrypted but can't decrypt, show a user-friendly message
+        // If it looks encrypted but can't decrypt, show fallback
         decryptedContent = '[Message could not be decrypted]';
       }
     }
