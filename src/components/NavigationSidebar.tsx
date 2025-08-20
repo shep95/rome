@@ -20,7 +20,8 @@ import {
   Shield,
   FileText,
   LogOut,
-  MoreVertical
+  MoreVertical,
+  UserPlus
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -34,13 +35,15 @@ interface NavigationSidebarProps {
   onSectionChange: (section: string) => void;
   messageRequestCount?: number;
   onMessageRequestCountChange?: (count: number) => void;
+  onShowReconnect?: () => void;
 }
 
 export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ 
   activeSection, 
   onSectionChange,
   messageRequestCount = 0,
-  onMessageRequestCountChange
+  onMessageRequestCountChange,
+  onShowReconnect
 }) => {
   const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
@@ -188,6 +191,18 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               {messageRequestCount}
             </Badge>
           )}
+        </Button>
+
+        <Button
+          onClick={() => {
+            onShowReconnect?.();
+            setIsMobileSidebarOpen(false);
+          }}
+          variant="ghost"
+          className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
+        >
+          <UserPlus className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+          <span className="text-sm font-medium">Reconnect</span>
         </Button>
         
         <Button

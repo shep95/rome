@@ -4,14 +4,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
 import { ThanosSnapEffect } from '@/components/ui/thanos-snap-effect';
 import { toast } from 'sonner';
 import { GroupChatSettings } from './GroupChatSettings';
 import { DirectChatSettings } from './DirectChatSettings';
+import { LanguageSelector } from './LanguageSelector';
 
 interface Message {
   id: string;
@@ -89,6 +90,8 @@ const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 const [editText, setEditText] = useState('');
 const [translatingMessageId, setTranslatingMessageId] = useState<string | null>(null);
 const [showSettings, setShowSettings] = useState(false);
+const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
+const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
   useEffect(() => {
     if (conversationId && user) {

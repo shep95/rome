@@ -9,6 +9,7 @@ import { NavigationSidebar } from '@/components/NavigationSidebar';
 import { LiveMainContent } from '@/components/LiveMainContent';
 import { SecureFiles } from '@/components/SecureFiles';
 import { AppLock } from '@/components/SecurityLock';
+import { ReconnectModal } from '@/components/ReconnectModal';
 import { LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,6 +21,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('messages');
   const [messageRequestCount, setMessageRequestCount] = useState(0);
+  const [showReconnectModal, setShowReconnectModal] = useState(false);
 
   // Redirect unauthenticated users to home
   useEffect(() => {
@@ -85,6 +87,7 @@ const Dashboard = () => {
         onSectionChange={setActiveSection}
         messageRequestCount={messageRequestCount}
         onMessageRequestCountChange={setMessageRequestCount}
+        onShowReconnect={() => setShowReconnectModal(true)}
       />
       
       {/* Main Content */}
@@ -102,6 +105,12 @@ const Dashboard = () => {
         )}
       </div>
     </div>
+    
+    {/* Reconnect Modal */}
+    <ReconnectModal 
+      isOpen={showReconnectModal} 
+      onClose={() => setShowReconnectModal(false)} 
+    />
     </>
   );
 };
