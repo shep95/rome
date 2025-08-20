@@ -174,10 +174,14 @@ export const ReconnectModal: React.FC<ReconnectModalProps> = ({ isOpen, onClose 
     try {
       const { error } = await supabase
         .from('message_requests')
-        .insert({
+        .upsert({
           from_user_id: user.id,
           to_user_id: selectedContact.user_id,
-          message: message.trim()
+          message: message.trim(),
+          status: 'pending',
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'from_user_id,to_user_id'
         });
 
       if (error) throw error;
