@@ -1061,7 +1061,7 @@ if (!append && user && conversationId) {
 
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 relative custom-scrollbar md:mt-0 mt-16 md:mb-0 mb-20"
+        className="flex-1 overflow-y-auto p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 relative custom-scrollbar md:mt-0 mt-16 md:mb-0 mb-20"
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',
@@ -1086,7 +1086,7 @@ if (!append && user && conversationId) {
             </div>
           )
         ) : (
-          <div className="space-y-3 sm:space-y-4 w-full px-2 sm:px-0">
+          <div className="space-y-3 sm:space-y-4 w-full overflow-hidden">
             {/* Load older messages button */}
             {hasMoreMessages && messages.length > 0 && (
               <div className="flex justify-center">
@@ -1119,7 +1119,7 @@ if (!append && user && conversationId) {
                   </Avatar>
                 )}
                 
-                <div className={`flex flex-col max-w-[80%] ${message.sender_id === user?.id ? 'items-end' : 'items-start'}`}>
+                <div className={`flex flex-col max-w-[75%] sm:max-w-[80%] ${message.sender_id === user?.id ? 'items-end' : 'items-start'}`}>
                   {/* Username for others */}
                   {message.sender_id !== user?.id && (
                     <p className="text-xs text-muted-foreground mb-1 px-1">
@@ -1131,17 +1131,18 @@ if (!append && user && conversationId) {
                   
                   <div className="relative group">
                     <div
-                      className={`px-4 py-3 rounded-2xl border shadow-sm ${
+                      className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
                         message.sender_id === user?.id
                           ? 'bg-primary/20 text-white border-primary/30 rounded-br-md'
                           : 'bg-background/30 text-foreground border-border/30 rounded-bl-md'
-                      } transition-all duration-300 hover:shadow-md max-w-full break-words backdrop-blur-xl`}
+                      } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
                       style={{
                         backdropFilter: 'blur(16px) saturate(140%)',
                         WebkitBackdropFilter: 'blur(16px) saturate(140%)',
                         wordWrap: 'break-word',
-                        overflowWrap: 'break-word',
-                        wordBreak: 'break-word'
+                        overflowWrap: 'anywhere',
+                        wordBreak: 'break-word',
+                        maxWidth: 'calc(100vw - 80px)'
                       }}
                     >
                       {/* Reply Preview */}
@@ -1184,8 +1185,8 @@ if (!append && user && conversationId) {
                                        alt={message.file_name || 'Image'}
                                        className="max-w-full rounded-lg cursor-pointer block"
                                        style={{ 
-                                         maxWidth: 'min(280px, 80vw)', 
-                                         maxHeight: '250px',
+                                         maxWidth: 'min(250px, calc(100vw - 100px))', 
+                                         maxHeight: '200px',
                                          width: 'auto',
                                          height: 'auto',
                                          objectFit: 'cover'
@@ -1210,7 +1211,7 @@ if (!append && user && conversationId) {
                                        <video 
                                          src={message.file_url!}
                                          className="max-w-full rounded-lg block pointer-events-none"
-                                         style={{ maxWidth: 'min(280px, 80vw)', maxHeight: '250px', width: 'auto', height: 'auto' }}
+                                         style={{ maxWidth: 'min(250px, calc(100vw - 100px))', maxHeight: '200px', width: 'auto', height: 'auto' }}
                                          onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
                                        />
                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
