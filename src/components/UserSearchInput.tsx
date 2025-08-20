@@ -75,12 +75,12 @@ export const UserSearchInput: React.FC<UserSearchInputProps> = ({
       </div>
       
       {isOpen && users.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-background/95 backdrop-blur-xl border border-white/20 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-background/95 backdrop-blur-xl border border-border rounded-lg shadow-xl max-h-48 overflow-y-auto">
           {users.map((user) => (
             <div
               key={user.id}
               onClick={() => handleUserSelect(user)}
-              className="flex items-center gap-3 p-3 hover:bg-white/10 cursor-pointer first:rounded-t-lg last:rounded-b-lg"
+              className="flex items-center gap-3 p-3 hover:bg-primary/10 cursor-pointer first:rounded-t-lg last:rounded-b-lg"
             >
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user.avatar_url} />
