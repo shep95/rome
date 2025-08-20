@@ -109,6 +109,13 @@ export const Updates: React.FC<UpdatesProps> = ({ isOpen, onClose }) => {
                       src={currentUpdate.image_url}
                       alt={currentUpdate.title}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error('Image failed to load:', currentUpdate.image_url);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      onLoad={() => {
+                        console.log('Image loaded successfully:', currentUpdate.image_url);
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                   </div>
