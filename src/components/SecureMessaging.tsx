@@ -257,53 +257,22 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  const decryptedContent = await decodeMessage(
-    msg.data_payload,
-    [
-      conversationId,
-      user?.id || '',
-      msg.sender_id,
-      conversationDetails?.created_by,
-      [user?.id || '', msg.sender_id].filter(Boolean).sort().join(':'),
-      `${user?.id || ''}:${msg.sender_id}`,
-      `${msg.sender_id}:${user?.id || ''}`
-    ].filter(Boolean) as string[]
-  );
-  // Handle file metadata - prefer encrypted metadata when present
+  // Display messages as plain text without encryption
+  const decryptedContent = msg.data_payload || '';
+  // Handle file metadata as plain text
   let signedUrl: string | null = null;
-  let fileName: string | null = null;
-  if (msg.encrypted_file_metadata) {
+  let fileName: string | null = msg.file_name;
+  if (msg.file_url && msg.encrypted_file_metadata) {
     try {
-      const decryptedFileMetadata = await decodeMessage(
-        msg.encrypted_file_metadata,
-        [
-          conversationId,
-          user?.id || '',
-          msg.sender_id,
-          conversationDetails?.created_by,
-          [user?.id || '', msg.sender_id].filter(Boolean).sort().join(':'),
-          `${user?.id || ''}:${msg.sender_id}`,
-          `${msg.sender_id}:${user?.id || ''}`
-        ].filter(Boolean) as string[]
-      );
-      const fileMetadata = JSON.parse(decryptedFileMetadata);
+      const fileMetadata = JSON.parse(msg.encrypted_file_metadata);
       fileName = fileMetadata.file_name || null;
-      if (fileMetadata.file_url && String(fileMetadata.file_url).includes('secure-files')) {
-        signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
-      } else {
-        signedUrl = fileMetadata.file_url || null;
-      }
-    } catch (e) {
-      console.error('Error decrypting file metadata:', e);
-      fileName = 'Encrypted file';
-    }
-  } else if (msg.file_url || msg.file_name) {
-    fileName = msg.file_name || null;
-    if (msg.file_url && String(msg.file_url).includes('secure-files')) {
       signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
-    } else {
-      signedUrl = msg.file_url || null;
+    } catch (error) {
+      console.error('Error parsing file metadata:', error);
+      signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
     }
+  } else if (msg.file_url) {
+    signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
   }
   
   const message: Message = {
@@ -534,32 +503,22 @@ if (!append && user && conversationId) {
         }
       }
 
-      // Military-grade encryption - messages are encrypted with conversation ID as password
-      const { encryptionService } = await import('@/lib/encryption');
-      const encryptedBase64 = await encryptionService.encryptMessage(messageContent, conversationId);
-      const encryptedBytes = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
-      
-      // Encrypt file metadata if present
-      let encryptedFileMetadata: Uint8Array | null = null;
-      if (fileUrl && fileName) {
-        const fileMetadata = {
-          file_url: fileUrl,
-          file_name: fileName,
-          content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
-        };
-        const encMetaB64 = await encryptionService.encryptMessage(JSON.stringify(fileMetadata), conversationId);
-        encryptedFileMetadata = Uint8Array.from(atob(encMetaB64), (c) => c.charCodeAt(0));
-      }
-      
+      // Store messages as plain text - no encryption
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          data_payload: encryptedBase64,
+          data_payload: messageContent,
           message_type: messageType,
+          file_url: fileUrl || null,
+          file_name: fileName || null,
           file_size: fileSize || null,
-          encrypted_file_metadata: encryptedFileMetadata ? btoa(String.fromCharCode(...encryptedFileMetadata)) : null,
+          encrypted_file_metadata: fileUrl && fileName ? JSON.stringify({
+            file_url: fileUrl,
+            file_name: fileName,
+            content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
+          }) : null,
           replied_to_message_id: replyingTo?.id || null,
           sequence_number: Date.now()
         });
