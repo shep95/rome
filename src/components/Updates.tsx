@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { formatDistanceToNow } from 'date-fns';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Update {
   id: string;
   title: string;
   description: string;
-  image_url: string | null;
+  image_url?: string;
   created_at: string;
   expires_at: string;
+  display_order: number;
 }
 
 export const Updates: React.FC = () => {
@@ -21,16 +22,7 @@ export const Updates: React.FC = () => {
 
   useEffect(() => {
     loadUpdates();
-    
-    // Auto-advance slideshow every 10 seconds
-    const interval = setInterval(() => {
-      if (updates.length > 1) {
-        setCurrentIndex((prev) => (prev + 1) % updates.length);
-      }
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [updates.length]);
+  }, []);
 
   const loadUpdates = async () => {
     try {
@@ -38,7 +30,6 @@ export const Updates: React.FC = () => {
         .from('updates')
         .select('*')
         .eq('is_active', true)
-        .gt('expires_at', new Date().toISOString())
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
@@ -56,119 +47,126 @@ export const Updates: React.FC = () => {
   };
 
   const nextUpdate = () => {
-    setCurrentIndex((prev) => (prev + 1) % updates.length);
+    if (updates.length > 0) {
+      setCurrentIndex((prev) => (prev + 1) % updates.length);
+    }
   };
 
   const prevUpdate = () => {
-    setCurrentIndex((prev) => (prev - 1 + updates.length) % updates.length);
+    if (updates.length > 0) {
+      setCurrentIndex((prev) => (prev - 1 + updates.length) % updates.length);
+    }
   };
 
-  const goToUpdate = (index: number) => {
-    setCurrentIndex(index);
+  const getDaysRemaining = (expiresAt: string) => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diffTime = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-muted-foreground">Loading updates...</div>
+      <div className="flex-1 flex items-center justify-center min-h-screen bg-background">
+        <div className="text-foreground">Loading updates...</div>
       </div>
     );
   }
 
   if (updates.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full space-y-4">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">No Updates Available</h2>
-          <p className="text-muted-foreground">
-            There are currently no active updates to display.
-          </p>
+      <div className="flex-1 flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center space-y-4">
+          <div className="text-2xl font-bold text-foreground">No Updates Available</div>
+          <p className="text-muted-foreground">Check back later for new updates!</p>
         </div>
       </div>
     );
   }
 
   const currentUpdate = updates[currentIndex];
-  const timeRemaining = formatDistanceToNow(new Date(currentUpdate.expires_at), { addSuffix: true });
+  const daysRemaining = getDaysRemaining(currentUpdate.expires_at);
 
   return (
-    <div className="flex flex-col h-full p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="flex-1 min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-foreground">Updates</h1>
-          <p className="text-muted-foreground mt-1">
-            Stay informed with the latest announcements and features
-          </p>
+          <p className="text-muted-foreground">Stay informed with the latest features and improvements</p>
         </div>
-        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-          <Clock className="w-4 h-4" />
-          <span>Expires {timeRemaining}</span>
-        </div>
-      </div>
 
-      {/* Main Update Card */}
-      <Card className="flex-1 overflow-hidden">
-        <CardContent className="p-0 h-full">
-          <div className="relative h-full flex flex-col">
-            {/* Image Section */}
+        {/* Update Counter */}
+        <div className="flex justify-center">
+          <Badge variant="secondary" className="px-4 py-2">
+            {currentIndex + 1} of {updates.length}
+          </Badge>
+        </div>
+
+        {/* Main Update Card */}
+        <Card className="overflow-hidden border border-border bg-card">
+          <CardContent className="p-0">
+            {/* Update Image */}
             {currentUpdate.image_url && (
-              <div className="h-64 md:h-80 lg:h-96 relative overflow-hidden">
+              <div className="relative w-full h-64 md:h-96 overflow-hidden">
                 <img
                   src={currentUpdate.image_url}
                   alt={currentUpdate.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               </div>
             )}
 
-            {/* Content Section */}
-            <div className="flex-1 p-8 space-y-4">
-              <div>
-                <h2 className="text-4xl font-bold text-foreground mb-4">
-                  {currentUpdate.title}
-                </h2>
-                <p className="text-lg text-muted-foreground leading-relaxed">
-                  {currentUpdate.description}
-                </p>
-              </div>
-
-              <div className="flex items-center space-x-4 text-sm text-muted-foreground pt-4">
-                <div className="flex items-center space-x-2">
+            {/* Update Content */}
+            <div className="p-6 md:p-8 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+                    {currentUpdate.title}
+                  </h2>
+                  <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+                    {currentUpdate.description}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
                   <Calendar className="w-4 h-4" />
-                  <span>
-                    Posted {formatDistanceToNow(new Date(currentUpdate.created_at), { addSuffix: true })}
-                  </span>
+                  <span>{daysRemaining} days left</span>
                 </div>
               </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Navigation Controls */}
-      {updates.length > 1 && (
-        <div className="flex items-center justify-between">
+              {/* Created Date */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4 border-t border-border">
+                <span>Posted on {new Date(currentUpdate.created_at).toLocaleDateString()}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Navigation Controls */}
+        <div className="flex justify-center items-center gap-4">
           <Button
+            onClick={prevUpdate}
             variant="outline"
             size="sm"
-            onClick={prevUpdate}
-            className="flex items-center space-x-2"
+            disabled={updates.length <= 1}
+            className="flex items-center gap-2"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span>Previous</span>
+            Previous
           </Button>
 
-          {/* Dots Indicator */}
-          <div className="flex space-x-2">
+          {/* Dot Indicators */}
+          <div className="flex gap-2">
             {updates.map((_, index) => (
               <button
                 key={index}
-                onClick={() => goToUpdate(index)}
-                className={`w-3 h-3 rounded-full transition-all ${
-                  index === currentIndex
-                    ? 'bg-primary scale-110'
+                onClick={() => setCurrentIndex(index)}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  index === currentIndex 
+                    ? 'bg-primary' 
                     : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
                 }`}
               />
@@ -176,20 +174,23 @@ export const Updates: React.FC = () => {
           </div>
 
           <Button
+            onClick={nextUpdate}
             variant="outline"
             size="sm"
-            onClick={nextUpdate}
-            className="flex items-center space-x-2"
+            disabled={updates.length <= 1}
+            className="flex items-center gap-2"
           >
-            <span>Next</span>
+            Next
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
-      )}
 
-      {/* Update Counter */}
-      <div className="text-center text-sm text-muted-foreground">
-        {currentIndex + 1} of {updates.length} update{updates.length !== 1 ? 's' : ''}
+        {/* Auto-advance info */}
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground">
+            Updates expire after 7 days from posting
+          </p>
+        </div>
       </div>
     </div>
   );
