@@ -46,7 +46,9 @@ export const SecureFiles: React.FC = () => {
   const [files, setFiles] = useState<SecureFile[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedFileForAccess, setSelectedFileForAccess] = useState<SecureFile | null>(null);
+  const [selectedFileForDelete, setSelectedFileForDelete] = useState<SecureFile | null>(null);
   const [newFileContent, setNewFileContent] = useState('');
   const [fileName, setFileName] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -54,6 +56,8 @@ export const SecureFiles: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [accessCode, setAccessCode] = useState('');
   const [accessLoading, setAccessLoading] = useState(false);
+  const [deleteCode, setDeleteCode] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load files on component mount
@@ -394,38 +398,66 @@ export const SecureFiles: React.FC = () => {
     }
   };
 
-  const deleteSecureFile = async (fileId: string) => {
+  const handleDeleteRequest = (file: SecureFile) => {
+    setSelectedFileForDelete(file);
+    setIsDeleteModalOpen(true);
+    setDeleteCode('');
+  };
+
+  const verifyCodeAndDelete = async () => {
+    if (!selectedFileForDelete || !deleteCode) return;
+
+    // Get the user's actual security code from Supabase auth
+    const { data: { user } } = await supabase.auth.getUser();
+    const userSecurityCode = user?.user_metadata?.security_code;
+    
+    if (deleteCode !== userSecurityCode) {
+      toast.error('Incorrect security code. File deletion cancelled.');
+      return;
+    }
+
+    setDeleteLoading(true);
+    
     try {
-      const fileToDelete = files.find(f => f.id === fileId);
-      if (!fileToDelete) return;
-
-      // Delete from storage if it's not a text file
-      if (fileToDelete.content_type !== 'text/plain') {
-        try {
-          await supabase.storage
-            .from('secure-files')
-            .remove([fileToDelete.file_path]);
-        } catch (storageError) {
-          console.warn('Failed to delete file from storage:', storageError);
-        }
-      }
-
-      // Delete from database
-      const { error } = await supabase
-        .from('secure_files')
-        .delete()
-        .eq('id', fileId)
-        .eq('user_id', user?.id); // Ensure user can only delete their own files
-
-      if (error) throw error;
-
-      // Update local state
-      setFiles(prev => prev.filter(f => f.id !== fileId));
+      await deleteSecureFile(selectedFileForDelete.id);
+      setIsDeleteModalOpen(false);
+      setSelectedFileForDelete(null);
+      setDeleteCode('');
       toast.success('Secure file deleted successfully');
     } catch (error) {
       console.error('Error deleting secure file:', error);
       toast.error('Failed to delete secure file');
+    } finally {
+      setDeleteLoading(false);
     }
+  };
+
+  const deleteSecureFile = async (fileId: string) => {
+    const fileToDelete = files.find(f => f.id === fileId);
+    if (!fileToDelete) return;
+
+    // Delete from storage if it's not a text file
+    if (fileToDelete.content_type !== 'text/plain') {
+      try {
+        await supabase.storage
+          .from('secure-files')
+          .remove([fileToDelete.file_path]);
+      } catch (storageError) {
+        console.warn('Failed to delete file from storage:', storageError);
+      }
+    }
+
+    // Delete from database
+    const { error } = await supabase
+      .from('secure_files')
+      .delete()
+      .eq('id', fileId)
+      .eq('user_id', user?.id); // Ensure user can only delete their own files
+
+    if (error) throw error;
+
+    // Update local state
+    setFiles(prev => prev.filter(f => f.id !== fileId));
   };
 
   const getFileIcon = (fileType?: string) => {
@@ -510,7 +542,7 @@ export const SecureFiles: React.FC = () => {
               >
                 {/* Delete button with Thanos Snap effect */}
                 <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ThanosSnapEffect onAnimationComplete={() => deleteSecureFile(file.id)}>
+                  <ThanosSnapEffect onAnimationComplete={() => handleDeleteRequest(file)}>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -735,6 +767,91 @@ export const SecureFiles: React.FC = () => {
                     <>
                       <Eye className="w-4 h-4 mr-2" />
                       Access File
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* File Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-xl border border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center space-x-2">
+              <Shield className="w-5 h-5 text-destructive" />
+              <span>Delete Secure File</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedFileForDelete && (
+            <div className="space-y-4">
+              {/* Warning Message */}
+              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-destructive rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Trash2 className="w-4 h-4 text-destructive-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-destructive mb-1">Permanent Deletion Warning</p>
+                    <p className="text-xs text-muted-foreground">
+                      This action cannot be undone. The file will be permanently deleted from your secure storage.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* File Info */}
+              <div className="text-center p-4 bg-muted/20 rounded-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground mx-auto mb-3">
+                  {getFileIcon(selectedFileForDelete.content_type)}
+                </div>
+                <h3 className="font-medium text-foreground">{selectedFileForDelete.filename}</h3>
+                <p className="text-sm text-muted-foreground">{formatFileSize(selectedFileForDelete.file_size)}</p>
+              </div>
+
+              {/* Security Code Input */}
+              <div className="space-y-2">
+                <Label htmlFor="delete-code" className="text-foreground">Enter Your 4-Digit Security Code to Confirm Deletion</Label>
+                <Input
+                  id="delete-code"
+                  type="password"
+                  value={deleteCode}
+                  onChange={(e) => setDeleteCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="••••"
+                  className="bg-background/50 border-border text-center text-lg font-mono tracking-wider"
+                  maxLength={4}
+                />
+                <p className="text-xs text-muted-foreground text-center">
+                  Use the same 4-digit code you created during sign up
+                </p>
+              </div>
+              
+              <div className="flex space-x-2 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setSelectedFileForDelete(null);
+                    setDeleteCode('');
+                  }}
+                  className="flex-1"
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={verifyCodeAndDelete}
+                  variant="destructive"
+                  className="flex-1"
+                  disabled={deleteLoading || deleteCode.length !== 4}
+                >
+                  {deleteLoading ? 'Deleting...' : (
+                    <>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Forever
                     </>
                   )}
                 </Button>

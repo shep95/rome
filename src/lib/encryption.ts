@@ -1,6 +1,6 @@
 /**
  * Military-grade encryption utilities for secure communications
- * Triple-layer AES-256 encryption with advanced key derivation
+ * Uses single AEAD (AES-GCM) with proper random IV per operation
  * Zero-knowledge architecture - no plaintext ever stored on servers
  */
 
@@ -18,7 +18,7 @@ class MilitaryEncryption {
   }
 
   /**
-   * Military-grade key derivation using PBKDF2 with 500,000 iterations
+   * Secure key derivation using PBKDF2 with 100,000 iterations
    */
   async deriveKeyFromPassword(password: string, salt: Uint8Array): Promise<CryptoKey> {
     const encoder = new TextEncoder();
@@ -34,7 +34,7 @@ class MilitaryEncryption {
       {
         name: 'PBKDF2',
         salt: salt,
-        iterations: 500000, // Military-grade iteration count
+        iterations: 100000, // Secure iteration count
         hash: 'SHA-256'
       },
       passwordKey,
@@ -45,21 +45,21 @@ class MilitaryEncryption {
   }
 
   /**
-   * Generates cryptographically secure random salt (32 bytes for maximum security)
+   * Generates cryptographically secure random salt (32 bytes)
    */
   generateSalt(): Uint8Array {
-    return crypto.getRandomValues(new Uint8Array(32)); // Military-grade salt size
+    return crypto.getRandomValues(new Uint8Array(32));
   }
 
   /**
-   * Generates a random initialization vector for AES-GCM
+   * Generates a fresh random initialization vector for AES-GCM
    */
   generateIV(): Uint8Array {
     return crypto.getRandomValues(new Uint8Array(12));
   }
 
   /**
-   * Triple-layer AES-256-GCM encryption for maximum security
+   * Secure AES-256-GCM encryption with fresh IV per operation
    */
   async encryptWithPassword(
     data: string,
@@ -67,43 +67,29 @@ class MilitaryEncryption {
   ): Promise<{ encryptedData: Uint8Array; salt: Uint8Array; iv: Uint8Array }> {
     const encoder = new TextEncoder();
     
-    // Layer 1: Add secure padding marker to distinguish real data from padding
-    const paddingMarker = '|||SECURE_MESSAGE_END|||';
-    const paddedData = data + paddingMarker + Array(Math.floor(Math.random() * 50) + 20).fill(0).map(() => 
-      String.fromCharCode(Math.floor(Math.random() * 26) + 97)).join('');
+    // Generate unique salt and IV for this operation
+    const salt = this.generateSalt();
+    const iv = this.generateIV(); // Fresh IV per operation
     
-    // Layer 2: Triple encryption with different keys
-    const salt1 = this.generateSalt();
-    const salt2 = this.generateSalt();
-    const salt3 = this.generateSalt();
-    const iv = this.generateIV();
+    // Derive key from password and salt
+    const key = await this.deriveKeyFromPassword(password, salt);
     
-    
-    // Generate three different encryption keys
-    const key1 = await this.deriveKeyFromPassword(password + '_layer1', salt1);
-    const key2 = await this.deriveKeyFromPassword(password + '_layer2', salt2);
-    const key3 = await this.deriveKeyFromPassword(password + '_layer3', salt3);
-    
-    // Triple encryption
-    let encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key1, encoder.encode(paddedData));
-    encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key2, new Uint8Array(encrypted));
-    encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key3, new Uint8Array(encrypted));
-
-    // Combine all salts for storage
-    const combinedSalt = new Uint8Array(salt1.length + salt2.length + salt3.length);
-    combinedSalt.set(salt1, 0);
-    combinedSalt.set(salt2, salt1.length);
-    combinedSalt.set(salt3, salt1.length + salt2.length);
+    // Single AES-GCM encryption (AEAD provides integrity and confidentiality)
+    const encrypted = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      encoder.encode(data)
+    );
 
     return {
       encryptedData: new Uint8Array(encrypted),
-      salt: combinedSalt,
+      salt,
       iv
     };
   }
 
   /**
-   * Military-grade triple-layer decryption
+   * Secure AES-256-GCM decryption
    */
   async decryptWithPassword(
     encryptedData: Uint8Array,
@@ -111,40 +97,26 @@ class MilitaryEncryption {
     iv: Uint8Array,
     password: string
   ): Promise<string> {
-    // Extract the three salts
-    const salt1 = salt.slice(0, 32);
-    const salt2 = salt.slice(32, 64);
-    const salt3 = salt.slice(64, 96);
-    
-    // Generate the same three keys
-    const key1 = await this.deriveKeyFromPassword(password + '_layer1', salt1);
-    const key2 = await this.deriveKeyFromPassword(password + '_layer2', salt2);
-    const key3 = await this.deriveKeyFromPassword(password + '_layer3', salt3);
+    // Derive the same key from password and salt
+    const key = await this.deriveKeyFromPassword(password, salt);
     
     try {
-      // Reverse triple decryption
-      let decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key3, encryptedData);
-      decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key2, new Uint8Array(decrypted));
-      decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key1, new Uint8Array(decrypted));
+      // Single AES-GCM decryption
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encryptedData
+      );
 
       const decoder = new TextDecoder();
-      const paddedData = decoder.decode(decrypted);
-      
-      // Remove padding by finding the secure marker
-      const paddingMarker = '|||SECURE_MESSAGE_END|||';
-      const markerIndex = paddedData.indexOf(paddingMarker);
-      if (markerIndex !== -1) {
-        return paddedData.substring(0, markerIndex);
-      }
-      // Fallback: return as-is if no marker found (for legacy messages)
-      return paddedData;
+      return decoder.decode(decrypted);
     } catch (error) {
       throw new Error('Decryption failed - invalid credentials or compromised data');
     }
   }
 
   /**
-   * Converts military-grade encrypted data to secure base64 storage format
+   * Converts encrypted data to secure base64 storage format
    */
   encryptedDataToBase64(encryptedData: Uint8Array, salt: Uint8Array, iv: Uint8Array): string {
     const combined = new Uint8Array(salt.length + iv.length + encryptedData.length);
@@ -156,16 +128,16 @@ class MilitaryEncryption {
   }
 
   /**
-   * Parses military-grade encrypted data from secure storage
+   * Parses encrypted data from secure storage
    */
   base64ToEncryptedData(base64Data: string): { encryptedData: Uint8Array; salt: Uint8Array; iv: Uint8Array } {
     const combined = new Uint8Array(
       atob(base64Data).split('').map(c => c.charCodeAt(0))
     );
     
-    const salt = combined.slice(0, 96); // Now 96 bytes for three salts
-    const iv = combined.slice(96, 108);
-    const encryptedData = combined.slice(108);
+    const salt = combined.slice(0, 32); // 32 bytes for single salt
+    const iv = combined.slice(32, 44); // 12 bytes for IV
+    const encryptedData = combined.slice(44);
     
     return { encryptedData, salt, iv };
   }

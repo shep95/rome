@@ -265,7 +265,7 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
             <div className="text-muted-foreground">Loading requests...</div>
           </div>
         ) : (
-          <ScrollArea className="max-h-[60vh]">
+          <ScrollArea className="max-h-[65vh] pr-4">
             <div className="space-y-3">
               {requests.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
@@ -358,11 +358,11 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
                       {incomingPending.length > 0 && <div className="border-t pt-3" />}
                       <h3 className="text-sm font-medium text-muted-foreground">Sent Requests</h3>
                       {outgoingPending.map((request) => (
-                        <div key={request.id} className="bg-card/50 p-4 rounded-lg border border-orange-200 dark:border-orange-800 shadow-sm">
+                        <div key={request.id} className="bg-card/50 p-4 rounded-lg border border-accent/20 shadow-sm">
                           <div className="flex items-start gap-3">
                             <Avatar className="h-12 w-12">
                               <AvatarImage src={request.profiles.avatar_url} />
-                              <AvatarFallback className="bg-orange-100 dark:bg-orange-900">
+                              <AvatarFallback className="bg-accent/10">
                                 {request.profiles.display_name?.[0] || request.profiles.username?.[0] || 'U'}
                               </AvatarFallback>
                             </Avatar>
@@ -380,14 +380,14 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
                                   <span className="text-xs text-muted-foreground">
                                     {formatDate(request.created_at)}
                                   </span>
-                                  <Badge variant="outline" className="flex items-center gap-1 border-orange-200 text-orange-600 dark:border-orange-800 dark:text-orange-400">
+                                  <Badge variant="outline" className="flex items-center gap-1 border-accent text-accent-foreground">
                                     <Clock className="h-3 w-3" />
                                     Awaiting Response
                                   </Badge>
                                 </div>
                               </div>
                               
-                              <div className="bg-orange-50 dark:bg-orange-950 p-3 rounded-md">
+                              <div className="bg-accent/20 p-3 rounded-md">
                                 <p className="text-sm text-foreground">
                                   {truncateMessage(request.message)}
                                 </p>
