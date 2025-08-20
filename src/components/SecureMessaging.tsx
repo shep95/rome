@@ -305,21 +305,14 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
         const decodedText = new TextDecoder().decode(new Uint8Array(bytes));
         console.log('🔧 Hex decoded to:', decodedText.substring(0, 50) + '...');
 
-        // Check if decoded text looks like base64 (encrypted)
-        if (isLikelyBase64(decodedText)) {
-          console.log('🔐 Decoded text looks like base64, attempting decryption...');
-          try {
-            const { encryptionService } = await import('@/lib/encryption');
-            decryptedContent = await encryptionService.decryptMessage(decodedText, conversationId);
-            console.log('✅ HEX→BASE64→DECRYPT SUCCESS:', decryptedContent);
-          } catch (decryptError) {
-            console.log('⚠️ Decryption failed, using decoded text as-is');
-            decryptedContent = decodedText;
-          }
-        } else {
-          // Plain text that was hex-encoded
+        try {
+          const { encryptionService } = await import('@/lib/encryption');
+          decryptedContent = await encryptionService.decryptMessage(decodedText, conversationId);
+          console.log('✅ HEX→DECRYPT SUCCESS:', decryptedContent);
+        } catch (decryptError) {
+          // If not decryptable, show decoded text as plain
           decryptedContent = decodedText;
-          console.log('✅ HEX→TEXT SUCCESS:', decryptedContent);
+          console.log('ℹ️ Not encrypted (or failed decrypt). Showing decoded text.');
         }
       } catch (error) {
         console.error('❌ HEX DECODE FAILED:', error);
@@ -564,8 +557,15 @@ if (!append && user && conversationId) {
         },
         (payload) => {
           console.log('New message received via realtime:', payload);
-          // DON'T reload all messages - this causes new plain text messages to get corrupted
-          // The optimistic update in sendMessage already handles new messages
+          // Reload only when the message is from someone else to avoid duplicating our optimistic update
+          try {
+            const incoming = (payload as any).new;
+            if (!incoming || incoming.sender_id !== user?.id) {
+              loadMessages();
+            }
+          } catch (e) {
+            console.warn('Realtime handler error:', e);
+          }
         }
       )
       .on(
@@ -830,21 +830,26 @@ if (!append && user && conversationId) {
       // Get user's preferred language (fallback to English)
       const userLanguage = navigator.language.split('-')[0] || 'en';
       
-      // Simple translation service - in production, use Google Translate API or similar
-      const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(content)}&langpair=auto|${userLanguage}`);
-      const data = await response.json();
-      
-      if (data.responseStatus === 200 && data.responseData?.translatedText) {
-        const translatedText = data.responseData.translatedText;
-        
-        // Update the message with translation
-        setMessages(prev => prev.map(msg => 
-          msg.id === messageId 
-            ? { ...msg, translatedContent: translatedText, isTranslated: true }
-            : msg
-        ));
-      } else {
+      // Use Supabase Edge Function to avoid CORS issues and rate limits
+      const { data, error } = await supabase.functions.invoke('translate', {
+        body: { q: content, source: 'auto', target: userLanguage }
+      });
+
+      if (error) {
+        console.error('Translation invoke error:', error);
         toast.error('Translation failed. Please try again.');
+      } else {
+        const translatedText = (data as any)?.translated || null;
+        if (translatedText) {
+          // Update the message with translation
+          setMessages(prev => prev.map(msg => 
+            msg.id === messageId 
+              ? { ...msg, translatedContent: translatedText, isTranslated: true }
+              : msg
+          ));
+        } else {
+          toast.error('Translation service returned no result.');
+        }
       }
     } catch (error) {
       console.error('Translation error:', error);
