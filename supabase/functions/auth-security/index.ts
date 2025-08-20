@@ -1,219 +1,146 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const corsHeaders = (origin: string | null, allowed: string[]) => ({
+  "Access-Control-Allow-Origin": origin && allowed.includes(origin) ? origin : "",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
+  "Content-Security-Policy": "default-src 'none'",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "no-referrer"
+});
 
-interface RateLimitConfig {
-  action: string;
-  maxAttempts: number;
-  windowMinutes: number;
-}
-
-const RATE_LIMITS: Record<string, RateLimitConfig> = {
-  login: { action: 'login', maxAttempts: 5, windowMinutes: 15 },
-  signup: { action: 'signup', maxAttempts: 3, windowMinutes: 60 },
-  mfa_verify: { action: 'mfa_verify', maxAttempts: 3, windowMinutes: 5 },
+const getAllowedOrigins = (): string[] => {
+  const raw = Deno.env.get('ALLOWED_ORIGINS') || '';
+  return raw.split(',').map(s => s.trim()).filter(Boolean);
 };
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const allowed = getAllowedOrigins();
+
+  // Always handle preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders(origin, allowed) });
   }
 
-  try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+  // Enforce allowlist CORS
+  if (!origin || !allowed.includes(origin)) {
+    return new Response(JSON.stringify({ error: 'Origin not allowed' }), {
+      status: 403,
+      headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
+    });
+  }
 
-    const { action, identifier, metadata } = await req.json();
+  // Require Authorization header (JWT)
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Create Supabase client in user context (no service role)
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseAnon, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  try {
+    const { action, identifier, metadata, data } = await req.json();
 
     switch (action) {
-      case 'check_rate_limit':
-        return await checkRateLimit(supabaseClient, identifier, metadata.action);
-      
-      case 'increment_rate_limit':
-        return await incrementRateLimit(supabaseClient, identifier, metadata.action);
-      
-      case 'validate_password_strength':
-        return await validatePasswordStrength(metadata.password);
-      
-      case 'generate_device_fingerprint':
-        return await generateDeviceFingerprint(metadata);
-      
-      case 'check_breach_database':
-        return await checkBreachDatabase(metadata.password);
-      
+      case 'check_rate_limit': {
+        // identifier is required
+        const id = String(identifier || '');
+        if (!id) throw new Error('identifier required');
+
+        // window: 5 minutes, max 5 tries
+        const windowMins = 5;
+        const max = 5;
+        const now = new Date();
+        const windowStart = new Date(now.getTime() - windowMins * 60000).toISOString();
+
+        const { data: rows } = await supabase
+          .from('rate_limits')
+          .select('id, count, expires_at')
+          .eq('identifier', id)
+          .eq('action', metadata?.action || 'generic')
+          .gte('window_start', windowStart)
+          .limit(1);
+
+        const remaining = rows && rows.length ? Math.max(0, max - rows[0].count) : max;
+        const allowed = remaining > 0;
+        return new Response(JSON.stringify({ allowed, remainingAttempts: remaining }), {
+          headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'increment_rate_limit': {
+        const id = String(identifier || '');
+        if (!id) throw new Error('identifier required');
+        const now = new Date();
+        const expires = new Date(now.getTime() + 5 * 60000).toISOString();
+        await supabase.from('rate_limits').insert({
+          identifier: id,
+          action: metadata?.action || 'generic',
+          window_start: now.toISOString(),
+          expires_at: expires,
+        });
+        return new Response(JSON.stringify({ ok: true }), {
+          headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'validate_password_strength': {
+        // Do NOT accept raw passwords server-side
+        return new Response(JSON.stringify({ error: 'client_only' }), {
+          status: 400,
+          headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'generate_device_fingerprint': {
+        const meta = metadata || {};
+        const enc = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(meta)));
+        const hashArray = Array.from(new Uint8Array(enc)).map(b => b.toString(16).padStart(2, '0')).join('');
+        return new Response(JSON.stringify({ fingerprint: hashArray }), {
+          headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'check_breach_database': {
+        // Expect k-anonymity prefix only
+        const prefix = (metadata?.hash_prefix || '').toString().toUpperCase();
+        if (!prefix || prefix.length !== 5) {
+          return new Response(JSON.stringify({ error: 'invalid_prefix' }), {
+            status: 400,
+            headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
+          });
+        }
+        const hibp = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+        const text = await hibp.text();
+        // Return raw list to client; client checks suffix locally
+        return new Response(JSON.stringify({ range: text }), {
+          headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
+        });
+      }
+
       default:
-        return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ error: 'unknown_action' }), {
+          status: 400,
+          headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
+        });
     }
-  } catch (error) {
-    console.error('Auth security error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+  } catch (err) {
+    return new Response(JSON.stringify({ error: 'bad_request' }), {
+      status: 400,
+      headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
+    });
   }
 });
-
-async function checkRateLimit(supabase: any, identifier: string, action: string) {
-  const config = RATE_LIMITS[action];
-  if (!config) {
-    return new Response(
-      JSON.stringify({ allowed: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Clean up expired entries first
-  await supabase.rpc('cleanup_expired_rate_limits');
-
-  // Check current rate limit
-  const { data: rateLimitData } = await supabase
-    .from('rate_limits')
-    .select('count, expires_at')
-    .eq('identifier', identifier)
-    .eq('action', action)
-    .single();
-
-  const allowed = !rateLimitData || rateLimitData.count < config.maxAttempts;
-  
-  return new Response(
-    JSON.stringify({ 
-      allowed,
-      remainingAttempts: allowed ? config.maxAttempts - (rateLimitData?.count || 0) : 0
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-async function incrementRateLimit(supabase: any, identifier: string, action: string) {
-  const config = RATE_LIMITS[action];
-  if (!config) {
-    return new Response(
-      JSON.stringify({ success: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  const expiresAt = new Date();
-  expiresAt.setMinutes(expiresAt.getMinutes() + config.windowMinutes);
-
-  const { error } = await supabase
-    .from('rate_limits')
-    .upsert({
-      identifier,
-      action,
-      count: supabase.raw('COALESCE(count, 0) + 1'),
-      expires_at: expiresAt.toISOString()
-    }, {
-      onConflict: 'identifier,action'
-    });
-
-  return new Response(
-    JSON.stringify({ success: !error }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-async function validatePasswordStrength(password: string) {
-  const results = {
-    length: password.length >= 12,
-    hasUppercase: /[A-Z]/.test(password),
-    hasLowercase: /[a-z]/.test(password),
-    hasNumbers: /\d/.test(password),
-    hasSpecialChars: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-    notCommon: !isCommonPassword(password)
-  };
-
-  const score = Object.values(results).filter(Boolean).length;
-  const strength = score < 4 ? 'weak' : score < 6 ? 'medium' : 'strong';
-
-  return new Response(
-    JSON.stringify({ 
-      valid: score >= 5, // Require at least 5/6 criteria
-      strength,
-      checks: results
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-function isCommonPassword(password: string): boolean {
-  const commonPasswords = [
-    'password', '123456', '123456789', 'qwerty', 'abc123', 
-    'password123', 'admin', 'letmein', 'welcome', 'monkey'
-  ];
-  return commonPasswords.includes(password.toLowerCase());
-}
-
-async function generateDeviceFingerprint(metadata: any) {
-  // Generate a device fingerprint based on browser/device characteristics
-  const fingerprint = {
-    userAgent: metadata.userAgent || '',
-    screen: metadata.screen || '',
-    timezone: metadata.timezone || '',
-    language: metadata.language || '',
-    platform: metadata.platform || '',
-    timestamp: new Date().toISOString()
-  };
-
-  // Create a hash of the fingerprint
-  const encoder = new TextEncoder();
-  const data = encoder.encode(JSON.stringify(fingerprint));
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-  return new Response(
-    JSON.stringify({ fingerprint: hashHex }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-async function checkBreachDatabase(password: string) {
-  // Implement k-Anonymity check against HaveIBeenPwned
-  // Hash the password and check first 5 chars against API
-  try {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
-    
-    const prefix = hashHex.substring(0, 5);
-    const suffix = hashHex.substring(5);
-
-    const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
-    if (!response.ok) {
-      // If API is down, allow the password but log the issue
-      console.warn('Breach database check failed, allowing password');
-      return new Response(
-        JSON.stringify({ breached: false, checkFailed: true }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const hashList = await response.text();
-    const breached = hashList.split('\n').some(line => 
-      line.startsWith(suffix)
-    );
-
-    return new Response(
-      JSON.stringify({ breached }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } catch (error) {
-    console.error('Breach check error:', error);
-    return new Response(
-      JSON.stringify({ breached: false, checkFailed: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-}
