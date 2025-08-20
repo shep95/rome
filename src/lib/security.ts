@@ -45,13 +45,13 @@ export class SecurityUtils {
 
       if (response.error) {
         console.error('Rate limit check failed:', response.error);
-        return { allowed: true, remainingAttempts: 5 }; // Fail open
+        return { allowed: false, remainingAttempts: 0 }; // Fail closed
       }
 
       return response.data;
     } catch (error) {
       console.error('Rate limit check error:', error);
-      return { allowed: true, remainingAttempts: 5 }; // Fail open
+      return { allowed: false, remainingAttempts: 0 }; // Fail closed
     }
   }
 

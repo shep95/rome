@@ -31,10 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Load and persist user profile data
         if (session?.user) {
-          // Store user security code when user signs in
-          if (session.user.user_metadata?.security_code) {
-            localStorage.setItem('userSecurityCode', session.user.user_metadata.security_code);
-          }
+          // Security codes are never stored in localStorage for security
           
           // Try to restore from backup first
           const backupData = sessionStorage.getItem(`rome-backup-${session.user.email}`);
@@ -81,8 +78,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
           }, 0);
         } else {
-          // Clear stored data when user logs out - but keep profile data in backup
-          localStorage.removeItem('userSecurityCode');
+          // Clear security-sensitive data when user logs out - but keep profile data in backup
+          // Security codes are never stored in localStorage
           // Don't clear profile images and wallpapers - they're backed up
         }
       }
@@ -96,9 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       // Load profile data if user is already logged in
       if (session?.user) {
-        if (session.user.user_metadata?.security_code) {
-          localStorage.setItem('userSecurityCode', session.user.user_metadata.security_code);
-        }
+        // Security codes are never stored in localStorage for security
         
         // Try to restore from backup first
         const backupData = sessionStorage.getItem(`rome-backup-${session.user.email}`);
@@ -333,8 +328,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // Clear security-related data only (keep profile data)
-      localStorage.removeItem('securityCode');
-      localStorage.removeItem('userSecurityCode');
+      // Security codes are never stored in localStorage
       
       // Clear secure storage
       await SecurityUtils.clearSecureStorage();
