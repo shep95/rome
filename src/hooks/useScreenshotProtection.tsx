@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
+import ScreenshotProtection from '@/plugins/ScreenshotProtection';
 
 export const useScreenshotProtection = (enabled: boolean = true) => {
   const { user } = useAuth();
@@ -129,7 +131,43 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       
       if (shouldProtect) {
         console.log('Screenshot and screen recording protection activated for user or conversations');
+        
+        // Enable native mobile protection if on mobile platform
+        if (Capacitor.isNativePlatform()) {
+          try {
+            await ScreenshotProtection.enableProtection();
+            console.log('✅ Native mobile screenshot protection enabled');
+            
+            // Listen for screenshot attempts
+            await ScreenshotProtection.addListener('screenshotAttempt', (info) => {
+              console.warn('🚨 Native screenshot attempt detected at:', new Date(info.timestamp));
+              toast({
+                title: "Screenshot Blocked",
+                description: "Screenshot attempt was blocked by system-level protection.",
+                variant: "destructive",
+              });
+            });
+          } catch (error) {
+            console.warn('⚠️ Native screenshot protection setup failed:', error);
+            toast({
+              title: "Protection Notice",
+              description: "Enhanced mobile screenshot protection requires native app installation.",
+              variant: "default",
+            });
+          }
+        }
+        
         return true;
+      } else {
+        // Disable native protection if not needed
+        if (Capacitor.isNativePlatform()) {
+          try {
+            await ScreenshotProtection.disableProtection();
+            console.log('✅ Native mobile screenshot protection disabled');
+          } catch (error) {
+            console.warn('⚠️ Failed to disable native protection:', error);
+          }
+        }
       }
       return false;
     };
@@ -384,6 +422,16 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
     return () => {
       // Execute all cleanup functions
       cleanupFunctions.forEach(cleanup => cleanup());
+      
+      // Clean up native mobile protection
+      if (Capacitor.isNativePlatform()) {
+        ScreenshotProtection.disableProtection().catch(error => {
+          console.warn('⚠️ Failed to cleanup native protection:', error);
+        });
+        ScreenshotProtection.removeAllListeners().catch(error => {
+          console.warn('⚠️ Failed to remove native listeners:', error);
+        });
+      }
       
       // Remove style if it exists
       if (style && document.head.contains(style)) {

@@ -1,5 +1,5 @@
 // Supabase Edge Function: translate
-// Enhanced translation service supporting all world languages with robust fallbacks
+// Free unlimited translation service using multiple providers
 // Request body: { q: string, source?: string, target?: string, getLanguages?: boolean }
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
@@ -13,7 +13,6 @@ const corsHeaders = {
 
 // Comprehensive language mapping for all world languages
 const languageMap = {
-  // Major world languages
   'en': { name: 'English', native: 'English' },
   'es': { name: 'Spanish', native: 'Español' },
   'fr': { name: 'French', native: 'Français' },
@@ -93,22 +92,48 @@ const languageMap = {
   'eo': { name: 'Esperanto', native: 'Esperanto' }
 };
 
-// Multiple translation providers for failover
+// Free unlimited translation providers (no API key required)
 const translationProviders = [
   {
-    name: 'LibreTranslate',
-    url: 'https://libretranslate.com/translate',
-    headers: { 
-      'Content-Type': 'application/json',
-      'User-Agent': 'ROME-Translation-Service/1.0'
+    name: 'Lingva',
+    url: 'https://lingva.ml/api/v1',
+    translate: async (text: string, source: string, target: string) => {
+      const url = `https://lingva.ml/api/v1/${source}/${target}/${encodeURIComponent(text)}`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        return data.translation;
+      }
+      return null;
     }
   },
   {
-    name: 'LibreTranslate Mirror',
-    url: 'https://translate.argosopentech.com/translate',
-    headers: { 
-      'Content-Type': 'application/json',
-      'User-Agent': 'ROME-Translation-Service/1.0'
+    name: 'Simplytranslate',
+    url: 'https://simplytranslate.org/api/translate',
+    translate: async (text: string, source: string, target: string) => {
+      const url = `https://simplytranslate.org/api/translate?engine=google&from=${source}&to=${target}&text=${encodeURIComponent(text)}`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        return data.translated_text;
+      }
+      return null;
+    }
+  },
+  {
+    name: 'MyMemory',
+    url: 'https://api.mymemory.translated.net/get',
+    translate: async (text: string, source: string, target: string) => {
+      const langPair = source === 'auto' ? `${target}` : `${source}|${target}`;
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.responseStatus === 200) {
+          return data.responseData.translatedText;
+        }
+      }
+      return null;
     }
   }
 ];
@@ -116,35 +141,25 @@ const translationProviders = [
 async function tryTranslation(text: string, source: string, target: string) {
   for (const provider of translationProviders) {
     try {
-      console.log(`Attempting translation with ${provider.name}...`);
+      console.log(`🔄 Attempting translation with ${provider.name}...`);
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
       
-      const response = await fetch(provider.url, {
-        method: 'POST',
-        headers: provider.headers,
-        body: JSON.stringify({ 
-          q: text.substring(0, 5000), // Limit text length
-          source, 
-          target, 
-          format: 'text' 
-        }),
-        signal: controller.signal
-      });
+      const translated = await Promise.race([
+        provider.translate(text.substring(0, 5000), source, target),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 15000)
+        )
+      ]);
       
       clearTimeout(timeoutId);
       
-      if (response.ok) {
-        const data = await response.json();
-        const translated = data?.translatedText;
-        
-        if (translated && translated.trim()) {
-          console.log(`✅ Translation successful with ${provider.name}`);
-          return translated;
-        }
+      if (translated && translated.trim() && translated !== text) {
+        console.log(`✅ Translation successful with ${provider.name}: "${translated.substring(0, 100)}..."`);
+        return translated;
       } else {
-        console.log(`❌ ${provider.name} returned ${response.status}`);
+        console.log(`⚠️ ${provider.name} returned same text or empty result`);
       }
     } catch (error) {
       console.log(`❌ ${provider.name} failed:`, error.message);
@@ -207,22 +222,20 @@ serve(async (req) => {
 
     console.log(`🌐 Translating from ${source} to ${target}: "${q.substring(0, 100)}..."`);
 
-    // Try translation with fallback providers
+    // Try translation with free providers
     const translated = await tryTranslation(q, source, target);
 
     if (!translated) {
       console.error('❌ All translation providers failed');
       return new Response(JSON.stringify({ 
-        error: 'All translation services are currently unavailable',
-        fallback: q, // Return original text as fallback
-        providers: translationProviders.map(p => p.name)
-      }), { 
-        status: 503, 
-        headers: corsHeaders 
-      });
+        translated: q, // Return original text as fallback
+        sourceLanguage: source,
+        targetLanguage: target,
+        targetLanguageName: languageMap[target].name,
+        fallback: true,
+        error: 'Translation services temporarily unavailable, showing original text'
+      }), { headers: corsHeaders });
     }
-
-    console.log(`✅ Translation successful: "${translated.substring(0, 100)}..."`);
 
     return new Response(JSON.stringify({ 
       translated,
