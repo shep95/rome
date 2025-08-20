@@ -10,6 +10,8 @@ import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
 import { ThanosSnapEffect } from '@/components/ui/thanos-snap-effect';
 import { toast } from 'sonner';
+import { GroupChatSettings } from './GroupChatSettings';
+import { DirectChatSettings } from './DirectChatSettings';
 
 interface Message {
   id: string;
@@ -86,6 +88,7 @@ const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
 const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 const [editText, setEditText] = useState('');
 const [translatingMessageId, setTranslatingMessageId] = useState<string | null>(null);
+const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (conversationId && user) {
@@ -1013,43 +1016,52 @@ if (!append && user && conversationId) {
         }}
       >
         {userWallpaper && <div className="absolute inset-0 bg-black/20" style={{ filter: 'blur(0.5px)' }} />}
-        <div className="text-center text-foreground relative z-10">
-          <div className="text-4xl mb-4">💬</div>
-          <h3 className="text-lg md:text-xl font-semibold mb-2">Select a conversation</h3>
-          <p className="text-muted-foreground text-sm md:text-base">Choose a conversation from the left to start messaging</p>
-        </div>
+          <div className="text-center text-foreground relative z-10">
+            <div className="text-2xl sm:text-3xl lg:text-4xl mb-4">💬</div>
+            <h3 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-semibold mb-2">Select a conversation</h3>
+            <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">Choose a conversation from the left to start messaging</p>
+          </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden md:mt-0 mt-0 h-full md:h-auto md:min-h-0" style={{ height: 'calc(var(--app-vh) * 100)' }}>
-      {/* Chat Header - floating on mobile with back button */}
-      <div className="p-4 border-b border-border bg-card/50 md:relative fixed top-0 left-0 right-0 z-50 md:rounded-none rounded-b-3xl md:backdrop-blur-none backdrop-blur-xl">
-        <div className="flex items-center gap-3">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
+      {/* Chat Header - responsive positioning */}
+      <div className="p-3 sm:p-4 border-b border-border bg-card/50 md:relative fixed top-0 left-0 right-0 z-50 md:rounded-none rounded-b-2xl md:backdrop-blur-none backdrop-blur-xl">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Back button for mobile */}
           {onBackToMessages && (
             <Button
               onClick={onBackToMessages}
               variant="ghost"
               size="sm"
-              className="md:hidden p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+              className="md:hidden p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           )}
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-foreground text-sm sm:text-base lg:text-lg truncate">
               {conversationDetails?.name || 'Secure Chat'}
             </h3>
-            <p className="text-sm text-muted-foreground">End-to-end encrypted</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">End-to-end encrypted</p>
           </div>
+          {/* Settings button */}
+          <Button
+            onClick={() => setShowSettings(true)}
+            variant="ghost"
+            size="sm"
+            className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+          >
+            <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Button>
         </div>
       </div>
 
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-2 sm:p-3 md:p-4 space-y-3 sm:space-y-4 relative custom-scrollbar md:mt-0 mt-16 sm:mt-18 md:mb-0 mb-20 sm:mb-24 safe-bottom"
+        className="flex-1 overflow-y-auto p-2 sm:p-3 lg:p-4 space-y-2 sm:space-y-3 lg:space-y-4 relative custom-scrollbar md:mt-0 mt-14 sm:mt-16 md:mb-0 mb-16 sm:mb-20 lg:mb-24"
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',
@@ -1107,7 +1119,7 @@ if (!append && user && conversationId) {
                           </Avatar>
                         )}
                 
-                <div className="flex flex-col max-w-[70%] sm:max-w-xs lg:max-w-md">
+                <div className="flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-sm lg:max-w-md xl:max-w-lg 2xl:max-w-xl">
                   {/* Username for others */}
                       {message.sender_id !== user?.id && (
                         <p className="text-xs text-muted-foreground mb-1 px-1">
@@ -1557,6 +1569,32 @@ editingMessageId === message.id ? (
         </div>
       </div>
 
+      {/* Settings Modals */}
+      {conversationDetails?.type === 'group' ? (
+        <GroupChatSettings
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          conversationId={conversationId}
+          conversationName={conversationDetails?.name || ''}
+          conversationAvatar={conversationDetails?.avatar_url}
+          onUpdate={() => {
+            loadConversationDetails();
+            setShowSettings(false);
+          }}
+        />
+      ) : (
+        <DirectChatSettings
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          conversationId={conversationId}
+          onUpdate={() => {
+            loadConversationDetails();
+            setShowSettings(false);
+          }}
+        />
+      )}
+
+      {/* Media Modal */}
       <MediaModal
         isOpen={mediaModal.isOpen}
         onClose={closeMediaModal}
@@ -1565,6 +1603,9 @@ editingMessageId === message.id ? (
         fileName={mediaModal.fileName}
         fileSize={mediaModal.fileSize}
       />
+
+      {/* Typing Indicator */}
+      <TypingIndicator conversationId={conversationId} currentUserId={user?.id} />
     </div>
   );
 };
