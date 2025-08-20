@@ -18,7 +18,8 @@ import {
   Upload,
   ImageIcon,
   Shield,
-  FileText
+  FileText,
+  LogOut
 } from 'lucide-react';
 
 import { SettingsModal } from './SettingsModal';
@@ -39,7 +40,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   messageRequestCount = 0,
   onMessageRequestCountChange
 }) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
   const { uploadAvatar, uploadWallpaper, isUploading } = useFileUpload();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -108,6 +109,14 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   const handleInboxClick = () => {
     setIsInboxOpen(true);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const getUserInitial = () => {
@@ -224,6 +233,21 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           <span className="text-sm font-medium">Settings</span>
         </Button>
       </nav>
+      
+      {/* Sign Out Button */}
+      <div className="pb-4">
+        <Button
+          onClick={() => {
+            handleSignOut();
+            setIsMobileSidebarOpen(false);
+          }}
+          variant="ghost"
+          className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-destructive hover:text-destructive hover:bg-destructive/10"
+        >
+          <LogOut className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+          <span className="text-sm font-medium">Sign Out</span>
+        </Button>
+      </div>
       
       {/* Profile Section */}
       <div className="pt-6 lg:pt-8">
