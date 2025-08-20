@@ -21,7 +21,8 @@ import {
   FileText,
   LogOut,
   MoreVertical,
-  UserPlus
+  UserPlus,
+  Bell
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -219,6 +220,22 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         >
           <FileText className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
           <span className="text-sm font-medium">Secure Files</span>
+        </Button>
+        
+        <Button
+          onClick={() => {
+            onSectionChange('updates');
+            setIsMobileSidebarOpen(false);
+          }}
+          variant="ghost"
+          className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
+            activeSection === 'updates'
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'text-foreground hover:text-primary hover:bg-primary/10'
+          }`}
+        >
+          <Bell className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+          <span className="text-sm font-medium">Updates</span>
         </Button>
         
         

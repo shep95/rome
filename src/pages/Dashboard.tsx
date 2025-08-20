@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { NavigationSidebar } from '@/components/NavigationSidebar';
 import { LiveMainContent } from '@/components/LiveMainContent';
 import { SecureFiles } from '@/components/SecureFiles';
+import { Updates } from '@/components/Updates';
 import { AppLock } from '@/components/SecurityLock';
 import { ReconnectModal } from '@/components/ReconnectModal';
 import { LogOut } from 'lucide-react';
@@ -95,6 +96,10 @@ const Dashboard = () => {
         {activeSection === 'secure-files' ? (
           <div className="flex-1 flex items-center justify-center bg-background min-h-screen p-2 sm:p-4 md:p-6">
             <SecureFiles />
+          </div>
+        ) : activeSection === 'updates' ? (
+          <div className="flex-1 bg-background min-h-screen">
+            <Updates />
           </div>
         ) : (
           <LiveMainContent 

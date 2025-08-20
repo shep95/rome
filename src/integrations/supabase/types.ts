@@ -589,6 +589,39 @@ export type Database = {
         }
         Relationships: []
       }
+      updates: {
+        Row: {
+          created_at: string
+          description: string
+          display_order: number | null
+          expires_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          display_order?: number | null
+          expires_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          display_order?: number | null
+          expires_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          title?: string
+        }
+        Relationships: []
+      }
       user_keys: {
         Row: {
           created_at: string
@@ -761,6 +794,10 @@ export type Database = {
         Returns: undefined
       }
       cleanup_expired_security_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_updates: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
