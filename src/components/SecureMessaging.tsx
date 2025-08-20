@@ -257,33 +257,42 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // Decrypt content using military-grade AES-GCM with conversationId, with fallbacks
+  // Debug and handle message content properly
   let decryptedContent = '';
-  try {
-    const { encryptionService } = await import('@/lib/encryption');
+  console.log('Raw message data:', { 
+    messageId: msg.id, 
+    rawPayload: msg.data_payload, 
+    payloadType: typeof msg.data_payload,
+    payloadLength: String(msg.data_payload).length,
+    conversationId: conversationId
+  });
+
+  const rawContent = String(msg.data_payload || '');
+  
+  // If it looks like plain readable text, use it directly
+  if (rawContent && rawContent.length > 0) {
+    // Check if it's already readable text (not encrypted gibberish)
+    const isReadableText = /^[\w\s\.,!?'"()-]+$/.test(rawContent) || 
+                          rawContent.includes(' ') || 
+                          rawContent.length < 100;
     
-    // First try with conversationId (current method)
-    try {
-      decryptedContent = await encryptionService.decryptMessage(String(msg.data_payload), conversationId);
-    } catch {
-      // Fallback: treat as plain text if it doesn't look like encrypted gibberish
-      const rawContent = String(msg.data_payload);
-      
-      // Check if it's likely encrypted base64 gibberish (long strings of random-looking characters)
-      const isLikelyEncrypted = rawContent.length > 50 && 
-        /^[A-Za-z0-9+/=]+$/.test(rawContent) && 
-        !/\s/.test(rawContent);
-      
-      if (!isLikelyEncrypted && rawContent && rawContent.trim()) {
-        // Treat as plain text if it doesn't look like encrypted data
+    if (isReadableText) {
+      console.log('Using as plain text:', rawContent);
+      decryptedContent = rawContent;
+    } else {
+      // Try to decrypt if it looks encrypted
+      try {
+        const { encryptionService } = await import('@/lib/encryption');
+        decryptedContent = await encryptionService.decryptMessage(rawContent, conversationId);
+        console.log('Successfully decrypted:', decryptedContent);
+      } catch (decryptError) {
+        console.warn('Decryption failed, using raw content:', decryptError);
+        // If decryption fails, show the raw content anyway - better than nothing
         decryptedContent = rawContent;
-      } else {
-        // If it looks encrypted but can't decrypt, show fallback
-        decryptedContent = '[Message could not be decrypted]';
       }
     }
-  } catch {
-    decryptedContent = '[Error loading message]';
+  } else {
+    decryptedContent = '[Empty message]';
   }
 
   // Decrypt file metadata (if present) with conversationId

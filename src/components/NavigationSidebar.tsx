@@ -133,7 +133,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         <Button
           onClick={() => {
             onSectionChange('messages');
-            if (isMobile) setIsMobileSidebarOpen(false);
+            setIsMobileSidebarOpen(false);
           }}
           variant="ghost"
           className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
@@ -149,7 +149,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         <Button
           onClick={() => {
             handleCallsClick();
-            if (isMobile) setIsMobileSidebarOpen(false);
+            setIsMobileSidebarOpen(false);
           }}
           variant="ghost"
           className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
@@ -162,7 +162,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         <Button
           onClick={() => {
             handleInboxClick();
-            if (isMobile) setIsMobileSidebarOpen(false);
+            setIsMobileSidebarOpen(false);
           }}
           variant="ghost"
           className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 relative text-foreground hover:text-primary hover:bg-primary/10`}
@@ -182,7 +182,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         <Button
           onClick={() => {
             onSectionChange('secure-files');
-            if (isMobile) setIsMobileSidebarOpen(false);
+            setIsMobileSidebarOpen(false);
           }}
           variant="ghost"
           className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
@@ -199,7 +199,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         <Button
           onClick={() => {
             handleDonationsClick();
-            if (isMobile) setIsMobileSidebarOpen(false);
+            setIsMobileSidebarOpen(false);
           }}
           variant="ghost"
           className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
@@ -211,7 +211,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         <Button
           onClick={() => {
             handleSettingsClick();
-            if (isMobile) setIsMobileSidebarOpen(false);
+            setIsMobileSidebarOpen(false);
           }}
           variant="ghost"
           className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
@@ -227,13 +227,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       
       {/* Profile Section */}
       <div className="pt-6 lg:pt-8">
-        <div 
-          className="flex items-center cursor-pointer hover:bg-primary/5 p-2 rounded-lg transition-colors"
-          onClick={() => {
-            setIsProfileModalOpen(true);
-            if (isMobile) setIsMobileSidebarOpen(false);
-          }}
-        >
+          <div 
+            className="flex items-center cursor-pointer hover:bg-primary/5 p-2 rounded-lg transition-colors"
+            onClick={() => {
+              setIsProfileModalOpen(true);
+              setIsMobileSidebarOpen(false);
+            }}
+          >
           {profileImage ? (
             <img 
               src={profileImage} 
@@ -258,100 +258,54 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   return (
     <>
-      {/* Mobile Navigation */}
-      {isMobile ? (
-        <>
-          {/* Mobile Top Bar */}
-          <div className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <MobileSidebarTrigger onClick={() => setIsMobileSidebarOpen(true)} />
-                <img 
-                  src="/lovable-uploads/6ff9b03d-a2fd-4cd2-b509-fb12b4bca3f2.png" 
-                  alt="ROME" 
-                  className="w-6 h-6 object-cover rounded-md"
-                />
-                <h1 className="text-foreground font-bold text-lg">ROME</h1>
-              </div>
-              <div 
-                onClick={() => setIsProfileModalOpen(true)}
-                className="cursor-pointer"
-              >
-                {profileImage ? (
-                  <img 
-                    src={profileImage} 
-                    alt="Profile" 
-                    className="w-8 h-8 object-cover rounded-lg border border-border"
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-xs">
-                    {getUserInitial()}
-                  </div>
-                )}
-              </div>
+      {/* Mobile and Tablet Navigation - Hamburger menu for screens < 1280px */}
+      <div className="xl:hidden">
+        {/* Top Bar */}
+        <div className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <MobileSidebarTrigger onClick={() => setIsMobileSidebarOpen(true)} />
+              <img 
+                src="/lovable-uploads/6ff9b03d-a2fd-4cd2-b509-fb12b4bca3f2.png" 
+                alt="ROME" 
+                className="w-6 h-6 lg:w-8 lg:h-8 object-cover rounded-md lg:rounded-lg"
+              />
+              <h1 className="text-foreground font-bold text-lg lg:text-xl">ROME</h1>
             </div>
-          </div>
-
-          {/* Mobile Sidebar */}
-          <MobileSidebar 
-            isOpen={isMobileSidebarOpen} 
-            onToggle={() => setIsMobileSidebarOpen(false)}
-          >
-            {renderSidebarContent()}
-          </MobileSidebar>
-        </>
-      ) : (
-        <>
-          {/* Tablet Navigation - Shows hamburger menu on tablets */}
-          <div className="xl:hidden">
-            {/* Tablet Top Bar */}
-            <div className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <MobileSidebarTrigger onClick={() => setIsMobileSidebarOpen(true)} />
-                  <img 
-                    src="/lovable-uploads/6ff9b03d-a2fd-4cd2-b509-fb12b4bca3f2.png" 
-                    alt="ROME" 
-                    className="w-8 h-8 object-cover rounded-lg"
-                  />
-                  <h1 className="text-foreground font-bold text-xl">ROME</h1>
-                </div>
-                <div 
-                  onClick={() => setIsProfileModalOpen(true)}
-                  className="cursor-pointer"
-                >
-                  {profileImage ? (
-                    <img 
-                      src={profileImage} 
-                      alt="Profile" 
-                      className="w-10 h-10 object-cover rounded-lg border border-border"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-sm">
-                      {getUserInitial()}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Tablet Sidebar */}
-            <MobileSidebar 
-              isOpen={isMobileSidebarOpen} 
-              onToggle={() => setIsMobileSidebarOpen(false)}
+            <div 
+              onClick={() => setIsProfileModalOpen(true)}
+              className="cursor-pointer"
             >
-              {renderSidebarContent()}
-            </MobileSidebar>
-          </div>
-
-          {/* Desktop Navigation - Fixed Sidebar (xl screens and up) */}
-          <div className="hidden xl:block fixed left-2 lg:left-4 xl:left-6 top-2 lg:top-4 bottom-2 lg:bottom-4 z-30">
-            <div className="w-56 lg:w-64 xl:w-72 bg-background/80 backdrop-blur-xl border border-border rounded-2xl h-full">
-              {renderSidebarContent()}
+              {profileImage ? (
+                <img 
+                  src={profileImage} 
+                  alt="Profile" 
+                  className="w-8 h-8 lg:w-10 lg:h-10 object-cover rounded-lg border border-border"
+                />
+              ) : (
+                <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-xs lg:text-sm">
+                  {getUserInitial()}
+                </div>
+              )}
             </div>
           </div>
-        </>
-      )}
+        </div>
+
+        {/* Popout Sidebar */}
+        <MobileSidebar 
+          isOpen={isMobileSidebarOpen} 
+          onToggle={() => setIsMobileSidebarOpen(false)}
+        >
+          {renderSidebarContent()}
+        </MobileSidebar>
+      </div>
+
+      {/* Desktop Navigation - Fixed Sidebar (xl screens and up) */}
+      <div className="hidden xl:block fixed left-2 lg:left-4 xl:left-6 top-2 lg:top-4 bottom-2 lg:bottom-4 z-30">
+        <div className="w-56 lg:w-64 xl:w-72 bg-background/80 backdrop-blur-xl border border-border rounded-2xl h-full">
+          {renderSidebarContent()}
+        </div>
+      </div>
 
       {/* Profile Modal */}
       <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
