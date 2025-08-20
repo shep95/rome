@@ -257,13 +257,14 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // EMERGENCY FIX - JUST SHOW THE MESSAGES WITHOUT ENCRYPTION NONSENSE
+  // SMART MESSAGE PROCESSING - Handle both old encrypted and new plain text messages
   let decryptedContent = '';
   
-  console.log('EMERGENCY DEBUG - Raw message data:', msg.data_payload);
+  console.log('📨 Processing message data:', typeof msg.data_payload, msg.data_payload);
 
-  // If it's a Buffer from database, convert it and try to decrypt
+  // Check if it's a Buffer from database (old encrypted messages)
   if (msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer') {
+    console.log('📦 OLD ENCRYPTED MESSAGE - Attempting decryption...');
     try {
       const bufferData = new Uint8Array(msg.data_payload.data);
       const base64String = btoa(String.fromCharCode(...bufferData));
@@ -274,12 +275,44 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
       console.log('✅ DECRYPTION SUCCESS:', decryptedContent);
     } catch (error) {
       console.error('❌ DECRYPTION FAILED:', error);
-      decryptedContent = '[Old encrypted message - send new messages to see them properly]';
+      // Try to decode as hex string (fallback for corrupted data)
+      try {
+        const hexString = String(msg.data_payload);
+        if (hexString.startsWith('\\x')) {
+          decryptedContent = '[Old message - content unavailable]';
+        } else {
+          decryptedContent = '[Encrypted message]';
+        }
+      } catch {
+        decryptedContent = '[Encrypted message]';
+      }
     }
   } else {
-    // Handle regular string data (new messages)
-    decryptedContent = String(msg.data_payload || '[Empty message]');
-    console.log('✅ PLAIN TEXT MESSAGE:', decryptedContent);
+    // Handle regular string data (new plain text messages)
+    const rawContent = String(msg.data_payload || '');
+    console.log('📝 NEW PLAIN TEXT MESSAGE:', rawContent);
+    
+    // Check if it looks like hex-encoded gibberish
+    if (rawContent.startsWith('\\x') || /^[0-9a-fA-F]+$/.test(rawContent)) {
+      console.log('🔍 Detected hex encoding, attempting decode...');
+      try {
+        // Try to decode hex string
+        const cleaned = rawContent.replace(/\\x/g, '');
+        const bytes = [];
+        for (let i = 0; i < cleaned.length; i += 2) {
+          bytes.push(parseInt(cleaned.substr(i, 2), 16));
+        }
+        const decoded = new TextDecoder().decode(new Uint8Array(bytes));
+        decryptedContent = decoded || '[Unable to decode message]';
+        console.log('✅ HEX DECODE SUCCESS:', decryptedContent);
+      } catch (error) {
+        console.error('❌ HEX DECODE FAILED:', error);
+        decryptedContent = '[Unable to read message]';
+      }
+    } else {
+      // Regular plain text message
+      decryptedContent = rawContent;
+    }
   }
 
   // Decrypt file metadata (if present) with conversationId
@@ -477,7 +510,8 @@ if (!append && user && conversationId) {
         },
         (payload) => {
           console.log('New message received via realtime:', payload);
-          loadMessages();
+          // DON'T reload all messages - this causes new plain text messages to get corrupted
+          // The optimistic update in sendMessage already handles new messages
         }
       )
       .on(
@@ -779,12 +813,14 @@ if (!append && user && conversationId) {
     const target = messages.find(m => m.id === editingMessageId);
     if (!target) return;
     try {
-      const { encryptionService } = await import('@/lib/encryption');
-      const encrypted = await encryptionService.encryptMessage(editText, conversationId);
-
+      // Store edited message as plain text (no encryption)
       const { error } = await supabase
         .from('messages')
-        .update({ data_payload: encrypted, edited_at: new Date().toISOString(), edit_count: (target.edit_count || 0) + 1 })
+        .update({ 
+          data_payload: editText, // Plain text - NO ENCRYPTION
+          edited_at: new Date().toISOString(), 
+          edit_count: (target.edit_count || 0) + 1 
+        })
         .eq('id', editingMessageId)
         .eq('sender_id', user.id);
 
