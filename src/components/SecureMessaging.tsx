@@ -257,15 +257,19 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // Decrypt message content - ALWAYS show readable English, never gibberish
-  const decryptedContent = await decodeMessage(msg.data_payload, conversationId);
-  
+  const decryptedContent = await decodeMessage(
+    msg.data_payload,
+    [conversationId, user?.id || '', msg.sender_id, conversationDetails?.created_by].filter(Boolean) as string[]
+  );
   // Handle file metadata - prefer encrypted metadata when present
   let signedUrl: string | null = null;
   let fileName: string | null = null;
   if (msg.encrypted_file_metadata) {
     try {
-      const decryptedFileMetadata = await decodeMessage(msg.encrypted_file_metadata, conversationId);
+      const decryptedFileMetadata = await decodeMessage(
+        msg.encrypted_file_metadata,
+        [conversationId, user?.id || '', msg.sender_id, conversationDetails?.created_by].filter(Boolean) as string[]
+      );
       const fileMetadata = JSON.parse(decryptedFileMetadata);
       fileName = fileMetadata.file_name || null;
       if (fileMetadata.file_url && String(fileMetadata.file_url).includes('secure-files')) {
@@ -792,9 +796,9 @@ if (!append && user && conversationId) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const decodeMessage = async (content: any, conversationId: string) => {
+  const decodeMessage = async (content: any, candidateKeys: string[]) => {
     try {
-      console.log('Decoding message content:', { content, conversationId, contentType: typeof content });
+      console.log('Decoding message content:', { content, candidateKeys, contentType: typeof content });
       
       let textPayload = '';
       
@@ -822,42 +826,49 @@ if (!append && user && conversationId) {
 
       console.log('Text payload after extraction:', textPayload);
 
-      // If it looks like plain readable text, return it directly
-      if (/^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F\u2000-\u206F\u2070-\u209F\u20A0-\u20CF\u2100-\u214F\u2160-\u218F]*$/.test(textPayload) && 
-          !textPayload.includes('=') && textPayload.length < 200) {
+      const isReadable = (txt: string) =>
+        /^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F\u2000-\u206F\u2070-\u209F\u20A0-\u20CF\u2100-\u214F\u2160-\u218F]*$/.test(txt);
+
+      // If it looks like plain readable text (and not obvious base64), return it directly
+      if (isReadable(textPayload) && !/^[A-Za-z0-9+/]+={0,2}$/.test(textPayload.trim())) {
         console.log('Returning as plain text');
         return textPayload;
       }
 
-      // Try base64 decode first for legacy messages
-      try {
-        const base64Decoded = atob(textPayload);
-        console.log('Base64 decoded:', base64Decoded);
-        
-        // If base64 decode gives us readable text, use it
-        if (base64Decoded && /^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F\u2000-\u206F\u2070-\u209F\u20A0-\u20CF\u2100-\u214F\u2160-\u218F]*$/.test(base64Decoded)) {
-          return base64Decoded;
-        }
-      } catch (e) {
-        console.log('Base64 decode failed, trying encryption');
-      }
-
-      // Try military encryption as last resort
+      // Try decrypting with multiple candidate keys
       try {
         const { encryptionService } = await import('@/lib/encryption');
-        const decryptedMessage = await encryptionService.decryptMessage(textPayload, conversationId);
-        console.log('Military decryption succeeded');
-        return decryptedMessage;
-      } catch (decryptError) {
-        console.log('Military decryption failed:', decryptError.message);
-        
-        // Return the original text if it seems readable
-        if (/^[\x20-\x7E\s\u00A0-\u017F\u0100-\u024F\u2000-\u206F\u2070-\u209F\u20A0-\u20CF\u2100-\u214F\u2160-\u218F]*$/.test(textPayload)) {
-          return textPayload;
+        for (const key of candidateKeys) {
+          try {
+            if (!key) continue;
+            const decrypted = await encryptionService.decryptMessage(textPayload, key);
+            if (decrypted && isReadable(decrypted)) {
+              console.log('Decryption succeeded with key');
+              return decrypted;
+            }
+          } catch (e) {
+            // try next
+          }
         }
-        
-        return 'Message format not supported';
+      } catch (e) {
+        console.warn('Encryption service not available:', e);
       }
+
+      // Try base64 decode and UTF-8 interpretation as a last fallback (legacy unencrypted content)
+      try {
+        const binary = atob(textPayload);
+        const bytes = new Uint8Array(binary.split('').map((c) => c.charCodeAt(0)));
+        const utf8 = new TextDecoder().decode(bytes);
+        if (utf8 && isReadable(utf8)) {
+          return utf8;
+        }
+      } catch (e) {
+        console.log('Base64 decode failed as fallback');
+      }
+
+      // Last resort - if the payload itself is readable, show it; otherwise show placeholder
+      if (isReadable(textPayload)) return textPayload;
+      return 'Unable to decrypt message';
     } catch (error) {
       console.error('Message decoding error:', error);
       return 'Message could not be loaded';
