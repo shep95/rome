@@ -198,10 +198,10 @@ const [showSettings, setShowSettings] = useState(false);
     if (!conversationId || !user?.id) return;
     
     try {
-      // Get user's join date for this conversation to filter messages
+      // Get user's join date and cleared_at for this conversation to filter messages
       const { data: participantData, error: participantError } = await supabase
         .from('conversation_participants')
-        .select('joined_at')
+        .select('joined_at, cleared_at')
         .eq('conversation_id', conversationId)
         .eq('user_id', user.id)
         .is('left_at', null)
@@ -210,6 +210,13 @@ const [showSettings, setShowSettings] = useState(false);
       if (participantError) throw participantError;
       
       const userJoinedAt = participantData?.joined_at;
+      const userClearedAt = participantData?.cleared_at;
+      
+      // Use the latest timestamp between joined_at and cleared_at
+      // If user cleared history, only show messages after that point
+      const filterFromTime = userClearedAt && new Date(userClearedAt) > new Date(userJoinedAt) 
+        ? userClearedAt 
+        : userJoinedAt;
       
       // Use pagination for efficient loading - load more if appending
       const limit = append ? 30 : 50;
@@ -221,7 +228,7 @@ let query = supabase
     id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata, edited_at, edit_count
   `)
   .eq('conversation_id', conversationId)
-  .gte('created_at', userJoinedAt) // Only show messages from when user joined
+  .gte('created_at', filterFromTime) // Only show messages from when user joined or cleared history
   .order('created_at', { ascending: false })
   .limit(limit);
       

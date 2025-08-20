@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { UserSearchInput } from './UserSearchInput';
-import { Camera, X, UserPlus, Trash2, Save } from 'lucide-react';
+import { Camera, X, UserPlus, Trash2, Save, History } from 'lucide-react';
 
 interface GroupChatSettingsProps {
   isOpen: boolean;
@@ -47,6 +47,8 @@ export const GroupChatSettings: React.FC<GroupChatSettingsProps> = ({
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearingHistory, setClearingHistory] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -309,7 +311,38 @@ export const GroupChatSettings: React.FC<GroupChatSettingsProps> = ({
     }
   };
 
-  if (!isCreator) {
+  const handleClearHistory = async () => {
+    setClearingHistory(true);
+    try {
+      const { error } = await supabase
+        .from('conversation_participants')
+        .update({ cleared_at: new Date().toISOString() })
+        .eq('conversation_id', conversationId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Group chat history cleared successfully"
+      });
+
+      onUpdate?.();
+      onClose();
+    } catch (error) {
+      console.error('Error clearing chat history:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clear chat history",
+        variant: "destructive"
+      });
+    } finally {
+      setClearingHistory(false);
+      setShowClearConfirm(false);
+    }
+  };
+
+  if (!user) {
     return null;
   }
 
@@ -428,26 +461,86 @@ export const GroupChatSettings: React.FC<GroupChatSettingsProps> = ({
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/20">
-            <Button
-              onClick={handleSave}
-              disabled={loading || !name.trim()}
-              className="flex-1 bg-primary/80 hover:bg-primary text-primary-foreground"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {loading ? 'Saving...' : 'Save Changes'}
-            </Button>
-            <Button
-              onClick={handleDeleteGroup}
-              variant="destructive"
-              disabled={loading}
-              className="bg-destructive/80 hover:bg-destructive"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Group
-            </Button>
-          </div>
+          {/* Clear History Section (Available to all users) */}
+          {!showClearConfirm && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-amber-500">
+                <History className="h-4 w-4" />
+                <span className="text-sm font-medium">Clear History</span>
+              </div>
+              <div className="p-4 rounded-lg border border-amber-500/20 bg-amber-500/5">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Clear your message history. The group will remain active with a fresh start for you.
+                </p>
+                <Button
+                  onClick={() => setShowClearConfirm(true)}
+                  variant="outline"
+                  size="sm"
+                  className="border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                >
+                  <History className="h-4 w-4 mr-2" />
+                  Clear History
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {showClearConfirm && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <History className="h-12 w-12 text-amber-500 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Clear Group History?
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  This will clear your view of the group conversation history. The group will remain active and other members will still see their messages.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  onClick={() => setShowClearConfirm(false)}
+                  variant="outline"
+                  className="flex-1 bg-background/50 border-white/20"
+                  disabled={clearingHistory}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleClearHistory}
+                  variant="outline"
+                  className="flex-1 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                  disabled={clearingHistory}
+                >
+                  <History className="h-4 w-4 mr-2" />
+                  {clearingHistory ? 'Clearing...' : 'Clear History'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Creator-only sections */}
+          {isCreator && !showClearConfirm && (
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/20">
+              <Button
+                onClick={handleSave}
+                disabled={loading || !name.trim()}
+                className="flex-1 bg-primary/80 hover:bg-primary text-primary-foreground"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {loading ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Button
+                onClick={handleDeleteGroup}
+                variant="destructive"
+                disabled={loading}
+                className="bg-destructive/80 hover:bg-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Group
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

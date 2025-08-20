@@ -5,7 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { X, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Trash2, AlertTriangle, History } from 'lucide-react';
 
 interface DirectChatSettingsProps {
   isOpen: boolean;
@@ -34,6 +34,8 @@ export const DirectChatSettings: React.FC<DirectChatSettingsProps> = ({
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearingHistory, setClearingHistory] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -132,6 +134,37 @@ export const DirectChatSettings: React.FC<DirectChatSettingsProps> = ({
     }
   };
 
+  const handleClearHistory = async () => {
+    setClearingHistory(true);
+    try {
+      const { error } = await supabase
+        .from('conversation_participants')
+        .update({ cleared_at: new Date().toISOString() })
+        .eq('conversation_id', conversationId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Chat history cleared successfully"
+      });
+
+      onUpdate?.();
+      onClose();
+    } catch (error) {
+      console.error('Error clearing chat history:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clear chat history",
+        variant: "destructive"
+      });
+    } finally {
+      setClearingHistory(false);
+      setShowClearConfirm(false);
+    }
+  };
+
   const otherParticipant = participants.find(p => p.user_id !== user?.id);
 
   return (
@@ -175,25 +208,82 @@ export const DirectChatSettings: React.FC<DirectChatSettingsProps> = ({
             </div>
           )}
 
-          {/* Delete Conversation Section */}
-          {!showDeleteConfirm ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <span className="text-sm font-medium">Danger Zone</span>
+          {/* Clear History & Delete Conversation Section */}
+          {!showDeleteConfirm && !showClearConfirm ? (
+            <div className="space-y-4">
+              {/* Clear History Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-amber-500">
+                  <History className="h-4 w-4" />
+                  <span className="text-sm font-medium">Clear History</span>
+                </div>
+                <div className="p-4 rounded-lg border border-amber-500/20 bg-amber-500/5">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Clear your message history. The conversation will remain active with a fresh start.
+                  </p>
+                  <Button
+                    onClick={() => setShowClearConfirm(true)}
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                  >
+                    <History className="h-4 w-4 mr-2" />
+                    Clear History
+                  </Button>
+                </div>
               </div>
-              <div className="p-4 rounded-lg border border-destructive/20 bg-destructive/5">
-                <p className="text-sm text-muted-foreground mb-3">
-                  Delete this conversation and all messages. This action cannot be undone.
+
+              {/* Delete Conversation Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span className="text-sm font-medium">Danger Zone</span>
+                </div>
+                <div className="p-4 rounded-lg border border-destructive/20 bg-destructive/5">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Delete this conversation and all messages. This action cannot be undone.
+                  </p>
+                  <Button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    variant="destructive"
+                    size="sm"
+                    className="w-full sm:w-auto bg-destructive/80 hover:bg-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Conversation
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : showClearConfirm ? (
+            <div className="space-y-4">
+              <div className="text-center">
+                <History className="h-12 w-12 text-amber-500 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Clear Chat History?
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  This will clear your view of the conversation history. The conversation will remain active and {otherParticipant?.profiles.display_name || 'the other person'} will still see their messages.
                 </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  variant="destructive"
-                  size="sm"
-                  className="w-full sm:w-auto bg-destructive/80 hover:bg-destructive"
+                  onClick={() => setShowClearConfirm(false)}
+                  variant="outline"
+                  className="flex-1 bg-background/50 border-white/20"
+                  disabled={clearingHistory}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Conversation
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleClearHistory}
+                  variant="outline"
+                  className="flex-1 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                  disabled={clearingHistory}
+                >
+                  <History className="h-4 w-4 mr-2" />
+                  {clearingHistory ? 'Clearing...' : 'Clear History'}
                 </Button>
               </div>
             </div>
