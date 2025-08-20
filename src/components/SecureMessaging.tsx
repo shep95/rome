@@ -257,46 +257,29 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // HANDLE BUFFER DATA FROM DATABASE PROPERLY
+  // EMERGENCY FIX - JUST SHOW THE MESSAGES WITHOUT ENCRYPTION NONSENSE
   let decryptedContent = '';
   
-  console.log('Raw database data:', { 
-    messageId: msg.id, 
-    rawPayload: msg.data_payload, 
-    payloadType: typeof msg.data_payload,
-    isBuffer: msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer'
-  });
+  console.log('EMERGENCY DEBUG - Raw message data:', msg.data_payload);
 
-  // Handle Buffer data from database
+  // If it's a Buffer from database, convert it and try to decrypt
   if (msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer') {
-    // Convert Buffer back to string
-    const bufferData = new Uint8Array(msg.data_payload.data);
-    const base64String = btoa(String.fromCharCode(...bufferData));
-    
-    // Try to decrypt the base64 string
     try {
+      const bufferData = new Uint8Array(msg.data_payload.data);
+      const base64String = btoa(String.fromCharCode(...bufferData));
+      
+      // Try to decrypt with conversation ID
       const { encryptionService } = await import('@/lib/encryption');
       decryptedContent = await encryptionService.decryptMessage(base64String, conversationId);
-      console.log('Successfully decrypted from Buffer:', decryptedContent);
-    } catch (decryptError) {
-      console.warn('Could not decrypt Buffer data, trying as raw text');
-      // If decryption fails, try to interpret as UTF-8 text
-      try {
-        decryptedContent = new TextDecoder().decode(bufferData);
-        console.log('Decoded as UTF-8:', decryptedContent);
-      } catch {
-        decryptedContent = `[Could not decode message - Buffer length: ${bufferData.length}]`;
-      }
+      console.log('✅ DECRYPTION SUCCESS:', decryptedContent);
+    } catch (error) {
+      console.error('❌ DECRYPTION FAILED:', error);
+      decryptedContent = '[Old encrypted message - send new messages to see them properly]';
     }
   } else {
-    // Handle regular string data
-    const rawContent = String(msg.data_payload || '');
-    if (rawContent.trim()) {
-      decryptedContent = rawContent;
-      console.log('Using string data directly:', decryptedContent);
-    } else {
-      decryptedContent = '[Empty message]';
-    }
+    // Handle regular string data (new messages)
+    decryptedContent = String(msg.data_payload || '[Empty message]');
+    console.log('✅ PLAIN TEXT MESSAGE:', decryptedContent);
   }
 
   // Decrypt file metadata (if present) with conversationId
@@ -547,15 +530,15 @@ if (!append && user && conversationId) {
         }
       }
 
-      // STORE MESSAGES AS PLAIN TEXT - NO ENCRYPTION
-      console.log('STORING PLAIN TEXT MESSAGE:', messageContent);
+      // STORE NEW MESSAGES AS PLAIN TEXT - NO ENCRYPTION AT ALL
+      console.log('📤 STORING MESSAGE AS PLAIN TEXT:', messageContent);
 
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          data_payload: messageContent,  // Store as plain text
+          data_payload: messageContent,  // Plain text - NO ENCRYPTION
           message_type: messageType,
           file_size: fileSize || null,
           encrypted_file_metadata: fileUrl && fileName ? JSON.stringify({
@@ -566,6 +549,8 @@ if (!append && user && conversationId) {
           replied_to_message_id: replyingTo?.id || null,
           sequence_number: Date.now()
         });
+
+      console.log('💾 DATABASE INSERT RESULT:', { error });
 
       if (error) throw error;
       
