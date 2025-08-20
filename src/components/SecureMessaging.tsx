@@ -1105,42 +1105,41 @@ if (!append && user && conversationId) {
               <div
                 key={message.id}
                 data-message-id={message.id}
-                className={`flex items-end gap-2 sm:gap-3 relative z-10 w-full ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                className={`flex items-end gap-2 mb-3 relative z-10 w-full ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
               >
                 {/* Avatar for others */}
-                        {message.sender_id !== user?.id && (
-                          <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
-                            <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-lg" />
-                            <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-lg">
-                              {message.sender?.display_name?.[0] || 
-                               message.sender?.username?.[0] || 
-                               'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
+                {message.sender_id !== user?.id && (
+                  <Avatar className="h-8 w-8 rounded-full flex-shrink-0 mb-1">
+                    <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-full" />
+                    <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+                      {message.sender?.display_name?.[0] || 
+                       message.sender?.username?.[0] || 
+                       'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
                 
-                <div className="flex flex-col max-w-[90%] sm:max-w-[85%] md:max-w-sm lg:max-w-md xl:max-w-lg 2xl:max-w-xl">
+                <div className={`flex flex-col max-w-[80%] ${message.sender_id === user?.id ? 'items-end' : 'items-start'}`}>
                   {/* Username for others */}
-                      {message.sender_id !== user?.id && (
-                        <p className="text-xs text-muted-foreground mb-1 px-1">
-                          {message.sender?.display_name || 
-                           message.sender?.username || 
-                           'Unknown User'}
-                        </p>
-                      )}
+                  {message.sender_id !== user?.id && (
+                    <p className="text-xs text-muted-foreground mb-1 px-1">
+                      {message.sender?.display_name || 
+                       message.sender?.username || 
+                       'Unknown User'}
+                    </p>
+                  )}
                   
                   <div className="relative group">
                     <div
-                      className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl backdrop-blur-xl border-2 text-white ${
+                      className={`px-4 py-3 rounded-2xl shadow-sm ${
                         message.sender_id === user?.id
-                          ? 'bg-primary/30 border-primary/30'
-                          : 'bg-card/20 border-border/30'
-                      } transition-all duration-300 hover:backdrop-blur-2xl group-hover:border-primary/40 max-w-full overflow-hidden`}
+                          ? 'bg-primary text-white rounded-br-md'
+                          : 'bg-muted text-foreground rounded-bl-md'
+                      } transition-all duration-200 max-w-full break-words`}
                       style={{
-                        backdropFilter: 'blur(20px) saturate(150%)',
-                        WebkitBackdropFilter: 'blur(20px) saturate(150%)',
                         wordWrap: 'break-word',
-                        overflowWrap: 'break-word'
+                        overflowWrap: 'break-word',
+                        wordBreak: 'break-word'
                       }}
                     >
                       {/* Reply Preview */}
@@ -1181,8 +1180,14 @@ if (!append && user && conversationId) {
                                      <img 
                                        src={message.file_url!} 
                                        alt={message.file_name || 'Image'}
-                                       className="max-w-full w-full rounded-lg max-h-64 object-cover cursor-pointer block"
-                                       style={{ maxWidth: '100%', height: 'auto' }}
+                                       className="max-w-full rounded-lg cursor-pointer block"
+                                       style={{ 
+                                         maxWidth: '280px', 
+                                         maxHeight: '250px',
+                                         width: 'auto',
+                                         height: 'auto',
+                                         objectFit: 'cover'
+                                       }}
                                        onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
                                        onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
                                      />
@@ -1256,32 +1261,36 @@ if (!append && user && conversationId) {
                           )}
                           {/* Show caption if not equal to filename */}
                           {message.content && message.content.trim() && message.content !== message.file_name && (
-                            <div className="space-y-2">
-                              <pre className="text-sm leading-relaxed break-words break-all whitespace-pre-wrap font-sans">
-                                {message.isTranslated && message.translatedContent 
-                                  ? message.translatedContent 
-                                  : message.content}
-                              </pre>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    if (message.translatedContent) {
-                                      toggleTranslation(message.id);
-                                    } else {
-                                      translateMessage(message.id, message.content);
-                                    }
-                                  }}
-                                  disabled={translatingMessageId === message.id}
-                                  className="h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity"
-                                >
-                                  <Languages className="h-3 w-3 mr-1" />
-                                  {translatingMessageId === message.id ? 'Translating...' : 
-                                   message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
-                                </Button>
-                              </div>
-                            </div>
+                             <div className="space-y-2">
+                               <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                                 {message.isTranslated && message.translatedContent 
+                                   ? message.translatedContent 
+                                   : message.content}
+                               </div>
+                               <div className="flex items-center gap-2">
+                                 <Button
+                                   size="sm"
+                                   variant="ghost"
+                                   onClick={() => {
+                                     if (message.translatedContent) {
+                                       toggleTranslation(message.id);
+                                     } else {
+                                       translateMessage(message.id, message.content);
+                                     }
+                                   }}
+                                   disabled={translatingMessageId === message.id}
+                                   className={`h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity ${
+                                     message.sender_id === user?.id 
+                                       ? 'text-white/80 hover:text-white hover:bg-white/10' 
+                                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                   }`}
+                                 >
+                                   <Languages className="h-3 w-3 mr-1" />
+                                   {translatingMessageId === message.id ? 'Translating...' : 
+                                    message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
+                                 </Button>
+                               </div>
+                             </div>
                           )}
                         </div>
                       ) : (
@@ -1300,11 +1309,11 @@ editingMessageId === message.id ? (
   </div>
 ) : (
   <div className="space-y-2">
-    <pre className="text-sm leading-relaxed break-words break-all whitespace-pre-wrap font-sans">
+    <div className="text-sm leading-relaxed whitespace-pre-wrap">
       {message.isTranslated && message.translatedContent 
         ? message.translatedContent 
         : message.content}
-    </pre>
+    </div>
     {message.message_type === 'text' && (
       <div className="flex items-center gap-2">
         <Button
@@ -1318,7 +1327,11 @@ editingMessageId === message.id ? (
             }
           }}
           disabled={translatingMessageId === message.id}
-          className="h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity"
+          className={`h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity ${
+            message.sender_id === user?.id 
+              ? 'text-white/80 hover:text-white hover:bg-white/10' 
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+          }`}
         >
           <Languages className="h-3 w-3 mr-1" />
           {translatingMessageId === message.id ? 'Translating...' : 
@@ -1331,10 +1344,14 @@ editingMessageId === message.id ? (
                       )}
                       
                       <div className="flex items-center justify-between mt-2">
-<p className="text-xs opacity-70">
-  {new Date(message.created_at).toLocaleTimeString()}
-  {message.edited_at ? ' • edited' : ''}
-</p>
+                        <p className={`text-xs ${
+                          message.sender_id === user?.id 
+                            ? 'text-white/70' 
+                            : 'text-muted-foreground'
+                        }`}>
+                          {new Date(message.created_at).toLocaleTimeString()}
+                          {message.edited_at ? ' • edited' : ''}
+                        </p>
                         
                         {/* Read receipts for sent messages */}
                         {message.sender_id === user?.id && message.read_receipts && message.read_receipts.length > 0 && (
@@ -1414,9 +1431,9 @@ editingMessageId === message.id ? (
                 
                 {/* Avatar for current user */}
                 {message.sender_id === user?.id && (
-                  <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border border-border/50 flex-shrink-0">
-                    <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-lg" />
-                    <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-lg">
+                  <Avatar className="h-8 w-8 rounded-full flex-shrink-0 mb-1">
+                    <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-full" />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                       {message.sender?.display_name?.[0] || 
                        message.sender?.username?.[0] || 
                        'Y'}
