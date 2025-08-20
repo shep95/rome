@@ -174,14 +174,10 @@ export const ReconnectModal: React.FC<ReconnectModalProps> = ({ isOpen, onClose 
     try {
       const { error } = await supabase
         .from('message_requests')
-        .upsert({
+        .insert({
           from_user_id: user.id,
           to_user_id: selectedContact.user_id,
-          message: message.trim(),
-          status: 'pending',
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'from_user_id,to_user_id'
+          message: message.trim()
         });
 
       if (error) throw error;
@@ -198,14 +194,7 @@ export const ReconnectModal: React.FC<ReconnectModalProps> = ({ isOpen, onClose 
       setMessage('');
     } catch (error: any) {
       console.error('Error sending message request:', error);
-      
-      if (error.code === '23505') {
-        toast.error('Message request already sent', {
-          description: 'You have already sent a message request to this person'
-        });
-      } else {
-        toast.error('Failed to send message request');
-      }
+      toast.error('Failed to send message request');
     } finally {
       setSending(false);
     }
