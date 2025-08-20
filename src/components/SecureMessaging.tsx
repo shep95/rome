@@ -257,27 +257,38 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // Display messages as plain text without encryption
-  const decryptedContent = msg.data_payload || '';
-  // Handle file metadata as plain text
+  // Decrypt content using military-grade AES-GCM with conversationId
+  let decryptedContent = '';
+  try {
+    const { encryptionService } = await import('@/lib/encryption');
+    decryptedContent = await encryptionService.decryptMessage(String(msg.data_payload), conversationId);
+  } catch {
+    decryptedContent = msg.data_payload || '';
+  }
+
+  // Decrypt file metadata (if present) with conversationId
   let signedUrl: string | null = null;
-  let fileName: string | null = msg.file_name;
-  if (msg.file_url && msg.encrypted_file_metadata) {
+  let fileName: string | null = null;
+  if (msg.encrypted_file_metadata) {
     try {
-      const fileMetadata = JSON.parse(msg.encrypted_file_metadata);
+      const { encryptionService } = await import('@/lib/encryption');
+      const decryptedMeta = await encryptionService.decryptMessage(String(msg.encrypted_file_metadata), conversationId);
+      const fileMetadata = JSON.parse(decryptedMeta);
       fileName = fileMetadata.file_name || null;
-      signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
-    } catch (error) {
-      console.error('Error parsing file metadata:', error);
-      signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
+      if (fileMetadata.file_url) {
+        signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
+      }
+    } catch (e) {
+      console.error('Error decrypting file metadata:', e);
     }
   } else if (msg.file_url) {
+    fileName = msg.file_name || null;
     signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
   }
   
   const message: Message = {
     id: msg.id,
-    content: decryptedContent, // This is now ALWAYS readable English, never encrypted gibberish
+    content: decryptedContent,
     sender_id: msg.sender_id,
     created_at: msg.created_at,
     message_type: (msg.message_type as any) || 'text',
@@ -290,7 +301,7 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
       display_name: senderProfile?.display_name || senderProfile?.username || `user_${msg.sender_id.slice(0, 6)}`,
       avatar_url: senderProfile?.avatar_url || null,
     },
-    read_receipts: [], // Lazy-load if needed
+    read_receipts: [],
     replied_to_message: undefined,
     edited_at: msg.edited_at || null,
     edit_count: typeof msg.edit_count === 'number' ? msg.edit_count : 0,
@@ -503,22 +514,28 @@ if (!append && user && conversationId) {
         }
       }
 
-      // Store messages as plain text - no encryption
+      // Encrypt message and (optionally) file metadata using conversation ID
+      const { encryptionService } = await import('@/lib/encryption');
+      const encryptedBase64 = await encryptionService.encryptMessage(messageContent, conversationId);
+      let encMetaB64: string | null = null;
+      if (fileUrl && fileName) {
+        const fileMetadata = {
+          file_url: fileUrl,
+          file_name: fileName,
+          content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
+        };
+        encMetaB64 = await encryptionService.encryptMessage(JSON.stringify(fileMetadata), conversationId);
+      }
+
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          data_payload: messageContent,
+          data_payload: encryptedBase64,
           message_type: messageType,
-          file_url: fileUrl || null,
-          file_name: fileName || null,
           file_size: fileSize || null,
-          encrypted_file_metadata: fileUrl && fileName ? JSON.stringify({
-            file_url: fileUrl,
-            file_name: fileName,
-            content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
-          }) : null,
+          encrypted_file_metadata: encMetaB64,
           replied_to_message_id: replyingTo?.id || null,
           sequence_number: Date.now()
         });
