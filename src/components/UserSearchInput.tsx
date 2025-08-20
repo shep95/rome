@@ -68,7 +68,7 @@ export const UserSearchInput: React.FC<UserSearchInputProps> = ({
           placeholder={placeholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-background/50 border-white/20"
+          className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground"
           onFocus={() => searchQuery.length > 0 && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
         />

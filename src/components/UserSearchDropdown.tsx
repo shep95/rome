@@ -162,7 +162,7 @@ export const UserSearchDropdown = ({ isOpen, onClose }: UserSearchDropdownProps)
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="What do you want to say?"
-                  className="w-full mt-1 p-3 border rounded-lg resize-none"
+                  className="w-full mt-1 p-3 bg-input border border-border rounded-lg resize-none text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
                   rows={3}
                 />
               </div>
