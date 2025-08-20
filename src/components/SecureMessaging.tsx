@@ -840,7 +840,7 @@ if (!append && user && conversationId) {
     setTranslatingMessageId(messageId);
     
     try {
-      // Always translate to English for consistency
+      // Use English as default target language for now
       const userLanguage = 'en';
       
       // Use Supabase Edge Function to avoid CORS issues and rate limits
@@ -850,9 +850,11 @@ if (!append && user && conversationId) {
 
       if (error) {
         console.error('Translation invoke error:', error);
-        toast.error('Translation failed. Please try again.');
+        toast.error('Translation service unavailable. Please try again later.');
       } else {
         const translatedText = (data as any)?.translated || null;
+        const fallbackText = (data as any)?.fallback || null;
+        
         if (translatedText) {
           // Update the message with translation
           setMessages(prev => prev.map(msg => 
@@ -860,13 +862,22 @@ if (!append && user && conversationId) {
               ? { ...msg, translatedContent: translatedText, isTranslated: true }
               : msg
           ));
+          toast.success('Message translated successfully!');
+        } else if (fallbackText) {
+          // Use fallback text if available
+          setMessages(prev => prev.map(msg => 
+            msg.id === messageId 
+              ? { ...msg, translatedContent: fallbackText, isTranslated: true }
+              : msg
+          ));
+          toast.error('Translation service unavailable. Showing original text.');
         } else {
-          toast.error('Translation service returned no result.');
+          toast.error('Translation service returned no result. Please try again later.');
         }
       }
     } catch (error) {
       console.error('Translation error:', error);
-      toast.error('Translation service unavailable.');
+      toast.error('Translation failed. Please check your connection and try again.');
     } finally {
       setTranslatingMessageId(null);
     }

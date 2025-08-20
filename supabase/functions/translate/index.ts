@@ -1,5 +1,5 @@
 // Supabase Edge Function: translate
-// Enhanced translation service supporting all world languages
+// Enhanced translation service supporting all world languages with robust fallbacks
 // Request body: { q: string, source?: string, target?: string, getLanguages?: boolean }
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
@@ -93,6 +93,68 @@ const languageMap = {
   'eo': { name: 'Esperanto', native: 'Esperanto' }
 };
 
+// Multiple translation providers for failover
+const translationProviders = [
+  {
+    name: 'LibreTranslate',
+    url: 'https://libretranslate.com/translate',
+    headers: { 
+      'Content-Type': 'application/json',
+      'User-Agent': 'ROME-Translation-Service/1.0'
+    }
+  },
+  {
+    name: 'LibreTranslate Mirror',
+    url: 'https://translate.argosopentech.com/translate',
+    headers: { 
+      'Content-Type': 'application/json',
+      'User-Agent': 'ROME-Translation-Service/1.0'
+    }
+  }
+];
+
+async function tryTranslation(text: string, source: string, target: string) {
+  for (const provider of translationProviders) {
+    try {
+      console.log(`Attempting translation with ${provider.name}...`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch(provider.url, {
+        method: 'POST',
+        headers: provider.headers,
+        body: JSON.stringify({ 
+          q: text.substring(0, 5000), // Limit text length
+          source, 
+          target, 
+          format: 'text' 
+        }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const translated = data?.translatedText;
+        
+        if (translated && translated.trim()) {
+          console.log(`✅ Translation successful with ${provider.name}`);
+          return translated;
+        }
+      } else {
+        console.log(`❌ ${provider.name} returned ${response.status}`);
+      }
+    } catch (error) {
+      console.log(`❌ ${provider.name} failed:`, error.message);
+      continue; // Try next provider
+    }
+  }
+  
+  return null; // All providers failed
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -115,8 +177,8 @@ serve(async (req) => {
 
     const { q, source = 'auto', target = 'en' } = requestData;
     
-    if (!q || typeof q !== 'string') {
-      return new Response(JSON.stringify({ error: 'Missing text to translate (q)' }), { 
+    if (!q || typeof q !== 'string' || q.trim().length === 0) {
+      return new Response(JSON.stringify({ error: 'Missing or empty text to translate' }), { 
         status: 400, 
         headers: corsHeaders 
       });
@@ -132,52 +194,35 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Translating from ${source} to ${target}: "${q.substring(0, 100)}..."`);
-
-    // Call LibreTranslate with enhanced error handling
-    const upstream = await fetch('https://libretranslate.com/translate', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'User-Agent': 'ROME-Translation-Service/1.0'
-      },
-      body: JSON.stringify({ 
-        q: q.substring(0, 5000), // Limit text length
-        source, 
-        target, 
-        format: 'text' 
-      })
-    });
-
-    if (!upstream.ok) {
-      const errText = await upstream.text();
-      console.error('LibreTranslate error:', errText);
-      
-      // Try alternative translation approach or return fallback
+    // Skip translation if source and target are the same (for non-auto detection)
+    if (source !== 'auto' && source === target) {
       return new Response(JSON.stringify({ 
-        error: 'Translation service temporarily unavailable',
-        details: `HTTP ${upstream.status}`,
-        fallback: `[Translation to ${languageMap[target].name} failed]`
-      }), { 
-        status: 502, 
-        headers: corsHeaders 
-      });
+        translated: q,
+        sourceLanguage: source,
+        targetLanguage: target,
+        targetLanguageName: languageMap[target].name,
+        skipped: true
+      }), { headers: corsHeaders });
     }
 
-    const data = await upstream.json();
-    const translated = data?.translatedText ?? null;
+    console.log(`🌐 Translating from ${source} to ${target}: "${q.substring(0, 100)}..."`);
+
+    // Try translation with fallback providers
+    const translated = await tryTranslation(q, source, target);
 
     if (!translated) {
+      console.error('❌ All translation providers failed');
       return new Response(JSON.stringify({ 
-        error: 'No translation result',
-        original: q
+        error: 'All translation services are currently unavailable',
+        fallback: q, // Return original text as fallback
+        providers: translationProviders.map(p => p.name)
       }), { 
-        status: 502, 
+        status: 503, 
         headers: corsHeaders 
       });
     }
 
-    console.log(`Translation successful: "${translated.substring(0, 100)}..."`);
+    console.log(`✅ Translation successful: "${translated.substring(0, 100)}..."`);
 
     return new Response(JSON.stringify({ 
       translated,
@@ -187,7 +232,7 @@ serve(async (req) => {
     }), { headers: corsHeaders });
 
   } catch (e) {
-    console.error('Translation service error:', e);
+    console.error('❌ Translation service error:', e);
     return new Response(JSON.stringify({ 
       error: 'Internal translation service error',
       message: String(e?.message || e)
