@@ -387,16 +387,35 @@ if (!append && user && conversationId) {
   // Generate a signed URL for private 'secure-files' bucket
   const getSignedUrlForSecureFiles = async (urlOrPath: string): Promise<string | null> => {
     try {
-      let path = urlOrPath;
-      if (urlOrPath.startsWith('http')) {
-        const marker = '/secure-files/';
-        const idx = urlOrPath.indexOf(marker);
-        if (idx !== -1) {
-          path = urlOrPath.substring(idx + marker.length);
-        } else {
-          return null;
+      if (!urlOrPath) return null;
+      let input = urlOrPath;
+
+      // If it's a full URL, reduce to pathname
+      try {
+        if (input.startsWith('http')) {
+          input = new URL(input).pathname;
         }
+      } catch {}
+
+      const marker = '/secure-files/';
+      let path: string;
+
+      const idx = input.indexOf(marker);
+      if (idx !== -1) {
+        path = input.substring(idx + marker.length);
+      } else if (input.startsWith('secure-files/')) {
+        path = input.substring('secure-files/'.length);
+      } else {
+        // Assume it's already a bucket-relative path
+        path = input.replace(/^\/+/, '');
       }
+
+      // Guard against signed route patterns that still include router prefix
+      if (path.includes('/object/sign/')) {
+        const idx2 = path.indexOf(marker);
+        if (idx2 !== -1) path = path.substring(idx2 + marker.length);
+      }
+
       const { data, error } = await supabase
         .storage
         .from('secure-files')
@@ -998,81 +1017,95 @@ if (!append && user && conversationId) {
                         </div>
                       )}
                       
-                      {message.file_url ? (
+                      {message.message_type !== 'text' ? (
                         <div className="space-y-2">
-                          {(() => {
-                            const extFromName = message.file_name?.split('.').pop()?.toLowerCase();
-                            const ext = extFromName || getFileExtFromUrl(message.file_url || '');
-                            const isImage = !!ext && /(jpg|jpeg|png|gif|webp|svg)$/i.test(ext);
-                            const isVideo = !!ext && /(mp4|webm|ogg|avi|mov)$/i.test(ext);
-                            const downloadHref = makeDownloadUrl(message.file_url!, message.file_name || undefined);
+                          {message.file_url ? (
+                            (() => {
+                              const extFromName = message.file_name?.split('.').pop()?.toLowerCase();
+                              const ext = extFromName || getFileExtFromUrl(message.file_url || '');
+                              const isImage = !!ext && /(jpg|jpeg|png|gif|webp|svg)$/i.test(ext);
+                              const isVideo = !!ext && /(mp4|webm|ogg|avi|mov)$/i.test(ext);
+                              const downloadHref = makeDownloadUrl(message.file_url!, message.file_name || undefined);
 
-                            if (isImage) {
-                              return (
-                                <div className="space-y-2">
-                                   <img 
-                                     src={message.file_url!} 
-                                     alt={message.file_name || 'Image'}
-                                     className="max-w-full w-full rounded-lg max-h-64 object-cover cursor-pointer block"
-                                     style={{ maxWidth: '100%', height: 'auto' }}
-                                     onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
-                                     onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
-                                   />
-                                  <div className="flex gap-3 text-xs">
-                                    <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
-                                      Download
-                                    </a>
-                                  </div>
-                                </div>
-                              );
-                            } else if (isVideo) {
-                              return (
-                                 <div className="space-y-2">
-                                   <div 
-                                     className="relative cursor-pointer"
-                                     onClick={() => openMediaModal(message.file_url!, 'video', message.file_name, message.file_size)}
-                                   >
-                                     <video 
-                                       src={message.file_url!}
-                                       className="max-w-full w-full rounded-lg max-h-64 block pointer-events-none"
+                              if (isImage) {
+                                return (
+                                  <div className="space-y-2">
+                                     <img 
+                                       src={message.file_url!} 
+                                       alt={message.file_name || 'Image'}
+                                       className="max-w-full w-full rounded-lg max-h-64 object-cover cursor-pointer block"
                                        style={{ maxWidth: '100%', height: 'auto' }}
+                                       onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
                                        onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
                                      />
-                                     <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
-                                       <div className="bg-white/90 rounded-full p-2">
-                                         <Video className="h-6 w-6 text-black" />
+                                    <div className="flex gap-3 text-xs">
+                                      <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
+                                        Download
+                                      </a>
+                                    </div>
+                                  </div>
+                                );
+                              } else if (isVideo) {
+                                return (
+                                   <div className="space-y-2">
+                                     <div 
+                                       className="relative cursor-pointer"
+                                       onClick={() => openMediaModal(message.file_url!, 'video', message.file_name, message.file_size)}
+                                     >
+                                       <video 
+                                         src={message.file_url!}
+                                         className="max-w-full w-full rounded-lg max-h-64 block pointer-events-none"
+                                         style={{ maxWidth: '100%', height: 'auto' }}
+                                         onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
+                                       />
+                                       <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                                         <div className="bg-white/90 rounded-full p-2">
+                                           <Video className="h-6 w-6 text-black" />
+                                         </div>
                                        </div>
                                      </div>
-                                   </div>
-                                  <div className="flex gap-3 text-xs">
-                                    <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
+                                    <div className="flex gap-3 text-xs">
+                                      <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
+                                        Download
+                                      </a>
+                                    </div>
+                                  </div>
+                                );
+                              } else {
+                                return (
+                                  <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
+                                    <File className="h-8 w-8 text-white/80" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium truncate">{message.file_name || 'File'}</p>
+                                      <p className="text-xs text-white/70">
+                                        {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'Attachment'}
+                                      </p>
+                                    </div>
+                                    <a 
+                                      href={downloadHref} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-xs underline text-white/80 hover:text-white"
+                                    >
                                       Download
                                     </a>
                                   </div>
-                                </div>
-                              );
-                            } else {
-                              return (
-                                <div className="flex items-center gap-2 p-2 bg-background/20 rounded-lg">
-                                  <File className="h-8 w-8 text-white/80" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate">File</p>
-                                    <p className="text-xs text-white/70">
-                                      {message.file_size ? (message.file_size / 1024 / 1024).toFixed(1) + ' MB' : 'Attachment'}
-                                    </p>
-                                  </div>
-                                  <a 
-                                    href={downloadHref} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-xs underline text-white/80 hover:text-white"
-                                  >
-                                    Download
-                                  </a>
-                                </div>
-                              );
-                            }
-                          })()}
+                                );
+                              }
+                            })()
+                          ) : (
+                            <div className="flex items-center justify-between gap-3 p-3 bg-background/30 rounded-lg border border-border/30">
+                              <div className="text-xs text-white/80">
+                                Media is protected. Load to view.
+                                {message.file_name && (
+                                  <div className="mt-1 opacity-80">{message.file_name}</div>
+                                )}
+                              </div>
+                              <Button size="sm" variant="secondary" onClick={() => loadMessages()} className="h-7 px-2 text-xs">
+                                Load media
+                              </Button>
+                            </div>
+                          )}
                           {/* Show caption if not equal to filename */}
                           {message.content && message.content.trim() && message.content !== message.file_name && (
                             <div className="space-y-2">
@@ -1081,27 +1114,25 @@ if (!append && user && conversationId) {
                                   ? message.translatedContent 
                                   : message.content}
                               </pre>
-                              {message.message_type === 'text' && (
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      if (message.translatedContent) {
-                                        toggleTranslation(message.id);
-                                      } else {
-                                        translateMessage(message.id, message.content);
-                                      }
-                                    }}
-                                    disabled={translatingMessageId === message.id}
-                                    className="h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity"
-                                  >
-                                    <Languages className="h-3 w-3 mr-1" />
-                                    {translatingMessageId === message.id ? 'Translating...' : 
-                                     message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
-                                  </Button>
-                                </div>
-                              )}
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    if (message.translatedContent) {
+                                      toggleTranslation(message.id);
+                                    } else {
+                                      translateMessage(message.id, message.content);
+                                    }
+                                  }}
+                                  disabled={translatingMessageId === message.id}
+                                  className="h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity"
+                                >
+                                  <Languages className="h-3 w-3 mr-1" />
+                                  {translatingMessageId === message.id ? 'Translating...' : 
+                                   message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
+                                </Button>
+                              </div>
                             </div>
                           )}
                         </div>
