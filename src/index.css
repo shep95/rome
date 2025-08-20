@@ -245,8 +245,6 @@ input, textarea, select {
     color: white !important;
   }
   
-/* Mobile messaging improvements */
-@media screen and (max-width: 768px) {
   /* Messages container */
   .flex-1.overflow-y-auto {
     padding: 1rem 0.5rem 1.5rem 0.5rem !important;
@@ -291,7 +289,7 @@ input, textarea, select {
   }
 }
 
-  @media (max-width: 767px) {
+@media (max-width: 767px) {
     /* Ensure proper touch targets */
     button, .clickable {
       min-height: 44px;
@@ -503,4 +501,3 @@ input, textarea, select {
       transition-duration: 0.01ms !important;
     }
   }
-}
