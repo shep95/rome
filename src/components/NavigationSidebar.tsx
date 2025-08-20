@@ -19,8 +19,10 @@ import {
   ImageIcon,
   Shield,
   FileText,
-  LogOut
+  LogOut,
+  MoreVertical
 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 import { SettingsModal } from './SettingsModal';
 import { CallHistory } from './CallHistory';
@@ -234,47 +236,56 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         </Button>
       </nav>
       
-      {/* Sign Out Button */}
-      <div className="pb-4">
-        <Button
-          onClick={() => {
-            handleSignOut();
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-destructive hover:text-destructive hover:bg-destructive/10"
-        >
-          <LogOut className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Sign Out</span>
-        </Button>
-      </div>
       
       {/* Profile Section */}
       <div className="pt-6 lg:pt-8">
+        <div className="flex items-center justify-between">
           <div 
-            className="flex items-center cursor-pointer hover:bg-primary/5 p-2 rounded-lg transition-colors"
+            className="flex items-center cursor-pointer hover:bg-primary/5 p-2 rounded-lg transition-colors flex-1"
             onClick={() => {
               setIsProfileModalOpen(true);
               setIsMobileSidebarOpen(false);
             }}
           >
-          {profileImage ? (
-            <img 
-              src={profileImage} 
-              alt="Profile" 
-              className="w-8 h-8 lg:w-10 lg:h-10 object-cover rounded-xl border border-border"
-            />
-          ) : (
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-primary-foreground font-medium text-sm">
-              {getUserInitial()}
+            {profileImage ? (
+              <img 
+                src={profileImage} 
+                alt="Profile" 
+                className="w-8 h-8 lg:w-10 lg:h-10 object-cover rounded-xl border border-border"
+              />
+            ) : (
+              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-primary-foreground font-medium text-sm">
+                {getUserInitial()}
+              </div>
+            )}
+            <div className="ml-3">
+              <p className="text-foreground font-medium text-sm truncate">
+                {user?.email?.split('@')[0] || 'User'}
+              </p>
+              <p className="text-muted-foreground text-xs">Online</p>
             </div>
-          )}
-          <div className="ml-3">
-            <p className="text-foreground font-medium text-sm truncate">
-              {user?.email?.split('@')[0] || 'User'}
-            </p>
-            <p className="text-muted-foreground text-xs">Online</p>
           </div>
+          
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-primary/10">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-1" align="end">
+              <Button
+                onClick={() => {
+                  handleSignOut();
+                  setIsMobileSidebarOpen(false);
+                }}
+                variant="ghost"
+                className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     </div>

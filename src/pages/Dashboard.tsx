@@ -78,18 +78,6 @@ const Dashboard = () => {
     <>
       <AppLock isLocked={isLocked} onUnlock={unlockApp} />
       <div className="min-h-screen w-full bg-background flex">
-        {/* Sign Out Button - Top Right */}
-        <div className="fixed top-2 right-2 md:top-4 md:right-4 z-50">
-          <Button
-            onClick={signOut}
-            variant="outline"
-            size="sm"
-            className="gap-1 md:gap-2 bg-card/80 backdrop-blur-xl border-border text-foreground hover:bg-card text-xs md:text-sm px-2 md:px-3 py-1 md:py-2"
-          >
-            <LogOut className="h-3 w-3 md:h-4 md:w-4" />
-            <span className="hidden sm:inline">Sign Out</span>
-          </Button>
-        </div>
       
       {/* Navigation Sidebar */}
       <NavigationSidebar 
