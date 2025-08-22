@@ -570,10 +570,19 @@ if (!append && user && conversationId) {
         },
         (payload) => {
           console.log('New message received via realtime:', payload);
-          // Reload only when the message is from someone else to avoid duplicating our optimistic update
           try {
             const incoming = (payload as any).new;
-            if (!incoming || incoming.sender_id !== user?.id) {
+            if (!incoming) return;
+            
+            if (incoming.sender_id === user?.id) {
+              // Replace optimistic message with real message from database
+              setMessages(prev => {
+                const withoutOptimistic = prev.filter(msg => !msg.id.startsWith('temp-'));
+                return withoutOptimistic;
+              });
+              loadMessages();
+            } else {
+              // Message from someone else, just reload
               loadMessages();
             }
           } catch (e) {
