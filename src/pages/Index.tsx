@@ -142,7 +142,12 @@ const Index = () => {
           
           <div className="flex flex-col sm:flex-row gap-8 justify-center items-center max-w-4xl mx-auto">
             {/* Twitter */}
-            <div className="group relative">
+            <a 
+              href="https://x.com/asher_united" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group relative hover-scale"
+            >
               <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
               <div className="relative bg-card border border-primary/20 rounded-2xl p-8 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 cursor-pointer min-w-[200px] text-center">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center">
@@ -151,13 +156,18 @@ const Index = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Twitter</h3>
-                <p className="text-sm text-muted-foreground mb-4">Follow us @ROMESecure</p>
+                <p className="text-sm text-muted-foreground mb-4">Follow us @asher_united</p>
                 <div className="text-xs text-primary">Follow Now</div>
               </div>
-            </div>
+            </a>
             
             {/* YouTube */}
-            <div className="group relative">
+            <a 
+              href="https://www.youtube.com/@asher_newton" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group relative hover-scale"
+            >
               <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
               <div className="relative bg-card border border-primary/20 rounded-2xl p-8 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 cursor-pointer min-w-[200px] text-center">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center">
@@ -169,10 +179,15 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground mb-4">Security tutorials & updates</p>
                 <div className="text-xs text-primary">Subscribe</div>
               </div>
-            </div>
+            </a>
             
             {/* Discord */}
-            <div className="group relative">
+            <a 
+              href="https://discord.gg/2JpT4XSbHQ" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group relative hover-scale"
+            >
               <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
               <div className="relative bg-card border border-primary/20 rounded-2xl p-8 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 cursor-pointer min-w-[200px] text-center">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center">
@@ -184,13 +199,8 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground mb-4">Join our community</p>
                 <div className="text-xs text-primary">Join Server</div>
               </div>
-            </div>
+            </a>
           </div>
-        </div>
-        
-        {/* Scroll Down Button */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <ScrollDownButton targetId="auth-section" />
         </div>
       </section>
       
