@@ -2,6 +2,9 @@
  * Military-grade encryption utilities for secure communications
  * Uses single AEAD (AES-GCM) with proper random IV per operation
  * Zero-knowledge architecture - no plaintext ever stored on servers
+ * 
+ * ENHANCED SECURITY: Private cryptographic keys are now double-encrypted
+ * before storage to prevent exposure even with database access.
  */
 
 class MilitaryEncryption {
@@ -15,6 +18,206 @@ class MilitaryEncryption {
       MilitaryEncryption.instance = new MilitaryEncryption();
     }
     return MilitaryEncryption.instance;
+  }
+
+  /**
+   * SECURITY ENHANCEMENT: Encrypt private keys before database storage
+   * This adds application-level encryption on top of database encryption
+   */
+  async encryptPrivateKeyForStorage(
+    privateKey: Uint8Array, 
+    userPassword: string,
+    keyType: 'identity' | 'prekey' = 'identity'
+  ): Promise<string> {
+    // Use a key-specific salt derivation for each key type
+    const keySpecificData = `${keyType}_key_encryption_${userPassword}`;
+    
+    // Generate unique salt for this key encryption
+    const salt = this.generateSalt();
+    
+    // Derive a key specifically for encrypting private keys
+    const encryptionKey = await this.deriveKeyForPrivateKeyStorage(keySpecificData, salt);
+    
+    // Generate fresh IV for this encryption
+    const iv = this.generateIV();
+    
+    // Encrypt the private key
+    const encrypted = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      encryptionKey,
+      privateKey
+    );
+    
+    // Combine salt + iv + encrypted data
+    const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+    combined.set(salt, 0);
+    combined.set(iv, salt.length);
+    combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+    
+    // Return as base64 for database storage
+    return btoa(String.fromCharCode(...combined));
+  }
+
+  /**
+   * SECURITY ENHANCEMENT: Decrypt private keys from database storage
+   */
+  async decryptPrivateKeyFromStorage(
+    encryptedPrivateKey: string,
+    userPassword: string, 
+    keyType: 'identity' | 'prekey' = 'identity'
+  ): Promise<Uint8Array> {
+    try {
+      // Decode from base64
+      const combined = new Uint8Array(
+        atob(encryptedPrivateKey).split('').map(c => c.charCodeAt(0))
+      );
+      
+      // Extract components
+      const salt = combined.slice(0, 32);
+      const iv = combined.slice(32, 44);
+      const encryptedData = combined.slice(44);
+      
+      // Derive the same key used for encryption
+      const keySpecificData = `${keyType}_key_encryption_${userPassword}`;
+      const decryptionKey = await this.deriveKeyForPrivateKeyStorage(keySpecificData, salt);
+      
+      // Decrypt the private key
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        decryptionKey,
+        encryptedData
+      );
+      
+      return new Uint8Array(decrypted);
+    } catch (error) {
+      throw new Error('Failed to decrypt private key - invalid credentials or corrupted data');
+    }
+  }
+
+  /**
+   * SECURITY ENHANCEMENT: Derive encryption key specifically for private key storage
+   */
+  private async deriveKeyForPrivateKeyStorage(keyData: string, salt: Uint8Array): Promise<CryptoKey> {
+    const encoder = new TextEncoder();
+    
+    // Import the key material
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(keyData),
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+
+    // Derive encryption key with enhanced parameters
+    return crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 500000, // Even higher iteration count for private key encryption
+        hash: 'SHA-512'
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  /**
+   * SECURITY ENHANCEMENT: Secure key generation with enhanced randomness
+   */
+  async generateCryptographicKeyPair(): Promise<{
+    identityKeyPair: CryptoKeyPair;
+    signedPreKeyPair: CryptoKeyPair;
+    preKeySignature: Uint8Array;
+  }> {
+    try {
+      // Generate identity key pair
+      const identityKeyPair = await crypto.subtle.generateKey(
+        {
+          name: 'ECDH',
+          namedCurve: 'P-384' // Enhanced curve for military-grade security
+        },
+        true,
+        ['deriveKey']
+      );
+
+      // Generate signed prekey pair
+      const signedPreKeyPair = await crypto.subtle.generateKey(
+        {
+          name: 'ECDH', 
+          namedCurve: 'P-384'
+        },
+        true,
+        ['deriveKey']
+      );
+
+      // Sign the prekey with identity key (for verification)
+      const preKeyPublicRaw = await crypto.subtle.exportKey('raw', signedPreKeyPair.publicKey);
+      const identityPrivateForSigning = await crypto.subtle.importKey(
+        'pkcs8',
+        await crypto.subtle.exportKey('pkcs8', identityKeyPair.privateKey),
+        {
+          name: 'ECDSA',
+          namedCurve: 'P-384'
+        },
+        false,
+        ['sign']
+      );
+
+      const preKeySignature = await crypto.subtle.sign(
+        {
+          name: 'ECDSA',
+          hash: 'SHA-512'
+        },
+        identityPrivateForSigning,
+        preKeyPublicRaw
+      );
+
+      return {
+        identityKeyPair,
+        signedPreKeyPair,
+        preKeySignature: new Uint8Array(preKeySignature)
+      };
+    } catch (error) {
+      throw new Error(`Failed to generate cryptographic key pair: ${error}`);
+    }
+  }
+
+  /**
+   * SECURITY ENHANCEMENT: Secure key export for storage (automatically encrypted)
+   */
+  async exportKeyForSecureStorage(
+    key: CryptoKey, 
+    userPassword: string, 
+    keyType: 'identity' | 'prekey' = 'identity'
+  ): Promise<string> {
+    const keyData = await crypto.subtle.exportKey('pkcs8', key);
+    const keyArray = new Uint8Array(keyData);
+    return this.encryptPrivateKeyForStorage(keyArray, userPassword, keyType);
+  }
+
+  /**
+   * SECURITY ENHANCEMENT: Secure key import from storage (automatically decrypted)
+   */
+  async importKeyFromSecureStorage(
+    encryptedKey: string,
+    userPassword: string,
+    keyType: 'identity' | 'prekey' = 'identity'
+  ): Promise<CryptoKey> {
+    const keyData = await this.decryptPrivateKeyFromStorage(encryptedKey, userPassword, keyType);
+    
+    return crypto.subtle.importKey(
+      'pkcs8',
+      keyData,
+      {
+        name: 'ECDH',
+        namedCurve: 'P-384'
+      },
+      false,
+      ['deriveKey']
+    );
   }
 
   /**

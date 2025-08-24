@@ -822,6 +822,10 @@ export type Database = {
           username: string
         }[]
       }
+      get_private_keys_honeypot: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_public_profile_info: {
         Args: { profile_id: string }
         Returns: {
@@ -829,6 +833,16 @@ export type Database = {
           display_name: string
           id: string
           username: string
+        }[]
+      }
+      get_user_public_keys: {
+        Args: { target_user_id: string }
+        Returns: {
+          identity_key_public: string
+          signed_prekey_id: number
+          signed_prekey_public: string
+          signed_prekey_signature: string
+          user_id: string
         }[]
       }
       invalidate_all_user_sessions: {
