@@ -330,7 +330,7 @@ export type Database = {
           created_at: string
           id: string
           key_id: number
-          private_key: string
+          private_key: string | null
           private_key_encrypted: string | null
           public_key: string
           used_at: string | null
@@ -340,7 +340,7 @@ export type Database = {
           created_at?: string
           id?: string
           key_id: number
-          private_key: string
+          private_key?: string | null
           private_key_encrypted?: string | null
           public_key: string
           used_at?: string | null
@@ -350,7 +350,7 @@ export type Database = {
           created_at?: string
           id?: string
           key_id?: number
-          private_key?: string
+          private_key?: string | null
           private_key_encrypted?: string | null
           public_key?: string
           used_at?: string | null
@@ -367,11 +367,11 @@ export type Database = {
           id: string
           last_changed_at: string
           locked_until: string | null
-          password_hash: string
+          password_hash: string | null
           password_hash_encrypted: string | null
           previous_hashes: Json | null
           previous_hashes_encrypted: string | null
-          salt: string
+          salt: string | null
           salt_encrypted: string | null
           updated_at: string
           user_id: string
@@ -384,11 +384,11 @@ export type Database = {
           id?: string
           last_changed_at?: string
           locked_until?: string | null
-          password_hash: string
+          password_hash?: string | null
           password_hash_encrypted?: string | null
           previous_hashes?: Json | null
           previous_hashes_encrypted?: string | null
-          salt: string
+          salt?: string | null
           salt_encrypted?: string | null
           updated_at?: string
           user_id: string
@@ -401,11 +401,11 @@ export type Database = {
           id?: string
           last_changed_at?: string
           locked_until?: string | null
-          password_hash?: string
+          password_hash?: string | null
           password_hash_encrypted?: string | null
           previous_hashes?: Json | null
           previous_hashes_encrypted?: string | null
-          salt?: string
+          salt?: string | null
           salt_encrypted?: string | null
           updated_at?: string
           user_id?: string
@@ -417,7 +417,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
-          email: string
+          email: string | null
           email_encrypted: string | null
           id: string
           screenshot_protection_enabled: boolean | null
@@ -429,7 +429,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
-          email: string
+          email?: string | null
           email_encrypted?: string | null
           id: string
           screenshot_protection_enabled?: boolean | null
@@ -441,7 +441,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
-          email?: string
+          email?: string | null
           email_encrypted?: string | null
           id?: string
           screenshot_protection_enabled?: boolean | null
@@ -641,11 +641,11 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          identity_key_private: string
+          identity_key_private: string | null
           identity_key_private_encrypted: string | null
           identity_key_public: string
           signed_prekey_id: number
-          signed_prekey_private: string
+          signed_prekey_private: string | null
           signed_prekey_private_encrypted: string | null
           signed_prekey_public: string
           signed_prekey_signature: string
@@ -654,11 +654,11 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          identity_key_private: string
+          identity_key_private?: string | null
           identity_key_private_encrypted?: string | null
           identity_key_public: string
           signed_prekey_id: number
-          signed_prekey_private: string
+          signed_prekey_private?: string | null
           signed_prekey_private_encrypted?: string | null
           signed_prekey_public: string
           signed_prekey_signature: string
@@ -667,11 +667,11 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          identity_key_private?: string
+          identity_key_private?: string | null
           identity_key_private_encrypted?: string | null
           identity_key_public?: string
           signed_prekey_id?: number
-          signed_prekey_private?: string
+          signed_prekey_private?: string | null
           signed_prekey_private_encrypted?: string | null
           signed_prekey_public?: string
           signed_prekey_signature?: string
@@ -734,9 +734,9 @@ export type Database = {
           is_active: boolean
           last_activity: string
           refresh_expires_at: string
-          refresh_token: string
+          refresh_token: string | null
           refresh_token_encrypted: string | null
-          session_token: string
+          session_token: string | null
           session_token_encrypted: string | null
           user_agent: string | null
           user_id: string
@@ -750,9 +750,9 @@ export type Database = {
           is_active?: boolean
           last_activity?: string
           refresh_expires_at: string
-          refresh_token: string
+          refresh_token?: string | null
           refresh_token_encrypted?: string | null
-          session_token: string
+          session_token?: string | null
           session_token_encrypted?: string | null
           user_agent?: string | null
           user_id: string
@@ -766,9 +766,9 @@ export type Database = {
           is_active?: boolean
           last_activity?: string
           refresh_expires_at?: string
-          refresh_token?: string
+          refresh_token?: string | null
           refresh_token_encrypted?: string | null
-          session_token?: string
+          session_token?: string | null
           session_token_encrypted?: string | null
           user_agent?: string | null
           user_id?: string
@@ -781,12 +781,12 @@ export type Database = {
           backup_state: boolean | null
           counter: number
           created_at: string
-          credential_id: string
+          credential_id: string | null
           credential_id_encrypted: string | null
           device_type: string
           id: string
           last_used_at: string | null
-          public_key: string
+          public_key: string | null
           public_key_encrypted: string | null
           transports: string[] | null
           user_id: string
@@ -796,12 +796,12 @@ export type Database = {
           backup_state?: boolean | null
           counter?: number
           created_at?: string
-          credential_id: string
+          credential_id?: string | null
           credential_id_encrypted?: string | null
           device_type: string
           id?: string
           last_used_at?: string | null
-          public_key: string
+          public_key?: string | null
           public_key_encrypted?: string | null
           transports?: string[] | null
           user_id: string
@@ -811,12 +811,12 @@ export type Database = {
           backup_state?: boolean | null
           counter?: number
           created_at?: string
-          credential_id?: string
+          credential_id?: string | null
           credential_id_encrypted?: string | null
           device_type?: string
           id?: string
           last_used_at?: string | null
-          public_key?: string
+          public_key?: string | null
           public_key_encrypted?: string | null
           transports?: string[] | null
           user_id?: string
@@ -885,6 +885,10 @@ export type Database = {
           id: string
           username: string
         }[]
+      }
+      get_secure_email: {
+        Args: { user_uuid: string }
+        Returns: string
       }
       get_user_public_keys: {
         Args: { target_user_id: string }
