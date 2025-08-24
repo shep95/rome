@@ -13,10 +13,6 @@ export interface PasswordValidation {
   };
 }
 
-export interface RateLimitCheck {
-  allowed: boolean;
-  remainingAttempts: number;
-}
 
 export interface DeviceFingerprint {
   fingerprint: string;
@@ -33,41 +29,6 @@ export class SecurityUtils {
     };
   }
 
-  static async checkRateLimit(identifier: string, action: string): Promise<RateLimitCheck> {
-    try {
-      const response = await supabase.functions.invoke('auth-security', {
-        body: {
-          action: 'check_rate_limit',
-          identifier,
-          metadata: { action }
-        }
-      });
-
-      if (response.error) {
-        console.error('Rate limit check failed:', response.error);
-        return { allowed: false, remainingAttempts: 0 }; // Fail closed
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error('Rate limit check error:', error);
-      return { allowed: false, remainingAttempts: 0 }; // Fail closed
-    }
-  }
-
-  static async incrementRateLimit(identifier: string, action: string): Promise<void> {
-    try {
-      await supabase.functions.invoke('auth-security', {
-        body: {
-          action: 'increment_rate_limit',
-          identifier,
-          metadata: { action }
-        }
-      });
-    } catch (error) {
-      console.error('Rate limit increment error:', error);
-    }
-  }
 
 static async validatePassword(password: string): Promise<PasswordValidation> {
   // Client-side validation only; never send raw password to server

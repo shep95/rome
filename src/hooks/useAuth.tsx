@@ -141,18 +141,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, username?: string, code?: string) => {
     try {
-      // Check rate limiting
-      const clientIP = SecurityUtils.getClientIP();
-      const rateCheck = await SecurityUtils.checkRateLimit(clientIP, 'signup');
-      
-      if (!rateCheck.allowed) {
-        toast({
-          variant: "destructive",
-          title: "Too many attempts",
-          description: "Please wait before trying again."
-        });
-        return { error: { message: "Rate limited" } };
-      }
 
       // Validate password strength
       const passwordValidation = await SecurityUtils.validatePassword(password);
@@ -205,8 +193,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       });
 
-      // Increment rate limit counter
-      await SecurityUtils.incrementRateLimit(clientIP, 'signup');
 
       if (error) {
         if (error.message.includes('already registered')) {
@@ -242,18 +228,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string, code?: string) => {
     try {
-      // Check rate limiting
-      const clientIP = SecurityUtils.getClientIP();
-      const rateCheck = await SecurityUtils.checkRateLimit(clientIP, 'login');
-      
-      if (!rateCheck.allowed) {
-        toast({
-          variant: "destructive",
-          title: "Too many attempts",
-          description: `Please wait before trying again. ${rateCheck.remainingAttempts} attempts remaining.`
-        });
-        return { error: { message: "Rate limited" } };
-      }
 
       // Validate 4-digit code
       if (!code || code.length !== 4 || !/^\d{4}$/.test(code)) {
@@ -270,9 +244,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password
       });
 
-      // Increment rate limit counter on failed attempt
       if (error) {
-        await SecurityUtils.incrementRateLimit(clientIP, 'login');
         
         if (error.message.includes('Invalid login credentials')) {
           toast({
