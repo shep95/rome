@@ -331,6 +331,7 @@ export type Database = {
           id: string
           key_id: number
           private_key: string
+          private_key_encrypted: string | null
           public_key: string
           used_at: string | null
           user_id: string
@@ -340,6 +341,7 @@ export type Database = {
           id?: string
           key_id: number
           private_key: string
+          private_key_encrypted?: string | null
           public_key: string
           used_at?: string | null
           user_id: string
@@ -349,6 +351,7 @@ export type Database = {
           id?: string
           key_id?: number
           private_key?: string
+          private_key_encrypted?: string | null
           public_key?: string
           used_at?: string | null
           user_id?: string
@@ -365,8 +368,11 @@ export type Database = {
           last_changed_at: string
           locked_until: string | null
           password_hash: string
+          password_hash_encrypted: string | null
           previous_hashes: Json | null
+          previous_hashes_encrypted: string | null
           salt: string
+          salt_encrypted: string | null
           updated_at: string
           user_id: string
         }
@@ -379,8 +385,11 @@ export type Database = {
           last_changed_at?: string
           locked_until?: string | null
           password_hash: string
+          password_hash_encrypted?: string | null
           previous_hashes?: Json | null
+          previous_hashes_encrypted?: string | null
           salt: string
+          salt_encrypted?: string | null
           updated_at?: string
           user_id: string
         }
@@ -393,8 +402,11 @@ export type Database = {
           last_changed_at?: string
           locked_until?: string | null
           password_hash?: string
+          password_hash_encrypted?: string | null
           previous_hashes?: Json | null
+          previous_hashes_encrypted?: string | null
           salt?: string
+          salt_encrypted?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -406,6 +418,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string
+          email_encrypted: string | null
           id: string
           screenshot_protection_enabled: boolean | null
           updated_at: string
@@ -417,6 +430,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email: string
+          email_encrypted?: string | null
           id: string
           screenshot_protection_enabled?: boolean | null
           updated_at?: string
@@ -428,6 +442,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string
+          email_encrypted?: string | null
           id?: string
           screenshot_protection_enabled?: boolean | null
           updated_at?: string
@@ -627,9 +642,11 @@ export type Database = {
           created_at: string
           id: string
           identity_key_private: string
+          identity_key_private_encrypted: string | null
           identity_key_public: string
           signed_prekey_id: number
           signed_prekey_private: string
+          signed_prekey_private_encrypted: string | null
           signed_prekey_public: string
           signed_prekey_signature: string
           user_id: string
@@ -638,9 +655,11 @@ export type Database = {
           created_at?: string
           id?: string
           identity_key_private: string
+          identity_key_private_encrypted?: string | null
           identity_key_public: string
           signed_prekey_id: number
           signed_prekey_private: string
+          signed_prekey_private_encrypted?: string | null
           signed_prekey_public: string
           signed_prekey_signature: string
           user_id: string
@@ -649,9 +668,11 @@ export type Database = {
           created_at?: string
           id?: string
           identity_key_private?: string
+          identity_key_private_encrypted?: string | null
           identity_key_public?: string
           signed_prekey_id?: number
           signed_prekey_private?: string
+          signed_prekey_private_encrypted?: string | null
           signed_prekey_public?: string
           signed_prekey_signature?: string
           user_id?: string
@@ -661,6 +682,7 @@ export type Database = {
       user_security: {
         Row: {
           backup_codes: string[] | null
+          backup_codes_encrypted: string | null
           created_at: string
           device_fingerprints: Json | null
           failed_login_attempts: number | null
@@ -669,10 +691,12 @@ export type Database = {
           locked_until: string | null
           mfa_enabled: boolean | null
           totp_secret: string | null
+          totp_secret_encrypted: string | null
           updated_at: string
         }
         Insert: {
           backup_codes?: string[] | null
+          backup_codes_encrypted?: string | null
           created_at?: string
           device_fingerprints?: Json | null
           failed_login_attempts?: number | null
@@ -681,10 +705,12 @@ export type Database = {
           locked_until?: string | null
           mfa_enabled?: boolean | null
           totp_secret?: string | null
+          totp_secret_encrypted?: string | null
           updated_at?: string
         }
         Update: {
           backup_codes?: string[] | null
+          backup_codes_encrypted?: string | null
           created_at?: string
           device_fingerprints?: Json | null
           failed_login_attempts?: number | null
@@ -693,6 +719,7 @@ export type Database = {
           locked_until?: string | null
           mfa_enabled?: boolean | null
           totp_secret?: string | null
+          totp_secret_encrypted?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -708,7 +735,9 @@ export type Database = {
           last_activity: string
           refresh_expires_at: string
           refresh_token: string
+          refresh_token_encrypted: string | null
           session_token: string
+          session_token_encrypted: string | null
           user_agent: string | null
           user_id: string
         }
@@ -722,7 +751,9 @@ export type Database = {
           last_activity?: string
           refresh_expires_at: string
           refresh_token: string
+          refresh_token_encrypted?: string | null
           session_token: string
+          session_token_encrypted?: string | null
           user_agent?: string | null
           user_id: string
         }
@@ -736,7 +767,9 @@ export type Database = {
           last_activity?: string
           refresh_expires_at?: string
           refresh_token?: string
+          refresh_token_encrypted?: string | null
           session_token?: string
+          session_token_encrypted?: string | null
           user_agent?: string | null
           user_id?: string
         }
@@ -749,10 +782,12 @@ export type Database = {
           counter: number
           created_at: string
           credential_id: string
+          credential_id_encrypted: string | null
           device_type: string
           id: string
           last_used_at: string | null
           public_key: string
+          public_key_encrypted: string | null
           transports: string[] | null
           user_id: string
         }
@@ -762,10 +797,12 @@ export type Database = {
           counter?: number
           created_at?: string
           credential_id: string
+          credential_id_encrypted?: string | null
           device_type: string
           id?: string
           last_used_at?: string | null
           public_key: string
+          public_key_encrypted?: string | null
           transports?: string[] | null
           user_id: string
         }
@@ -775,10 +812,12 @@ export type Database = {
           counter?: number
           created_at?: string
           credential_id?: string
+          credential_id_encrypted?: string | null
           device_type?: string
           id?: string
           last_used_at?: string | null
           public_key?: string
+          public_key_encrypted?: string | null
           transports?: string[] | null
           user_id?: string
         }
@@ -809,6 +848,14 @@ export type Database = {
         Args: { _auto_delete_after?: unknown; _name: string; _settings?: Json }
         Returns: string
       }
+      decrypt_sensitive_data: {
+        Args: { encrypted_data: string }
+        Returns: string
+      }
+      encrypt_sensitive_data: {
+        Args: { data: string }
+        Returns: string
+      }
       generate_entropy_vector: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -821,6 +868,10 @@ export type Database = {
           id: string
           username: string
         }[]
+      }
+      get_decrypted_email: {
+        Args: { user_id: string }
+        Returns: string
       }
       get_private_keys_honeypot: {
         Args: Record<PropertyKey, never>
