@@ -63,7 +63,7 @@ const Index = () => {
       </div>
       
       {/* Download Section */}
-      <section id="download-section" className="relative bg-secondary/10 py-20">
+      <section id="download-section" className="relative bg-background py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent mb-6">
