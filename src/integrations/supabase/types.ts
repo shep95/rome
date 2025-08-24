@@ -589,6 +589,39 @@ export type Database = {
         }
         Relationships: []
       }
+      updates: {
+        Row: {
+          created_at: string
+          description: string
+          display_order: number | null
+          expires_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          display_order?: number | null
+          expires_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          display_order?: number | null
+          expires_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          title?: string
+        }
+        Relationships: []
+      }
       user_keys: {
         Row: {
           created_at: string
@@ -764,6 +797,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_expired_updates: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_direct_conversation: {
         Args: { _name: string; _other_user_id: string }
         Returns: string
@@ -778,6 +815,15 @@ export type Database = {
       }
       get_conversation_participant_profiles: {
         Args: { conversation_uuid: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          id: string
+          username: string
+        }[]
+      }
+      get_public_profile_info: {
+        Args: { profile_id: string }
         Returns: {
           avatar_url: string
           display_name: string
