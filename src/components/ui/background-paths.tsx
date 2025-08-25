@@ -65,7 +65,7 @@ export function BackgroundPaths({
     return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background">
             {/* Top Left Logo */}
-            <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+            <div className="fixed top-4 left-4 z-50 flex items-center gap-2">
                 <img 
                     src="/lovable-uploads/26b8c3f9-3d80-4cb9-befd-9949e4313547.png" 
                     alt="ROME Logo" 
