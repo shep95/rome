@@ -63,7 +63,16 @@ export function BackgroundPaths({
     const words = title.split(" ");
 
     return (
-        <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background">
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background">
+            {/* Top Left Logo */}
+            <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+                <img 
+                    src="/lovable-uploads/26b8c3f9-3d80-4cb9-befd-9949e4313547.png" 
+                    alt="ROME Logo" 
+                    className="w-8 h-8"
+                />
+                <span className="text-xl font-bold text-foreground">ROME</span>
+            </div>
 
             <div className="absolute inset-0">
                 <FloatingPaths position={1} />
