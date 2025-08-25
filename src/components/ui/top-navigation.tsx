@@ -7,7 +7,7 @@ interface TopNavigationProps {
 
 export const TopNavigation: React.FC<TopNavigationProps> = ({ onSignUpClick }) => {
   return (
-    <nav className="fixed top-0 right-0 z-50 p-4">
+    <nav className="fixed top-0 left-1/2 transform -translate-x-1/2 sm:left-auto sm:right-0 sm:transform-none z-50 p-4">
       <Button 
         onClick={onSignUpClick}
         variant="outline"
