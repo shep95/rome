@@ -133,7 +133,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       {/* Logo/Brand */}
       <div className="flex items-center mb-6 lg:mb-8">
         <img 
-          src="/lovable-uploads/6ff9b03d-a2fd-4cd2-b509-fb12b4bca3f2.png" 
+          src="/lovable-uploads/7b059a2d-3395-46aa-86d1-555e872ff2b2.png" 
           alt="ROME" 
           className="w-8 h-8 lg:w-10 lg:h-10 object-cover rounded-lg"
         />
@@ -316,7 +316,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             <div className="flex items-center space-x-3">
               <MobileSidebarTrigger onClick={() => setIsMobileSidebarOpen(true)} />
               <img 
-                src="/lovable-uploads/6ff9b03d-a2fd-4cd2-b509-fb12b4bca3f2.png" 
+                src="/lovable-uploads/7b059a2d-3395-46aa-86d1-555e872ff2b2.png" 
                 alt="ROME" 
                 className="w-6 h-6 lg:w-8 lg:h-8 object-cover rounded-md lg:rounded-lg"
               />
