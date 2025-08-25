@@ -5,7 +5,6 @@ import { AuthModal } from "@/components/ui/auth-modal";
 import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GlowingSection } from "@/components/GlowingSection";
 import { ScrollDownButton } from "@/components/ui/scroll-down-button";
-import { ShaderAnimation } from "@/components/ui/shader-lines";
 import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
@@ -118,40 +117,6 @@ const Index = () => {
                 <h3 className="text-xl font-semibold mb-2">iPhone</h3>
                 <p className="text-sm text-muted-foreground mb-4">iOS 14.0+</p>
                 <div className="text-xs text-primary">Coming Soon</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Scroll Down Button */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <ScrollDownButton targetId="rounded-square-section" />
-        </div>
-      </section>
-      
-      {/* Rounded Square Section */}
-      <section id="rounded-square-section" className="relative bg-background py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center">
-            <div className="group relative w-full max-w-2xl">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-3xl blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
-              <div className="relative bg-card border border-primary/20 rounded-3xl p-8 sm:p-12 md:p-16 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 w-full min-h-[320px] sm:min-h-[400px] flex items-center justify-center overflow-hidden">
-                <ShaderAnimation />
-                <div className="text-center relative z-10">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center">
-                    <img 
-                      src="/lovable-uploads/748c4f39-4f76-4735-8cfb-2fa2a71ce623.png" 
-                      alt="ROME Logo" 
-                      className="w-8 h-8 sm:w-12 sm:h-12 object-contain"
-                    />
-                  </div>
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2 sm:mb-4">
-                    MODERN UI
-                  </h3>
-                  <p className="text-sm sm:text-base text-muted-foreground">
-                    MODERN UI
-                  </p>
-                </div>
               </div>
             </div>
           </div>
