@@ -121,11 +121,6 @@ const Index = () => {
             </div>
           </div>
         </div>
-        
-        {/* Scroll Down Button */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <ScrollDownButton targetId="footer-section" />
-        </div>
       </section>
       
       {/* Footer Section */}
