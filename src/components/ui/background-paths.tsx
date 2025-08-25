@@ -121,7 +121,7 @@ export function BackgroundPaths({
                         transition={{ delay: 1, duration: 1 }}
                         className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium text-muted-foreground mb-8 px-4"
                     >
-                        Military Grade Secured Messaging App
+                        Advance Secured Messaging App | Powered By Zorak Corp
                     </motion.div>
                 </motion.div>
             </div>
