@@ -71,7 +71,6 @@ export function BackgroundPaths({
                     alt="ROME Logo" 
                     className="w-8 h-8"
                 />
-                <span className="text-xl font-bold text-foreground">ROME</span>
             </div>
 
             <div className="absolute inset-0">
