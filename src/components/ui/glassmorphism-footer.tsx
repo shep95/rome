@@ -54,7 +54,7 @@ export function GlassmorphismFooter() {
             </div>
             <div className="pt-4 border-t border-primary/20">
               <p className="text-xs text-muted-foreground/60">
-                © 2024 Zorak Corp. All rights reserved.
+                © 2025 Zorak Corp. All rights reserved.
               </p>
             </div>
           </div>
