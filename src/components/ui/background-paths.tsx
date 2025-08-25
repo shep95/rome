@@ -131,9 +131,9 @@ export function BackgroundPaths({
             {/* Watermark */}
             <div className="fixed bottom-4 right-4 z-30">
                 <img 
-                    src="/lovable-uploads/891f7996-a9e8-4281-a771-14086bd3a25f.png" 
+                    src="/lovable-uploads/c0adbdf1-7e12-4f03-bc2c-96a8a62eb425.png" 
                     alt="ROME Logo" 
-                    className="w-16 h-16 rounded-lg opacity-80 hover:opacity-100 transition-opacity"
+                    className="w-16 h-16 rounded-xl opacity-80 hover:opacity-100 transition-opacity"
                 />
             </div>
         </div>
