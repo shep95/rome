@@ -133,22 +133,22 @@ const Index = () => {
       <section id="rounded-square-section" className="relative bg-background py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center">
-            <div className="group relative">
+            <div className="group relative w-full max-w-2xl">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-3xl blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
-              <div className="relative bg-card border border-primary/20 rounded-3xl p-16 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 w-96 h-80 flex items-center justify-center overflow-hidden">
+              <div className="relative bg-card border border-primary/20 rounded-3xl p-8 sm:p-12 md:p-16 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 w-full min-h-[320px] sm:min-h-[400px] flex items-center justify-center overflow-hidden">
                 <ShaderAnimation />
                 <div className="text-center relative z-10">
-                  <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center">
                     <img 
                       src="/lovable-uploads/748c4f39-4f76-4735-8cfb-2fa2a71ce623.png" 
                       alt="ROME Logo" 
-                      className="w-12 h-12 object-contain"
+                      className="w-8 h-8 sm:w-12 sm:h-12 object-contain"
                     />
                   </div>
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2 sm:mb-4">
                     MODERN UI
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-sm sm:text-base text-muted-foreground">
                     MODERN UI
                   </p>
                 </div>
