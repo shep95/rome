@@ -64,10 +64,10 @@ export function BackgroundPaths({
 
     return (
         <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background">
-            {/* Top Navigation */}
+            {/* Social Links */}
             <div className="absolute top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-20 px-4 w-full max-w-sm">
                 <div className="flex justify-center">
-                    <SpotlightButton onSignUpClick={onSignUpClick} />
+                    <SpotlightButton />
                 </div>
             </div>
 

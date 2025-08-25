@@ -67,7 +67,6 @@ export const SpotlightButton: React.FC<SpotlightButtonProps> = ({ onSignUpClick 
   const navItems = [
     { icon: Github, label: 'GitHub', action: () => window.open('https://github.com/shep95/rome', '_blank') },
     { icon: MessageCircle, label: 'Discord', action: () => window.open('https://discord.gg/2JpT4XSbHQ', '_blank') },
-    { text: 'Login | Sign Up', label: 'Login | Sign Up', action: onSignUpClick },
   ];
 
   return (
@@ -76,7 +75,7 @@ export const SpotlightButton: React.FC<SpotlightButtonProps> = ({ onSignUpClick 
         className="absolute top-0 h-[2px] bg-primary transition-all duration-400 ease-in-out"
         style={{
           left: `${activeIndex * 64 + 16}px`,
-          width: activeIndex === 2 ? '120px' : '48px', // Wider for text button
+          width: '48px',
           transform: 'translateY(-1px)',
           opacity: activeIndex >= 0 ? 1 : 0,
         }}
@@ -85,7 +84,6 @@ export const SpotlightButton: React.FC<SpotlightButtonProps> = ({ onSignUpClick 
         <NavItem
           key={item.label}
           icon={item.icon}
-          text={item.text}
           isActive={activeIndex === index}
           onClick={() => {
             setActiveIndex(index);
