@@ -5,6 +5,7 @@ import { AuthModal } from "@/components/ui/auth-modal";
 import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GlowingSection } from "@/components/GlowingSection";
 import { ScrollDownButton } from "@/components/ui/scroll-down-button";
+import { ShaderAnimation } from "@/components/ui/shader-lines";
 import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
@@ -134,8 +135,9 @@ const Index = () => {
           <div className="flex justify-center items-center">
             <div className="group relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-3xl blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
-              <div className="relative bg-card border border-primary/20 rounded-3xl p-16 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 w-80 h-80 flex items-center justify-center">
-                <div className="text-center">
+              <div className="relative bg-card border border-primary/20 rounded-3xl p-16 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 w-80 h-80 flex items-center justify-center overflow-hidden">
+                <ShaderAnimation />
+                <div className="text-center relative z-10">
                   <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center">
                     <svg className="w-10 h-10 text-primary" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
