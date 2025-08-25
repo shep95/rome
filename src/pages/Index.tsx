@@ -135,21 +135,21 @@ const Index = () => {
           <div className="flex justify-center items-center">
             <div className="group relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-3xl blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
-              <div className="relative bg-card border border-primary/20 rounded-3xl p-16 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 w-80 h-80 flex items-center justify-center overflow-hidden">
+              <div className="relative bg-card border border-primary/20 rounded-3xl p-16 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 w-96 h-80 flex items-center justify-center overflow-hidden">
                 <ShaderAnimation />
                 <div className="text-center relative z-10">
                   <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center">
-                    <svg className="w-10 h-10 text-primary" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
-                      <path d="M2 17L12 22L22 17"/>
-                      <path d="M2 12L12 17L22 12"/>
-                    </svg>
+                    <img 
+                      src="/lovable-uploads/748c4f39-4f76-4735-8cfb-2fa2a71ce623.png" 
+                      alt="ROME Logo" 
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">
-                    ROME Core
+                    MODERN UI
                   </h3>
                   <p className="text-muted-foreground">
-                    Secure messaging platform built for privacy
+                    MODERN UI
                   </p>
                 </div>
               </div>
