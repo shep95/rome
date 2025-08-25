@@ -124,6 +124,39 @@ const Index = () => {
         
         {/* Scroll Down Button */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+          <ScrollDownButton targetId="rounded-square-section" />
+        </div>
+      </section>
+      
+      {/* Rounded Square Section */}
+      <section id="rounded-square-section" className="relative bg-background py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center items-center">
+            <div className="group relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-3xl blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
+              <div className="relative bg-card border border-primary/20 rounded-3xl p-16 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 w-80 h-80 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center">
+                    <svg className="w-10 h-10 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+                      <path d="M2 17L12 22L22 17"/>
+                      <path d="M2 12L12 17L22 12"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">
+                    ROME Core
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Secure messaging platform built for privacy
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Scroll Down Button */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
           <ScrollDownButton targetId="socials-section" />
         </div>
       </section>
