@@ -575,12 +575,108 @@ if (!append && user && conversationId) {
             if (!incoming) return;
             
             if (incoming.sender_id === user?.id) {
-              // Replace optimistic message with real message from database
-              setMessages(prev => {
-                const withoutOptimistic = prev.filter(msg => !msg.id.startsWith('temp-'));
-                return withoutOptimistic;
-              });
-              loadMessages();
+              // Replace optimistic message with real message from database seamlessly
+              try {
+                // Decrypt the real message content
+                let decryptedContent = '';
+                const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
+                
+                if (typeof incoming.data_payload === 'string') {
+                  if (incoming.data_payload.startsWith('\\x')) {
+                    const hexString = incoming.data_payload.slice(2);
+                    const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+                    decryptedContent = new TextDecoder('utf-8').decode(bytes);
+                  } else if (isLikelyBase64(incoming.data_payload)) {
+                    try {
+                      decryptedContent = atob(incoming.data_payload);
+                    } catch {
+                      decryptedContent = incoming.data_payload;
+                    }
+                  } else {
+                    decryptedContent = incoming.data_payload;
+                  }
+                } else {
+                  decryptedContent = String(incoming.data_payload || '');
+                }
+
+                // Handle file metadata
+                let fileMetadata = null;
+                if (incoming.encrypted_file_metadata) {
+                  try {
+                    if (typeof incoming.encrypted_file_metadata === 'string' && incoming.encrypted_file_metadata.startsWith('\\x')) {
+                      const hexString = incoming.encrypted_file_metadata.slice(2);
+                      const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+                      const jsonString = new TextDecoder('utf-8').decode(bytes);
+                      fileMetadata = JSON.parse(jsonString);
+                    } else {
+                      fileMetadata = JSON.parse(incoming.encrypted_file_metadata);
+                    }
+                  } catch (e) {
+                    console.warn('Failed to parse file metadata:', e);
+                  }
+                }
+
+                // Replace the optimistic message with the real one
+                setMessages(prev => {
+                  const tempMessageIndex = prev.findIndex(msg => msg.id.startsWith('temp-') && msg.sender_id === user?.id);
+                  if (tempMessageIndex !== -1) {
+                    // Replace the temp message with the real one
+                    const newMessages = [...prev];
+                    newMessages[tempMessageIndex] = {
+                      id: incoming.id,
+                      content: decryptedContent,
+                      sender_id: incoming.sender_id,
+                      created_at: incoming.created_at,
+                      message_type: incoming.message_type as 'text' | 'file' | 'image' | 'video',
+                      file_url: fileMetadata?.file_url || null,
+                      file_name: fileMetadata?.file_name || null,
+                      file_size: incoming.file_size || null,
+                      replied_to_message_id: incoming.replied_to_message_id || null,
+                      sender: {
+                        username: user?.user_metadata?.username || 'You',
+                        display_name: user?.user_metadata?.display_name || 'You',
+                        avatar_url: user?.user_metadata?.avatar_url || null
+                      },
+                      read_receipts: [],
+                      replied_to_message: prev[tempMessageIndex].replied_to_message,
+                      edited_at: incoming.edited_at || null,
+                      edit_count: incoming.edit_count || 0
+                    };
+                    return newMessages;
+                  } else {
+                    // No temp message found, check if real message already exists
+                    const exists = prev.some(msg => msg.id === incoming.id);
+                    if (!exists) {
+                      // Add the real message if it doesn't exist
+                      return [...prev, {
+                        id: incoming.id,
+                        content: decryptedContent,
+                        sender_id: incoming.sender_id,
+                        created_at: incoming.created_at,
+                        message_type: incoming.message_type as 'text' | 'file' | 'image' | 'video',
+                        file_url: fileMetadata?.file_url || null,
+                        file_name: fileMetadata?.file_name || null,
+                        file_size: incoming.file_size || null,
+                        replied_to_message_id: incoming.replied_to_message_id || null,
+                        sender: {
+                          username: user?.user_metadata?.username || 'You',
+                          display_name: user?.user_metadata?.display_name || 'You',
+                          avatar_url: user?.user_metadata?.avatar_url || null
+                        },
+                        read_receipts: [],
+                        edited_at: incoming.edited_at || null,
+                        edit_count: incoming.edit_count || 0
+                      }];
+                    }
+                    return prev;
+                  }
+                });
+              } catch (error) {
+                console.warn('Error processing own message, removing temp messages:', error);
+                // If processing fails, clean up temp messages and reload
+                setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')));
+                loadMessages();
+              }
             } else {
               // Message from someone else - add it immediately to UI for better UX
               try {
