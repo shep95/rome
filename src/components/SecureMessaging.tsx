@@ -270,33 +270,44 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // Simple message decoding - messages are now stored as plain text
+  // COMPREHENSIVE MESSAGE DECODING - Handle ALL legacy formats
   let decryptedContent = '';
   
+  console.log('🔍 Raw data_payload:', msg.data_payload);
+  console.log('🔍 Type:', typeof msg.data_payload);
+
   const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
 
   // Check if it's a Buffer from database (old encrypted messages)
   if (msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer') {
+    console.log('📦 BUFFER TYPE - Processing buffer data...');
     try {
       const bufferData = new Uint8Array(msg.data_payload.data);
+      const base64String = btoa(String.fromCharCode(...bufferData));
+      console.log('📦 Buffer converted to base64:', base64String.substring(0, 50) + '...');
       
-      // Try decryption first for old encrypted messages
+      // Try decryption first
       try {
-        const base64String = btoa(String.fromCharCode(...bufferData));
         const { encryptionService } = await import('@/lib/encryption');
         decryptedContent = await encryptionService.decryptMessage(base64String, conversationId);
+        console.log('✅ BUFFER DECRYPTION SUCCESS:', decryptedContent);
       } catch (decryptError) {
+        console.log('⚠️ Buffer decryption failed, trying as raw text...');
         // Try as raw UTF-8 text
         decryptedContent = new TextDecoder().decode(bufferData);
+        console.log('✅ BUFFER AS TEXT:', decryptedContent);
       }
     } catch (error) {
-      decryptedContent = '[Unable to read message]';
+      console.error('❌ BUFFER PROCESSING FAILED:', error);
+      decryptedContent = '[Unable to read buffer message]';
     }
   } else {
-    // Handle string data
+    // Handle string data - multiple formats possible
     const rawContent = String(msg.data_payload || '');
+    console.log('📝 STRING DATA:', rawContent.substring(0, 100) + (rawContent.length > 100 ? '...' : ''));
     
     if (rawContent.startsWith('\\x')) {
+      console.log('🔧 HEX-ENCODED MESSAGE - Decoding...');
       try {
         // Decode hex string to bytes
         const cleaned = rawContent.replace(/\\x/g, '');
@@ -305,32 +316,39 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
           bytes.push(parseInt(cleaned.substr(i, 2), 16));
         }
         const decodedText = new TextDecoder().decode(new Uint8Array(bytes));
+        console.log('🔧 Hex decoded to:', decodedText.substring(0, 50) + '...');
 
-        // Try decryption for old encrypted messages
         try {
           const { encryptionService } = await import('@/lib/encryption');
           decryptedContent = await encryptionService.decryptMessage(decodedText, conversationId);
+          console.log('✅ HEX→DECRYPT SUCCESS:', decryptedContent);
         } catch (decryptError) {
-          // Show decoded text as plain
+          // If not decryptable, show decoded text as plain
           decryptedContent = decodedText;
+          console.log('ℹ️ Not encrypted (or failed decrypt). Showing decoded text.');
         }
       } catch (error) {
-        decryptedContent = '[Unable to decode message]';
+        console.error('❌ HEX DECODE FAILED:', error);
+        decryptedContent = '[Unable to decode hex message]';
       }
     } else if (isLikelyBase64(rawContent)) {
-      // Try decryption for old encrypted messages
+      console.log('🔐 BASE64-LIKE STRING - Attempting decryption...');
       try {
         const { encryptionService } = await import('@/lib/encryption');
         decryptedContent = await encryptionService.decryptMessage(rawContent, conversationId);
+        console.log('✅ BASE64 DECRYPT SUCCESS:', decryptedContent);
       } catch (error) {
-        // Show as plain text if decryption fails
+        console.log('⚠️ Base64 decryption failed, showing as plain text');
         decryptedContent = rawContent;
       }
     } else {
-      // Regular plain text message (current format)
+      // Regular plain text message (new format)
       decryptedContent = rawContent;
+      console.log('✅ PLAIN TEXT MESSAGE:', decryptedContent);
     }
   }
+
+  console.log('🎯 FINAL CONTENT:', decryptedContent);
 
   // Decrypt file metadata (if present) with conversationId
   let signedUrl: string | null = null;
@@ -538,6 +556,8 @@ if (!append && user && conversationId) {
   const setupRealtimeSubscription = () => {
     if (!conversationId) return;
     
+    console.log('Setting up realtime subscription for conversation:', conversationId);
+    
     const channel = supabase
       .channel(`messages:${conversationId}`)
       .on(
@@ -549,55 +569,60 @@ if (!append && user && conversationId) {
           filter: `conversation_id=eq.${conversationId}`
         },
         async (payload) => {
+          console.log('New message received via realtime:', payload);
           try {
             const incoming = (payload as any).new;
             if (!incoming) return;
             
             if (incoming.sender_id === user?.id) {
-              // Replace optimistic message with real message from database
-              const decryptedContent = String(incoming.data_payload || '');
-
-              // Handle file metadata
-              let fileMetadata = null;
-              if (incoming.encrypted_file_metadata) {
-                try {
-                  fileMetadata = JSON.parse(incoming.encrypted_file_metadata);
-                } catch (e) {
-                  console.warn('Failed to parse file metadata:', e);
-                }
-              }
-
-              // Replace the optimistic message with the real one
-              setMessages(prev => {
-                const tempMessageIndex = prev.findIndex(msg => msg.id.startsWith('temp-') && msg.sender_id === user?.id);
-                if (tempMessageIndex !== -1) {
-                  const newMessages = [...prev];
-                  newMessages[tempMessageIndex] = {
-                    id: incoming.id,
-                    content: decryptedContent,
-                    sender_id: incoming.sender_id,
-                    created_at: incoming.created_at,
-                    message_type: incoming.message_type as 'text' | 'file' | 'image' | 'video',
-                    file_url: fileMetadata?.file_url || null,
-                    file_name: fileMetadata?.file_name || null,
-                    file_size: incoming.file_size || null,
-                    replied_to_message_id: incoming.replied_to_message_id || null,
-                    sender: {
-                      username: user?.user_metadata?.username || 'You',
-                      display_name: user?.user_metadata?.display_name || 'You',
-                      avatar_url: user?.user_metadata?.avatar_url || null
-                    },
-                    read_receipts: [],
-                    replied_to_message: prev[tempMessageIndex].replied_to_message,
-                    edited_at: incoming.edited_at || null,
-                    edit_count: incoming.edit_count || 0
-                  };
-                  return newMessages;
+              // Replace optimistic message with real message from database seamlessly
+              try {
+                // Decrypt the real message content
+                let decryptedContent = '';
+                const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
+                
+                if (typeof incoming.data_payload === 'string') {
+                  if (incoming.data_payload.startsWith('\\x')) {
+                    const hexString = incoming.data_payload.slice(2);
+                    const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+                    decryptedContent = new TextDecoder('utf-8').decode(bytes);
+                  } else if (isLikelyBase64(incoming.data_payload)) {
+                    try {
+                      decryptedContent = atob(incoming.data_payload);
+                    } catch {
+                      decryptedContent = incoming.data_payload;
+                    }
+                  } else {
+                    decryptedContent = incoming.data_payload;
+                  }
                 } else {
-                  // No temp message found, check if real message already exists
-                  const exists = prev.some(msg => msg.id === incoming.id);
-                  if (!exists) {
-                    return [...prev, {
+                  decryptedContent = String(incoming.data_payload || '');
+                }
+
+                // Handle file metadata
+                let fileMetadata = null;
+                if (incoming.encrypted_file_metadata) {
+                  try {
+                    if (typeof incoming.encrypted_file_metadata === 'string' && incoming.encrypted_file_metadata.startsWith('\\x')) {
+                      const hexString = incoming.encrypted_file_metadata.slice(2);
+                      const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+                      const jsonString = new TextDecoder('utf-8').decode(bytes);
+                      fileMetadata = JSON.parse(jsonString);
+                    } else {
+                      fileMetadata = JSON.parse(incoming.encrypted_file_metadata);
+                    }
+                  } catch (e) {
+                    console.warn('Failed to parse file metadata:', e);
+                  }
+                }
+
+                // Replace the optimistic message with the real one
+                setMessages(prev => {
+                  const tempMessageIndex = prev.findIndex(msg => msg.id.startsWith('temp-') && msg.sender_id === user?.id);
+                  if (tempMessageIndex !== -1) {
+                    // Replace the temp message with the real one
+                    const newMessages = [...prev];
+                    newMessages[tempMessageIndex] = {
                       id: incoming.id,
                       content: decryptedContent,
                       sender_id: incoming.sender_id,
@@ -613,31 +638,92 @@ if (!append && user && conversationId) {
                         avatar_url: user?.user_metadata?.avatar_url || null
                       },
                       read_receipts: [],
+                      replied_to_message: prev[tempMessageIndex].replied_to_message,
                       edited_at: incoming.edited_at || null,
                       edit_count: incoming.edit_count || 0
-                    }];
+                    };
+                    return newMessages;
+                  } else {
+                    // No temp message found, check if real message already exists
+                    const exists = prev.some(msg => msg.id === incoming.id);
+                    if (!exists) {
+                      // Add the real message if it doesn't exist
+                      return [...prev, {
+                        id: incoming.id,
+                        content: decryptedContent,
+                        sender_id: incoming.sender_id,
+                        created_at: incoming.created_at,
+                        message_type: incoming.message_type as 'text' | 'file' | 'image' | 'video',
+                        file_url: fileMetadata?.file_url || null,
+                        file_name: fileMetadata?.file_name || null,
+                        file_size: incoming.file_size || null,
+                        replied_to_message_id: incoming.replied_to_message_id || null,
+                        sender: {
+                          username: user?.user_metadata?.username || 'You',
+                          display_name: user?.user_metadata?.display_name || 'You',
+                          avatar_url: user?.user_metadata?.avatar_url || null
+                        },
+                        read_receipts: [],
+                        edited_at: incoming.edited_at || null,
+                        edit_count: incoming.edit_count || 0
+                      }];
+                    }
+                    return prev;
                   }
-                  return prev;
-                }
-              });
+                });
+              } catch (error) {
+                console.warn('Error processing own message, removing temp messages:', error);
+                // If processing fails, clean up temp messages and reload
+                setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')));
+                loadMessages();
+              }
             } else {
-              // Message from someone else - add it immediately
+              // Message from someone else - add it immediately to UI for better UX
               try {
-                // Fetch sender profile
+                // Fetch sender profile for the incoming message
                 const { data: senderProfile } = await supabase
                   .from('profiles')
                   .select('username, display_name, avatar_url')
                   .eq('id', incoming.sender_id)
                   .single();
 
-                // Get message content (stored as plain text)
-                const decryptedContent = String(incoming.data_payload || '');
+                // Decrypt the message content
+                let decryptedContent = '';
+                const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
+                
+                if (typeof incoming.data_payload === 'string') {
+                  if (incoming.data_payload.startsWith('\\x')) {
+                    // Handle hex-encoded strings
+                    const hexString = incoming.data_payload.slice(2);
+                    const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+                    decryptedContent = new TextDecoder('utf-8').decode(bytes);
+                  } else if (isLikelyBase64(incoming.data_payload)) {
+                    // Handle base64 encoded strings
+                    try {
+                      decryptedContent = atob(incoming.data_payload);
+                    } catch {
+                      decryptedContent = incoming.data_payload;
+                    }
+                  } else {
+                    // Plain text
+                    decryptedContent = incoming.data_payload;
+                  }
+                } else {
+                  decryptedContent = String(incoming.data_payload || '');
+                }
 
                 // Handle file metadata
                 let fileMetadata = null;
                 if (incoming.encrypted_file_metadata) {
                   try {
-                    fileMetadata = JSON.parse(incoming.encrypted_file_metadata);
+                    if (typeof incoming.encrypted_file_metadata === 'string' && incoming.encrypted_file_metadata.startsWith('\\x')) {
+                      const hexString = incoming.encrypted_file_metadata.slice(2);
+                      const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+                      const jsonString = new TextDecoder('utf-8').decode(bytes);
+                      fileMetadata = JSON.parse(jsonString);
+                    } else {
+                      fileMetadata = JSON.parse(incoming.encrypted_file_metadata);
+                    }
                   } catch (e) {
                     console.warn('Failed to parse file metadata:', e);
                   }
@@ -670,12 +756,16 @@ if (!append && user && conversationId) {
 
                 // Add the new message to the UI immediately
                 setMessages(prev => {
+                  // Check if message already exists to avoid duplicates
                   const exists = prev.some(msg => msg.id === incoming.id);
                   if (exists) return prev;
+                  
                   return [...prev, newMessage];
                 });
+
               } catch (error) {
-                console.warn('Error processing incoming message:', error);
+                console.warn('Error processing incoming message, falling back to reload:', error);
+                // Fallback to reload if something goes wrong
                 loadMessages();
               }
             }
@@ -692,12 +782,16 @@ if (!append && user && conversationId) {
           table: 'message_reads'
         },
         (payload) => {
+          console.log('Message read receipt received via realtime:', payload);
           loadMessages(); // Reload to get updated read receipts
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up realtime subscription');
       supabase.removeChannel(channel);
     };
   };
@@ -778,7 +872,7 @@ if (!append && user && conversationId) {
         }
       }
 
-      // Store message as plain text
+      console.log('📤 STORING MESSAGE AS PLAIN TEXT:', finalContent);
 
       const { error } = await supabase
         .from('messages')
@@ -797,7 +891,7 @@ if (!append && user && conversationId) {
           sequence_number: Date.now()
         });
 
-      // Message stored in database
+      console.log('💾 DATABASE INSERT RESULT:', { error });
 
       if (error) {
         // Database insert failed, remove optimistic message and show error
