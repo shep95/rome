@@ -568,7 +568,7 @@ if (!append && user && conversationId) {
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`
         },
-        (payload) => {
+        async (payload) => {
           console.log('New message received via realtime:', payload);
           try {
             const incoming = (payload as any).new;
@@ -582,8 +582,96 @@ if (!append && user && conversationId) {
               });
               loadMessages();
             } else {
-              // Message from someone else, just reload
-              loadMessages();
+              // Message from someone else - add it immediately to UI for better UX
+              try {
+                // Fetch sender profile for the incoming message
+                const { data: senderProfile } = await supabase
+                  .from('profiles')
+                  .select('username, display_name, avatar_url')
+                  .eq('id', incoming.sender_id)
+                  .single();
+
+                // Decrypt the message content
+                let decryptedContent = '';
+                const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
+                
+                if (typeof incoming.data_payload === 'string') {
+                  if (incoming.data_payload.startsWith('\\x')) {
+                    // Handle hex-encoded strings
+                    const hexString = incoming.data_payload.slice(2);
+                    const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+                    decryptedContent = new TextDecoder('utf-8').decode(bytes);
+                  } else if (isLikelyBase64(incoming.data_payload)) {
+                    // Handle base64 encoded strings
+                    try {
+                      decryptedContent = atob(incoming.data_payload);
+                    } catch {
+                      decryptedContent = incoming.data_payload;
+                    }
+                  } else {
+                    // Plain text
+                    decryptedContent = incoming.data_payload;
+                  }
+                } else {
+                  decryptedContent = String(incoming.data_payload || '');
+                }
+
+                // Handle file metadata
+                let fileMetadata = null;
+                if (incoming.encrypted_file_metadata) {
+                  try {
+                    if (typeof incoming.encrypted_file_metadata === 'string' && incoming.encrypted_file_metadata.startsWith('\\x')) {
+                      const hexString = incoming.encrypted_file_metadata.slice(2);
+                      const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+                      const jsonString = new TextDecoder('utf-8').decode(bytes);
+                      fileMetadata = JSON.parse(jsonString);
+                    } else {
+                      fileMetadata = JSON.parse(incoming.encrypted_file_metadata);
+                    }
+                  } catch (e) {
+                    console.warn('Failed to parse file metadata:', e);
+                  }
+                }
+
+                // Create the message object
+                const newMessage: Message = {
+                  id: incoming.id,
+                  content: decryptedContent,
+                  sender_id: incoming.sender_id,
+                  created_at: incoming.created_at,
+                  message_type: incoming.message_type as 'text' | 'file' | 'image' | 'video',
+                  file_url: fileMetadata?.file_url || null,
+                  file_name: fileMetadata?.file_name || null,
+                  file_size: incoming.file_size || null,
+                  replied_to_message_id: incoming.replied_to_message_id || null,
+                  sender: senderProfile ? {
+                    username: senderProfile.username || 'Unknown',
+                    display_name: senderProfile.display_name || senderProfile.username || 'Unknown',
+                    avatar_url: senderProfile.avatar_url
+                  } : {
+                    username: 'Unknown',
+                    display_name: 'Unknown',
+                    avatar_url: null
+                  },
+                  read_receipts: [],
+                  edited_at: incoming.edited_at || null,
+                  edit_count: incoming.edit_count || 0
+                };
+
+                // Add the new message to the UI immediately
+                setMessages(prev => {
+                  // Check if message already exists to avoid duplicates
+                  const exists = prev.some(msg => msg.id === incoming.id);
+                  if (exists) return prev;
+                  
+                  return [...prev, newMessage];
+                });
+
+              } catch (error) {
+                console.warn('Error processing incoming message, falling back to reload:', error);
+                // Fallback to reload if something goes wrong
+                loadMessages();
+              }
             }
           } catch (e) {
             console.warn('Realtime handler error:', e);
@@ -615,83 +703,117 @@ if (!append && user && conversationId) {
   const sendMessage = async () => {
     if ((!newMessage.trim() && selectedFiles.length === 0) || !conversationId || !user) return;
 
+    // Store values before clearing form
+    const messageContent = newMessage;
+    const currentFiles = [...selectedFiles];
+    const currentReplyingTo = replyingTo;
+    
+    // Generate temporary ID for optimistic update
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
+    
+    // Create optimistic message immediately
+    let optimisticMessage: Message = {
+      id: tempId,
+      content: messageContent || (currentFiles.length > 0 ? currentFiles[0].file.name : ''),
+      sender_id: user.id,
+      created_at: new Date().toISOString(),
+      message_type: currentFiles.length > 0 ? 'file' : 'text',
+      file_url: currentFiles.length > 0 ? currentFiles[0].url : null,
+      file_name: currentFiles.length > 0 ? currentFiles[0].file.name : null,
+      file_size: currentFiles.length > 0 ? currentFiles[0].file.size : null,
+      replied_to_message_id: currentReplyingTo?.id || null,
+      sender: {
+        username: user.user_metadata?.username || 'You',
+        display_name: user.user_metadata?.display_name || 'You',
+        avatar_url: user.user_metadata?.avatar_url || null
+      },
+      read_receipts: [],
+      replied_to_message: currentReplyingTo || undefined
+    };
+
+    // Add optimistic message to UI immediately
+    setMessages(prev => [...prev, optimisticMessage]);
+    
+    // Clear form immediately for better UX
+    setNewMessage('');
+    setSelectedFiles([]);
+    setReplyingTo(null);
+
+    // Now handle backend operations
     setIsUploading(true);
     try {
-      let messageContent = newMessage;
+      let finalContent = messageContent;
       let messageType = 'text';
       let fileUrl = '';
       let fileName = '';
       let fileSize = 0;
 
       // Handle file upload if there are selected files
-      if (selectedFiles.length > 0) {
-        const file = selectedFiles[0].file; // Take first file for now
+      if (currentFiles.length > 0) {
+        const file = currentFiles[0].file;
         const uploadedUrl = await uploadFile(file, 'secure-files', { silent: true });
         
         if (uploadedUrl) {
           fileUrl = uploadedUrl;
           fileName = file.name;
           fileSize = file.size;
-          messageType = 'file'; // Use 'file' for all file types as per database constraint
-          // Keep the original message content if user typed something, otherwise use filename
-          if (!newMessage.trim()) {
-            messageContent = fileName;
+          messageType = 'file';
+          // Update optimistic message with real file URL
+          setMessages(prev => prev.map(msg => 
+            msg.id === tempId 
+              ? { ...msg, file_url: uploadedUrl }
+              : msg
+          ));
+          
+          if (!messageContent.trim()) {
+            finalContent = fileName;
           }
+        } else {
+          // File upload failed, remove optimistic message
+          setMessages(prev => prev.filter(msg => msg.id !== tempId));
+          toast.error('Failed to upload file');
+          return;
         }
       }
 
-      // STORE NEW MESSAGES AS PLAIN TEXT - NO ENCRYPTION AT ALL
-      console.log('📤 STORING MESSAGE AS PLAIN TEXT:', messageContent);
+      console.log('📤 STORING MESSAGE AS PLAIN TEXT:', finalContent);
 
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          data_payload: messageContent,  // Plain text - NO ENCRYPTION
+          data_payload: finalContent,
           message_type: messageType,
           file_size: fileSize || null,
           encrypted_file_metadata: fileUrl && fileName ? JSON.stringify({
             file_url: fileUrl,
             file_name: fileName,
-            content_type: selectedFiles[0]?.file.type || 'application/octet-stream'
+            content_type: currentFiles[0]?.file.type || 'application/octet-stream'
           }) : null,
-          replied_to_message_id: replyingTo?.id || null,
+          replied_to_message_id: currentReplyingTo?.id || null,
           sequence_number: Date.now()
         });
 
       console.log('💾 DATABASE INSERT RESULT:', { error });
 
-      if (error) throw error;
+      if (error) {
+        // Database insert failed, remove optimistic message and show error
+        setMessages(prev => prev.filter(msg => msg.id !== tempId));
+        toast.error('Failed to send message');
+        throw error;
+      }
       
-      // Clear form immediately for better UX
-      setNewMessage('');
-      setSelectedFiles([]);
-      setReplyingTo(null);
+      // Update optimistic message to show it's being processed
+      setMessages(prev => prev.map(msg => 
+        msg.id === tempId 
+          ? { ...msg, content: finalContent, message_type: messageType as 'text' | 'file' | 'image' | 'video' }
+          : msg
+      ));
       
-      // Optimistic update - add message to UI immediately
-      const optimisticMessage: Message = {
-        id: `temp-${Date.now()}`, // Temporary ID until real-time update
-        content: messageContent,
-        sender_id: user.id,
-        created_at: new Date().toISOString(),
-        message_type: messageType as 'text' | 'file' | 'image' | 'video',
-        file_url: fileUrl || null,
-        file_name: fileName || null,
-        file_size: fileSize || null,
-        replied_to_message_id: replyingTo?.id || null,
-        sender: {
-          username: user.user_metadata?.username || 'You',
-          display_name: user.user_metadata?.display_name || 'You',
-          avatar_url: user.user_metadata?.avatar_url || null
-        },
-        read_receipts: [],
-        replied_to_message: replyingTo || undefined
-      };
-      
-      setMessages(prev => [...prev, optimisticMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
+      // The optimistic message has already been removed in the error handling above
     } finally {
       setIsUploading(false);
     }
