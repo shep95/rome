@@ -99,29 +99,6 @@ const Features = () => {
 
   return (
     <div className="min-h-screen w-full bg-background">
-      {/* Header */}
-      <div className="border-b border-border/20 bg-background/95 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Rome Features
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Military-grade security meets intuitive communication
-              </p>
-            </div>
-            <Button 
-              onClick={() => navigate('/dashboard')}
-              variant="outline"
-              className="gap-2"
-            >
-              <MessageSquare className="h-4 w-4" />
-              Go to Messages
-            </Button>
-          </div>
-        </div>
-      </div>
 
       <div className="container mx-auto px-6 py-8 space-y-12">
         
