@@ -207,6 +207,22 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         
         <Button
           onClick={() => {
+            onSectionChange('features');
+            setIsMobileSidebarOpen(false);
+          }}
+          variant="ghost"
+          className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
+            activeSection === 'features'
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'text-foreground hover:text-primary hover:bg-primary/10'
+          }`}
+        >
+          <Info className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+          <span className="text-sm font-medium">Our Features</span>
+        </Button>
+        
+        <Button
+          onClick={() => {
             onSectionChange('secure-files');
             setIsMobileSidebarOpen(false);
           }}

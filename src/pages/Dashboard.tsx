@@ -9,7 +9,12 @@ import { NavigationSidebar } from '@/components/NavigationSidebar';
 import { LiveMainContent } from '@/components/LiveMainContent';
 import { SecureFiles } from '@/components/SecureFiles';
 import { AppLock } from '@/components/SecurityLock';
-import { ReconnectModal } from '@/components/ReconnectModal';
+import { SettingsModal } from "@/components/SettingsModal";
+import { InboxModal } from "@/components/InboxModal";
+import { CallHistory } from "@/components/CallHistory";
+import { AboutUs } from "@/components/AboutUs";
+import { ReconnectModal } from "@/components/ReconnectModal";
+import Features from "@/pages/Features";
 import { LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -95,6 +100,10 @@ const Dashboard = () => {
         {activeSection === 'secure-files' ? (
           <div className="flex-1 flex items-center justify-center bg-background min-h-screen p-2 sm:p-4 md:p-6">
             <SecureFiles />
+          </div>
+        ) : activeSection === 'features' ? (
+          <div className="flex-1 bg-background min-h-screen">
+            <Features />
           </div>
         ) : (
           <LiveMainContent 
