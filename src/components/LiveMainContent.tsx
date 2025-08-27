@@ -267,44 +267,38 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
 
           const directConvIds = directConvs.map((c: any) => c.id);
 
-          // Fetch 'other user' for all direct chats in ONE query
-          let otherMap: Record<string, { user_id: string }> = {};
+          // Fetch counterparties for all direct chats in ONE RPC call (bypasses profile RLS safely)
           if (directConvIds.length > 0) {
-            const { data: others, error: othersError } = await supabase
-              .from('conversation_participants')
-              .select('conversation_id, user_id')
-              .in('conversation_id', directConvIds)
-              .neq('user_id', user?.id as string)
-              .is('left_at', null);
+            const { data: counterparties, error: rpcError } = await supabase
+              .rpc('get_direct_counterparties', { conversation_ids: directConvIds });
 
-            if (!othersError && others) {
-              others.forEach((o) => { otherMap[o.conversation_id] = { user_id: o.user_id }; });
+            if (rpcError) {
+              console.error('Error fetching counterparties via RPC:', rpcError);
+              // Fallback: show generic names
+              const directChats: Conversation[] = directConvs.map((conv: any) => ({
+                id: conv.id,
+                type: 'direct',
+                name: 'Direct chat',
+                avatar_url: '',
+                updated_at: conv.updated_at,
+              }));
+              setConversations(directChats);
+            } else {
+              const mapByConv: Record<string, any> = {};
+              (counterparties || []).forEach((row: any) => { mapByConv[row.conversation_id] = row; });
 
-              const otherUserIds = Array.from(new Set(others.map((o) => o.user_id)));
-              if (otherUserIds.length > 0) {
-                const { data: profiles } = await supabase
-                  .from('profiles')
-                  .select('id, username, display_name, avatar_url')
-                  .in('id', otherUserIds);
+              const directChats: Conversation[] = directConvs.map((conv: any) => {
+                const cp = mapByConv[conv.id];
+                return {
+                  id: conv.id,
+                  type: 'direct',
+                  name: cp?.display_name || cp?.username || 'Direct chat',
+                  avatar_url: cp?.avatar_url || '',
+                  updated_at: conv.updated_at,
+                } as Conversation;
+              });
 
-                const profileMap: Record<string, any> = {};
-                (profiles || []).forEach((p) => { profileMap[p.id] = p; });
-
-                // Build direct chats list
-                const directChats: Conversation[] = directConvs.map((conv: any) => {
-                  const other = otherMap[conv.id];
-                  const prof = other ? profileMap[other.user_id] : null;
-                  return {
-                    id: conv.id,
-                    type: 'direct',
-                    name: prof?.display_name || prof?.username || `User${other?.user_id?.slice(-4) || 'XXXX'}`,
-                    avatar_url: prof?.avatar_url || '',
-                    updated_at: conv.updated_at,
-                  } as Conversation;
-                });
-
-                setConversations(directChats);
-              }
+              setConversations(directChats);
             }
           } else {
             setConversations([]);
