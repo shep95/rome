@@ -421,8 +421,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     <div className="flex-1 min-w-0">
                       <Label className="text-foreground text-base sm:text-lg font-medium">Screenshot & Recording Protection</Label>
                       <p className="text-muted-foreground text-xs sm:text-sm mt-1 break-words">
-                        Prevent users from taking screenshots or recording the screen. 
-                        This will disable right-click, developer tools, screenshot shortcuts, and screen recording APIs.
+                        Protect your conversations from screenshots and recordings. When enabled, this will prevent ALL participants 
+                        in your conversations and group chats from taking screenshots, using right-click menus, developer tools, 
+                        and screenshot shortcuts. This ensures your privacy is maintained across all your communications.
                       </p>
                     </div>
                     <Switch
