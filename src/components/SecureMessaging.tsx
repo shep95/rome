@@ -200,9 +200,9 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
         .single();
 
       if (error) throw error;
-      
-      // If it's a direct conversation, get the other user's info
-      if (conversation.type === 'direct' && user) {
+
+      // For direct conversations, if name is empty, fetch the other user's info
+      if (conversation.type === 'direct' && (!conversation.name || conversation.name.trim() === '') && user) {
         const { data: otherParticipant } = await supabase
           .from('conversation_participants')
           .select('user_id')
@@ -219,24 +219,13 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
             .single();
 
           if (profile) {
-            // Update conversation with other user's info for display
-            setConversationDetails({
-              ...conversation,
-              otherUser: {
-                username: profile.username,
-                display_name: profile.display_name,
-                avatar_url: profile.avatar_url
-              }
-            });
-          } else {
-            setConversationDetails(conversation);
+            // Set the conversation name to the other user's display name or username
+            conversation.name = profile.display_name || profile.username || `User${otherParticipant.user_id.slice(-4)}`;
           }
-        } else {
-          setConversationDetails(conversation);
         }
-      } else {
-        setConversationDetails(conversation);
       }
+
+      setConversationDetails(conversation);
       
       // Check user role in conversation
       if (user) {
@@ -1377,9 +1366,7 @@ if (!append && user && conversationId) {
           )}
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-foreground text-sm sm:text-base lg:text-lg truncate">
-              {conversationDetails?.type === 'direct' && conversationDetails?.otherUser 
-                ? (conversationDetails.otherUser.display_name || conversationDetails.otherUser.username)
-                : (conversationDetails?.name || 'Secure Chat')}
+              {conversationDetails?.name || 'Secure Chat'}
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">End-to-end encrypted</p>
           </div>
