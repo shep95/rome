@@ -946,6 +946,25 @@ export type Database = {
         Args: { user_id: string }
         Returns: string
       }
+      get_direct_counterparties: {
+        Args: { conversation_ids: string[] }
+        Returns: {
+          avatar_url: string
+          conversation_id: string
+          display_name: string
+          id: string
+          username: string
+        }[]
+      }
+      get_direct_counterparty: {
+        Args: { conversation_uuid: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          id: string
+          username: string
+        }[]
+      }
       get_private_keys_honeypot: {
         Args: Record<PropertyKey, never>
         Returns: string

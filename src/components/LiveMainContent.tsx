@@ -270,7 +270,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           // Fetch counterparties for all direct chats in ONE RPC call (bypasses profile RLS safely)
           if (directConvIds.length > 0) {
             const { data: counterparties, error: rpcError } = await supabase
-              .rpc('get_direct_counterparties', { conversation_ids: directConvIds });
+              .rpc('get_direct_counterparties', { conversation_ids: directConvIds }) as any;
 
             if (rpcError) {
               console.error('Error fetching counterparties via RPC:', rpcError);
@@ -284,8 +284,19 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
               }));
               setConversations(directChats);
             } else {
+              // Type assertion for the RPC result
+              const counterpartiesData = counterparties as Array<{
+                conversation_id: string;
+                id: string;
+                username: string;
+                display_name: string;
+                avatar_url: string;
+              }>;
+              
               const mapByConv: Record<string, any> = {};
-              (counterparties || []).forEach((row: any) => { mapByConv[row.conversation_id] = row; });
+              counterpartiesData.forEach((row) => { 
+                mapByConv[row.conversation_id] = row; 
+              });
 
               const directChats: Conversation[] = directConvs.map((conv: any) => {
                 const cp = mapByConv[conv.id];
