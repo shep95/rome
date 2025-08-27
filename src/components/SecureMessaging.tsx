@@ -200,7 +200,43 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
         .single();
 
       if (error) throw error;
-      setConversationDetails(conversation);
+      
+      // If it's a direct conversation, get the other user's info
+      if (conversation.type === 'direct' && user) {
+        const { data: otherParticipant } = await supabase
+          .from('conversation_participants')
+          .select('user_id')
+          .eq('conversation_id', conversationId)
+          .neq('user_id', user.id)
+          .is('left_at', null)
+          .single();
+
+        if (otherParticipant) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username, display_name, avatar_url')
+            .eq('id', otherParticipant.user_id)
+            .single();
+
+          if (profile) {
+            // Update conversation with other user's info for display
+            setConversationDetails({
+              ...conversation,
+              otherUser: {
+                username: profile.username,
+                display_name: profile.display_name,
+                avatar_url: profile.avatar_url
+              }
+            });
+          } else {
+            setConversationDetails(conversation);
+          }
+        } else {
+          setConversationDetails(conversation);
+        }
+      } else {
+        setConversationDetails(conversation);
+      }
       
       // Check user role in conversation
       if (user) {
@@ -1341,7 +1377,9 @@ if (!append && user && conversationId) {
           )}
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-foreground text-sm sm:text-base lg:text-lg truncate">
-              {conversationDetails?.name || 'Secure Chat'}
+              {conversationDetails?.type === 'direct' && conversationDetails?.otherUser 
+                ? (conversationDetails.otherUser.display_name || conversationDetails.otherUser.username)
+                : (conversationDetails?.name || 'Secure Chat')}
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">End-to-end encrypted</p>
           </div>
