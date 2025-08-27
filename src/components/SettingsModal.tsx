@@ -169,10 +169,68 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] bg-background/80 backdrop-blur-xl border-border p-0 overflow-hidden">
-        <div className="flex h-full">
-          {/* Sidebar */}
-          <div className="w-64 bg-card/50 border-r border-border p-6">
+      <DialogContent className="w-[95vw] max-w-6xl h-[90vh] max-h-[800px] bg-background/80 backdrop-blur-xl border-border p-0 overflow-hidden">
+        <div className="flex flex-col lg:flex-row h-full">
+          {/* Mobile/Tablet Tab Navigation */}
+          <div className="lg:hidden bg-card/50 border-b border-border p-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <Settings className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-bold text-foreground">Settings</h2>
+            </div>
+            
+            <nav className="flex space-x-1 overflow-x-auto">
+              <button
+                onClick={() => setActiveTab('appearance')}
+                className={`flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                  activeTab === 'appearance'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <ImageIcon className="w-4 h-4" />
+                <span className="hidden sm:inline">Appearance</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('profile')}
+                className={`flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                  activeTab === 'profile'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Profile</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('security')}
+                className={`flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                  activeTab === 'security'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">Security</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('shortcuts')}
+                className={`flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                  activeTab === 'shortcuts'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Shortcuts</span>
+              </button>
+            </nav>
+          </div>
+
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block w-64 bg-card/50 border-r border-border p-6">
             <div className="flex items-center space-x-2 mb-8">
               <Settings className="w-6 h-6 text-primary" />
               <h2 className="text-xl font-bold text-foreground">Settings</h2>
@@ -230,7 +288,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </div>
 
           {/* Content */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex-1 p-4 md:p-6 overflow-y-auto">
             {activeTab === 'appearance' && (
               <Card className="bg-card/50 border-border">
                 <CardHeader>
@@ -359,10 +417,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg border border-border">
-                    <div className="flex-1">
-                      <Label className="text-foreground text-lg font-medium">Screenshot & Recording Protection</Label>
-                      <p className="text-muted-foreground text-sm mt-1">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-muted/20 rounded-lg border border-border gap-4">
+                    <div className="flex-1 min-w-0">
+                      <Label className="text-foreground text-base sm:text-lg font-medium">Screenshot & Recording Protection</Label>
+                      <p className="text-muted-foreground text-xs sm:text-sm mt-1 break-words">
                         Prevent users from taking screenshots or recording the screen. 
                         This will disable right-click, developer tools, screenshot shortcuts, and screen recording APIs.
                       </p>
@@ -370,20 +428,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     <Switch
                       checked={screenshotProtection}
                       onCheckedChange={handleScreenshotProtectionToggle}
-                      className="ml-4"
+                      className="flex-shrink-0"
                     />
                   </div>
                   
                   {screenshotProtection && (
-                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4">
                       <div className="flex items-center space-x-2 text-primary">
-                        <Check className="w-4 h-4" />
-                        <span className="font-medium">Screenshot & Recording Protection Active</span>
+                        <Check className="w-4 h-4 flex-shrink-0" />
+                        <span className="font-medium text-sm sm:text-base">Screenshot & Recording Protection Active</span>
                       </div>
-                      <p className="text-muted-foreground text-sm mt-2">
+                      <p className="text-muted-foreground text-xs sm:text-sm mt-2">
                         The following features are now disabled:
                       </p>
-                      <ul className="text-muted-foreground text-sm mt-1 list-disc list-inside">
+                      <ul className="text-muted-foreground text-xs sm:text-sm mt-1 list-disc list-inside space-y-1">
                         <li>Right-click context menu</li>
                         <li>Developer tools (F12, Ctrl+Shift+I)</li>
                         <li>Screenshot shortcuts (Print Screen, Cmd+Shift+3/4)</li>
