@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      anonymous_message_log: {
+        Row: {
+          anonymous_id: string
+          conversation_id: string
+          created_at: string
+          id: string
+          message_id: string
+          real_sender_id: string
+        }
+        Insert: {
+          anonymous_id: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message_id: string
+          real_sender_id: string
+        }
+        Update: {
+          anonymous_id?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_id?: string
+          real_sender_id?: string
+        }
+        Relationships: []
+      }
       call_history: {
         Row: {
           call_type: string
@@ -49,6 +76,9 @@ export type Database = {
       }
       conversation_participants: {
         Row: {
+          anonymous_revoked_at: string | null
+          anonymous_revoked_by: string | null
+          can_post_anonymously: boolean | null
           cleared_at: string | null
           conversation_id: string
           id: string
@@ -59,6 +89,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          anonymous_revoked_at?: string | null
+          anonymous_revoked_by?: string | null
+          can_post_anonymously?: boolean | null
           cleared_at?: string | null
           conversation_id: string
           id?: string
@@ -69,6 +102,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          anonymous_revoked_at?: string | null
+          anonymous_revoked_by?: string | null
+          can_post_anonymously?: boolean | null
           cleared_at?: string | null
           conversation_id?: string
           id?: string
@@ -187,6 +223,30 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          reaction?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       message_reads: {
         Row: {
           created_at: string
@@ -258,6 +318,7 @@ export type Database = {
       }
       messages: {
         Row: {
+          anonymous_id: string | null
           conversation_id: string
           created_at: string
           data_payload: string
@@ -269,12 +330,15 @@ export type Database = {
           file_size: number | null
           file_url: string | null
           id: string
+          is_anonymous: boolean | null
           message_type: string | null
+          reactions_count: number | null
           replied_to_message_id: string | null
           sender_id: string
           sequence_number: number
         }
         Insert: {
+          anonymous_id?: string | null
           conversation_id: string
           created_at?: string
           data_payload: string
@@ -286,12 +350,15 @@ export type Database = {
           file_size?: number | null
           file_url?: string | null
           id?: string
+          is_anonymous?: boolean | null
           message_type?: string | null
+          reactions_count?: number | null
           replied_to_message_id?: string | null
           sender_id: string
           sequence_number: number
         }
         Update: {
+          anonymous_id?: string | null
           conversation_id?: string
           created_at?: string
           data_payload?: string
@@ -303,7 +370,9 @@ export type Database = {
           file_size?: number | null
           file_url?: string | null
           id?: string
+          is_anonymous?: boolean | null
           message_type?: string | null
+          reactions_count?: number | null
           replied_to_message_id?: string | null
           sender_id?: string
           sequence_number?: number
@@ -854,6 +923,10 @@ export type Database = {
       }
       encrypt_sensitive_data: {
         Args: { data: string }
+        Returns: string
+      }
+      generate_anonymous_id: {
+        Args: { p_conversation_id: string; p_sender_id: string }
         Returns: string
       }
       generate_entropy_vector: {

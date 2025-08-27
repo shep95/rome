@@ -13,6 +13,9 @@ import { toast } from 'sonner';
 import { GroupChatSettings } from './GroupChatSettings';
 import { DirectChatSettings } from './DirectChatSettings';
 import { LanguageSelector } from './LanguageSelector';
+import { MessageReactions } from './MessageReactions';
+import { AnonymousToggle } from './AnonymousToggle';
+import { AnonymousMessageLog } from './AnonymousMessageLog';
 
 interface Message {
   id: string;
@@ -43,6 +46,9 @@ interface Message {
   edit_count?: number;
   translatedContent?: string;
   isTranslated?: boolean;
+  is_anonymous?: boolean;
+  anonymous_id?: string;
+  reactions_count?: number;
 }
 
 interface FilePreview {
@@ -91,7 +97,9 @@ const [editText, setEditText] = useState('');
 const [translatingMessageId, setTranslatingMessageId] = useState<string | null>(null);
 const [showSettings, setShowSettings] = useState(false);
 const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
-const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
 
   useEffect(() => {
     if (conversationId && user) {
@@ -192,6 +200,19 @@ const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
       if (error) throw error;
       setConversationDetails(conversation);
+      
+      // Check user role in conversation
+      if (user) {
+        const { data: participant } = await supabase
+          .from('conversation_participants')
+          .select('role')
+          .eq('conversation_id', conversationId)
+          .eq('user_id', user.id)
+          .is('left_at', null)
+          .single();
+        
+        setUserRole((participant?.role as 'admin' | 'member') || 'member');
+      }
     } catch (error) {
       console.error('Error loading conversation details:', error);
     }
@@ -228,7 +249,7 @@ const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 let query = supabase
   .from('messages')
   .select(`
-    id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata, edited_at, edit_count
+    id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata, edited_at, edit_count, is_anonymous, anonymous_id, reactions_count
   `)
   .eq('conversation_id', conversationId)
   .gte('created_at', filterFromTime) // Only show messages from when user joined or cleared history
@@ -414,6 +435,9 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
     replied_to_message: undefined,
     edited_at: msg.edited_at || null,
     edit_count: typeof msg.edit_count === 'number' ? msg.edit_count : 0,
+    is_anonymous: msg.is_anonymous || false,
+    anonymous_id: msg.anonymous_id || null,
+    reactions_count: msg.reactions_count || 0,
   };
 
   return message;
@@ -796,16 +820,32 @@ if (!append && user && conversationId) {
     };
   };
 
-  const sendMessage = async () => {
+   const sendMessage = async () => {
     if ((!newMessage.trim() && selectedFiles.length === 0) || !conversationId || !user) return;
 
     // Store values before clearing form
     const messageContent = newMessage;
     const currentFiles = [...selectedFiles];
     const currentReplyingTo = replyingTo;
+    const currentIsAnonymous = isAnonymous;
     
     // Generate temporary ID for optimistic update
     const tempId = `temp-${Date.now()}-${Math.random()}`;
+    
+    // Generate anonymous ID if posting anonymously
+    let anonymousId = '';
+    if (currentIsAnonymous && conversationDetails?.type === 'group') {
+      try {
+        const { data } = await supabase.rpc('generate_anonymous_id', {
+          p_conversation_id: conversationId,
+          p_sender_id: user.id
+        });
+        anonymousId = data || 'Anonymous';
+      } catch (error) {
+        console.error('Error generating anonymous ID:', error);
+        anonymousId = 'Anonymous';
+      }
+    }
     
     // Create optimistic message immediately
     let optimisticMessage: Message = {
@@ -818,13 +858,20 @@ if (!append && user && conversationId) {
       file_name: currentFiles.length > 0 ? currentFiles[0].file.name : null,
       file_size: currentFiles.length > 0 ? currentFiles[0].file.size : null,
       replied_to_message_id: currentReplyingTo?.id || null,
-      sender: {
+      sender: currentIsAnonymous ? {
+        username: anonymousId,
+        display_name: anonymousId,
+        avatar_url: null
+      } : {
         username: user.user_metadata?.username || 'You',
         display_name: user.user_metadata?.display_name || 'You',
         avatar_url: user.user_metadata?.avatar_url || null
       },
       read_receipts: [],
-      replied_to_message: currentReplyingTo || undefined
+      replied_to_message: currentReplyingTo || undefined,
+      is_anonymous: currentIsAnonymous,
+      anonymous_id: anonymousId || null,
+      reactions_count: 0
     };
 
     // Add optimistic message to UI immediately
@@ -888,7 +935,9 @@ if (!append && user && conversationId) {
             content_type: currentFiles[0]?.file.type || 'application/octet-stream'
           }) : null,
           replied_to_message_id: currentReplyingTo?.id || null,
-          sequence_number: Date.now()
+          sequence_number: Date.now(),
+          is_anonymous: currentIsAnonymous,
+          anonymous_id: anonymousId || null
         });
 
       console.log('💾 DATABASE INSERT RESULT:', { error });
