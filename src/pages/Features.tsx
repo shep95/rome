@@ -35,7 +35,7 @@ const Features = () => {
       title: "Anonymous Group Posting",
       description: "Post anonymously in group conversations with rotating identifiers (Anon-1, Anon-2) while admins maintain oversight for moderation.",
       category: "Privacy",
-      isPremium: true,
+      isPremium: false,
       isNew: true
     },
     {
@@ -58,34 +58,20 @@ const Features = () => {
       title: "Screenshot Protection",
       description: "Advanced screenshot and screen recording protection to prevent unauthorized capture of sensitive conversations.",
       category: "Security",
-      isPremium: true
+      isPremium: false
     },
     {
       icon: <Lock className="h-8 w-8 text-teal-500" />,
       title: "App Lock & Biometrics",
       description: "Secure your app with biometric authentication, PIN codes, and automatic locking when inactive.",
       category: "Security",
-      isPremium: true
-    },
-    {
-      icon: <Phone className="h-8 w-8 text-pink-500" />,
-      title: "Secure Voice Calls",
-      description: "Make encrypted voice calls with crystal clear quality and complete privacy protection.",
-      category: "Communication",
-      isPremium: true
+      isPremium: false
     },
     {
       icon: <Globe className="h-8 w-8 text-cyan-500" />,
       title: "Multi-Language Support",
       description: "Automatic message translation and support for multiple languages to communicate globally.",
       category: "Accessibility",
-      isPremium: false
-    },
-    {
-      icon: <Smartphone className="h-8 w-8 text-violet-500" />,
-      title: "Cross-Platform Sync",
-      description: "Seamlessly sync your encrypted conversations across all your devices while maintaining security.",
-      category: "Connectivity",
       isPremium: false
     },
     {
