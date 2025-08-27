@@ -16,6 +16,7 @@ import { LanguageSelector } from './LanguageSelector';
 import { MessageReactions } from './MessageReactions';
 import { AnonymousToggle } from './AnonymousToggle';
 import { AnonymousMessageLog } from './AnonymousMessageLog';
+import { LinkWarning } from './LinkWarning';
 
 interface Message {
   id: string;

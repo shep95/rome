@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SecurityUtils, CryptoUtils } from '@/lib/security';
+import { TempEmailValidator } from '@/lib/temp-email-validator';
 
 interface AuthContextType {
   user: User | null;
@@ -141,6 +142,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, username?: string, code?: string) => {
     try {
+      // Validate email format and check for temporary emails
+      const emailValidation = TempEmailValidator.validateEmail(email);
+      if (!emailValidation.isValid) {
+        toast({
+          variant: "destructive",
+          title: emailValidation.isTemp ? "Temporary email not allowed" : "Invalid email",
+          description: emailValidation.error
+        });
+        return { error: { message: emailValidation.error } };
+      }
 
       // Validate password strength
       const passwordValidation = await SecurityUtils.validatePassword(password);
