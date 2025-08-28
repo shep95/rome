@@ -1370,25 +1370,15 @@ if (!append && user && conversationId) {
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">End-to-end encrypted</p>
           </div>
-          {/* Settings buttons */}
-          <div className="flex items-center space-x-2">
-            <Button
-              onClick={() => setShowSettings(true)}
-              variant="ghost"
-              size="sm"
-              className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
-            >
-              <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
-            <Button
-              onClick={() => setShowSettings(true)}
-              variant="ghost"
-              size="sm"
-              className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
-            >
-              <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
-          </div>
+          {/* Settings button */}
+          <Button
+            onClick={() => setShowSettings(true)}
+            variant="ghost"
+            size="sm"
+            className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+          >
+            <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Button>
         </div>
       </div>
 
