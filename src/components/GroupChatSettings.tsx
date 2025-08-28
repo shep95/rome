@@ -317,6 +317,13 @@ export const GroupChatSettings: React.FC<GroupChatSettingsProps> = ({
   const toggleAnonymousPermission = async (participantId: string, currentPermission: boolean) => {
     if (!isCreator) return;
 
+    // Optimistically update UI immediately
+    setParticipants(prev => prev.map(p => 
+      p.id === participantId 
+        ? { ...p, can_post_anonymously: !currentPermission }
+        : p
+    ));
+
     try {
       const { error } = await supabase
         .from('conversation_participants')
@@ -334,9 +341,14 @@ export const GroupChatSettings: React.FC<GroupChatSettingsProps> = ({
         description: !currentPermission ? "Anonymous posting enabled" : "Anonymous posting disabled"
       });
 
-      fetchParticipants();
     } catch (error) {
       console.error('Error toggling anonymous permission:', error);
+      // Revert the optimistic update on error
+      setParticipants(prev => prev.map(p => 
+        p.id === participantId 
+          ? { ...p, can_post_anonymously: currentPermission }
+          : p
+      ));
       toast({
         title: "Error",
         description: "Failed to update anonymous permission",
