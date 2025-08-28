@@ -545,7 +545,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                   selectedConversation === group.id ? 'ring-2 ring-primary bg-primary/10 shadow-lg' : ''
                 }`}
               >
-                <CardContent className="p-3 md:p-4 lg:p-5">
+                <CardContent className="p-3 md:p-4 lg:p-5 pr-2 md:pr-3 lg:pr-4">
                   <div className="flex items-center space-x-3 md:space-x-4">
                     <Avatar 
                       className="h-10 w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-lg border border-border/50 flex-shrink-0"
@@ -557,20 +557,20 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                       </AvatarFallback>
                     </Avatar>
                     <div 
-                      className="flex-1 min-w-0 cursor-pointer"
+                      className="flex-1 min-w-0 cursor-pointer mr-2"
                       onClick={() => setSelectedConversation(group.id)}
                     >
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm md:text-base lg:text-lg font-medium text-foreground truncate pr-2">{group.name}</h4>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs md:text-sm text-muted-foreground flex-shrink-0">
+                        <div className="flex items-center space-x-2 flex-shrink-0">
+                          <span className="text-xs md:text-sm text-muted-foreground">
                             {new Date(group.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                           {group.created_by === user?.id && (
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 md:h-8 md:w-8 lg:h-9 lg:w-9 hover:bg-primary/20"
+                              className="h-6 w-6 md:h-8 md:w-8 lg:h-9 lg:w-9 hover:bg-primary/20 flex-shrink-0"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedGroupForSettings(group.id);
