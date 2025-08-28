@@ -69,23 +69,26 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
 
       if (requestsError) throw requestsError;
 
-      // Get profile data for each request
+      // Get profile data for each request using secure RPC function
       const requestsWithProfiles = await Promise.all(
         (requestsData || []).map(async (request) => {
           // For incoming requests, get sender profile
           // For outgoing requests, get recipient profile
           const profileUserId = request.to_user_id === user.id ? request.from_user_id : request.to_user_id;
           
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('username, display_name, avatar_url')
-            .eq('id', profileUserId)
-            .single();
+          const { data: profiles, error: profileError } = await supabase
+            .rpc('get_public_profile_info', { profile_id: profileUserId });
+
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+          }
+
+          const profile = profiles?.[0] || { username: '', display_name: '', avatar_url: '' };
 
           return {
             ...request,
             is_incoming: request.to_user_id === user.id,
-            profiles: profile || { username: '', display_name: '', avatar_url: '' }
+            profiles: profile
           } as MessageRequest & { is_incoming: boolean };
         })
       );
