@@ -5,9 +5,3 @@ verify_jwt = true
 
 [functions.crypto-utils]
 verify_jwt = true
-
-[functions.translate]
-verify_jwt = true
-
-[functions.process-scheduled-messages]
-verify_jwt = false

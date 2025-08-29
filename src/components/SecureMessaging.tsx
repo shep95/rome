@@ -4,10 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Zap, Shield, FileText, Users, Clock } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
 import { ThanosSnapEffect } from '@/components/ui/thanos-snap-effect';
@@ -19,7 +17,6 @@ import { MessageReactions } from './MessageReactions';
 import { AnonymousToggle } from './AnonymousToggle';
 import { AnonymousMessageLog } from './AnonymousMessageLog';
 import { LinkWarning } from './LinkWarning';
-import { ScheduleMessageModal } from './ScheduleMessageModal';
 import { extractDominantColor, extractVideoColor } from '@/lib/color-extraction';
 
 interface Message {
@@ -54,9 +51,6 @@ interface Message {
   is_anonymous?: boolean;
   anonymous_id?: string;
   reactions_count?: number;
-  is_self_destruct?: boolean;
-  self_destruct_viewed_at?: string | null;
-  self_destruct_viewed_by?: string | null;
 }
 
 interface FilePreview {
@@ -76,8 +70,6 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const { uploadFile } = useFileUpload();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [showCommandMenu, setShowCommandMenu] = useState(false);
-  const [commandQuery, setCommandQuery] = useState('');
   const [conversationDetails, setConversationDetails] = useState<any>(null);
   const [userWallpaper, setUserWallpaper] = useState<string>('');
   const [selectedFiles, setSelectedFiles] = useState<FilePreview[]>([]);
@@ -88,45 +80,6 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const [vhSet, setVhSet] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Available commands for the command menu
-  const availableCommands = [
-    {
-      id: 'selfdestruct',
-      name: 'Self-Destruct Message',
-      description: 'Send a message that disappears after being viewed',
-      icon: Zap,
-      command: '/selfdestruct',
-    },
-    {
-      id: 'anonymous',
-      name: 'Anonymous Message',
-      description: 'Send message without revealing your identity',
-      icon: Shield,
-      command: '/anonymous',
-    },
-    {
-      id: 'file',
-      name: 'Secure File',
-      description: 'Upload and send an encrypted file',
-      icon: FileText,
-      command: '/file',
-    },
-    {
-      id: 'translate',
-      name: 'Translate Message',
-      description: 'Auto-translate your message to recipient\'s language',
-      icon: Languages,
-      command: '/translate',
-    },
-    {
-      id: 'schedule',
-      name: 'Schedule Message',
-      description: 'Schedule message to be sent later',
-      icon: Clock,
-      command: '/schedule',
-    }
-  ];
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [mediaModal, setMediaModal] = useState<{
     isOpen: boolean;
@@ -150,42 +103,6 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
   const [messageColors, setMessageColors] = useState<Map<string, string>>(new Map());
-  const [revealedSelfDestructMessages, setRevealedSelfDestructMessages] = useState<Set<string>>(new Set());
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [scheduleContent, setScheduleContent] = useState('');
-
-  // Handle self-destruct message interactions
-  const handleSelfDestructClick = async (messageId: string, isRevealed: boolean) => {
-    if (!user?.id) return;
-    
-    if (!isRevealed) {
-      // First click: reveal the message
-      setRevealedSelfDestructMessages(prev => new Set([...prev, messageId]));
-      
-      // Mark as viewed in the database
-      try {
-        await supabase.rpc('mark_self_destruct_viewed', {
-          p_message_id: messageId,
-          p_viewer_id: user.id
-        });
-      } catch (error) {
-        console.error('Error marking self-destruct message as viewed:', error);
-      }
-    } else {
-      // Second click: delete the message with animation
-      try {
-        await supabase
-          .from('messages')
-          .delete()
-          .eq('id', messageId);
-        
-        toast.success("Self-destruct message deleted!");
-      } catch (error) {
-        console.error('Error deleting self-destruct message:', error);
-        toast.error("Failed to delete message");
-      }
-    }
-  };
 
   // Extract color from media and store it
   const extractMediaColor = async (messageId: string, element: HTMLImageElement | HTMLVideoElement) => {
@@ -373,7 +290,7 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
 let query = supabase
   .from('messages')
   .select(`
-    id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata, edited_at, edit_count, is_anonymous, anonymous_id, reactions_count, is_self_destruct, self_destruct_viewed_at, self_destruct_viewed_by
+    id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata, edited_at, edit_count, is_anonymous, anonymous_id, reactions_count
   `)
   .eq('conversation_id', conversationId)
   .gte('created_at', filterFromTime) // Only show messages from when user joined or cleared history
@@ -953,32 +870,6 @@ if (!append && user && conversationId) {
     const currentReplyingTo = replyingTo;
     const currentIsAnonymous = isAnonymous;
     
-    // Process message for special commands and features
-    let isSelfDestruct = false;
-    let shouldTranslate = false;
-    let processedContent = messageContent;
-    
-    // Handle self-destruct messages
-    if (messageContent.startsWith('/selfdestruct')) {
-      isSelfDestruct = true;
-      processedContent = messageContent.replace(/^\/selfdestruct\s*/, '').trim();
-      if (!processedContent && selectedFiles.length === 0) {
-        toast.error('Self-destruct message cannot be empty');
-        return;
-      }
-    }
-    
-    // Handle translation messages
-    if (messageContent.startsWith('🌐')) {
-      shouldTranslate = true;
-      processedContent = messageContent.replace(/^🌐\s*/, '').trim();
-    }
-
-    // Validate message content
-    if (!processedContent && selectedFiles.length === 0) {
-      return;
-    }
-    
     // Generate temporary ID for optimistic update
     const tempId = `temp-${Date.now()}-${Math.random()}`;
     
@@ -997,32 +888,10 @@ if (!append && user && conversationId) {
       }
     }
     
-    // Auto-translate if needed
-    if (shouldTranslate && processedContent) {
-      try {
-        const { data, error } = await supabase.functions.invoke('translate', {
-          body: { 
-            q: processedContent,
-            source: 'auto',
-            target: selectedTargetLanguage || 'en'
-          }
-        });
-        
-        if (!error && data?.translated) {
-          processedContent = data.translated;
-          toast.success(`Message translated to ${data.targetLanguageName || selectedTargetLanguage}`);
-        }
-      } catch (error) {
-        console.error('Translation error:', error);
-        toast.error('Translation failed, sending original message');
-        // Continue with original message if translation fails
-      }
-    }
-    
     // Create optimistic message immediately
     let optimisticMessage: Message = {
       id: tempId,
-      content: processedContent || (currentFiles.length > 0 ? currentFiles[0].file.name : ''),
+      content: messageContent || (currentFiles.length > 0 ? currentFiles[0].file.name : ''),
       sender_id: user.id,
       created_at: new Date().toISOString(),
       message_type: currentFiles.length > 0 ? 'file' : 'text',
@@ -1043,10 +912,7 @@ if (!append && user && conversationId) {
       replied_to_message: currentReplyingTo || undefined,
       is_anonymous: currentIsAnonymous,
       anonymous_id: anonymousId || null,
-      reactions_count: 0,
-      is_self_destruct: isSelfDestruct,
-      self_destruct_viewed_at: null,
-      self_destruct_viewed_by: null,
+      reactions_count: 0
     };
 
     // Add optimistic message to UI immediately
@@ -1083,10 +949,8 @@ if (!append && user && conversationId) {
               : msg
           ));
           
-          if (!processedContent.trim()) {
+          if (!messageContent.trim()) {
             finalContent = fileName;
-          } else {
-            finalContent = processedContent;
           }
         } else {
           // File upload failed, remove optimistic message
@@ -1094,8 +958,6 @@ if (!append && user && conversationId) {
           toast.error('Failed to upload file');
           return;
         }
-      } else {
-        finalContent = processedContent;
       }
 
       console.log('📤 STORING MESSAGE AS PLAIN TEXT:', finalContent);
@@ -1116,8 +978,7 @@ if (!append && user && conversationId) {
           replied_to_message_id: currentReplyingTo?.id || null,
           sequence_number: Date.now(),
           is_anonymous: currentIsAnonymous,
-          anonymous_id: anonymousId || null,
-          is_self_destruct: isSelfDestruct
+          anonymous_id: anonymousId || null
         });
 
       console.log('💾 DATABASE INSERT RESULT:', { error });
@@ -1172,17 +1033,7 @@ if (!append && user && conversationId) {
 
   // Handle input changes with typing indicators
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setNewMessage(value);
-
-    // Check if user typed "/" to show command menu
-    if (value === '/' || (value.startsWith('/') && !value.includes(' '))) {
-      setCommandQuery(value.slice(1)); // Remove the "/" for filtering
-      setShowCommandMenu(true);
-    } else {
-      setShowCommandMenu(false);
-      setCommandQuery('');
-    }
+    setNewMessage(e.target.value);
 
     // Set typing status
     if (!isTyping) {
@@ -1200,73 +1051,6 @@ if (!append && user && conversationId) {
       setIsTyping(false);
       setTypingStatus(false);
     }, 2000);
-  };
-
-  // Handle command selection
-  const handleCommandSelect = (command: string) => {
-    const messageWithoutCommand = newMessage.replace(/^\/\w*\s*/, '');
-    
-    switch (command) {
-      case '/selfdestruct':
-        setNewMessage(command + ' ' + messageWithoutCommand);
-        break;
-      case '/anonymous':
-        setIsAnonymous(true);
-        setNewMessage(messageWithoutCommand);
-        toast.success('Anonymous mode enabled for this message');
-        break;
-      case '/file':
-        fileInputRef.current?.click();
-        setNewMessage(messageWithoutCommand);
-        break;
-      case '/translate':
-        // Toggle auto-translation for this message
-        setNewMessage('🌐 ' + messageWithoutCommand);
-        toast.success('Message will be auto-translated');
-        break;
-      case '/schedule':
-        setScheduleContent(messageWithoutCommand);
-        setShowScheduleModal(true);
-        setNewMessage('');
-        break;
-      default:
-        setNewMessage(command + ' ' + messageWithoutCommand);
-    }
-    
-    setShowCommandMenu(false);
-    setCommandQuery('');
-    
-    // Focus back to textarea after selection
-    setTimeout(() => {
-      const textarea = document.querySelector('textarea');
-      textarea?.focus();
-    }, 0);
-  };
-
-  // Handle scheduled message
-  const handleScheduleMessage = async (scheduledFor: Date, content: string, isSelfDestruct: boolean) => {
-    if (!user?.id || !conversationId) return;
-
-    try {
-      const { error } = await supabase
-        .from('scheduled_messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content: content,
-          scheduled_for: scheduledFor.toISOString(),
-          is_self_destruct: isSelfDestruct,
-          replied_to_message_id: replyingTo?.id || null
-        });
-
-      if (error) throw error;
-
-      toast.success(`Message scheduled for ${scheduledFor.toLocaleDateString()} at ${scheduledFor.toLocaleTimeString()}`);
-      setReplyingTo(null);
-    } catch (error) {
-      console.error('Error scheduling message:', error);
-      toast.error('Failed to schedule message');
-    }
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1659,9 +1443,7 @@ if (!append && user && conversationId) {
               <div
                 key={message.id}
                 data-message-id={message.id}
-                className={`flex items-end gap-2 mb-3 relative z-10 w-full ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'} ${
-                  message.is_self_destruct ? 'animate-pulse' : ''
-                }`}
+                className={`flex items-end gap-2 mb-3 relative z-10 w-full ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
               >
                 {/* Avatar for others */}
                 {message.sender_id !== user?.id && (
@@ -1685,52 +1467,25 @@ if (!append && user && conversationId) {
                     </p>
                   )}
                   
-                     <div className="relative group">
-                       {/* Self-destruct indicator */}
-                       {message.is_self_destruct && (
-                         <div className="absolute -top-2 -right-2 z-10 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
-                           💣 {message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id) 
-                             ? 'Click to reveal' 
-                             : message.sender_id !== user?.id && revealedSelfDestructMessages.has(message.id)
-                               ? 'Click to delete'
-                               : 'Self-Destruct'}
-                         </div>
-                       )}
-                       
-                       <div
-                         className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
-                           message.sender_id === user?.id
-                             ? `bg-primary/20 text-white border-primary/30 rounded-br-md ${message.is_self_destruct ? 'border-red-400/50' : ''}`
-                             : `bg-background/30 text-foreground border-border/30 rounded-bl-md ${message.is_self_destruct ? 'border-red-400/50' : ''}`
-                         } ${
-                           message.is_self_destruct && message.sender_id !== user?.id 
-                             ? 'cursor-pointer hover:border-red-400/70 hover:shadow-red-400/20' 
-                             : ''
-                         } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden ${
-                           message.is_self_destruct && message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id)
-                             ? 'blur-sm hover:blur-none'
-                             : ''
-                         }`}
-                         onClick={() => {
-                           if (message.is_self_destruct && message.sender_id !== user?.id) {
-                             handleSelfDestructClick(message.id, revealedSelfDestructMessages.has(message.id));
-                           }
-                         }}
-                         style={{
-                           backdropFilter: 'blur(16px) saturate(140%)',
-                           WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-                           wordWrap: 'break-word',
-                           overflowWrap: 'anywhere',
-                           wordBreak: 'break-word',
-                           maxWidth: 'calc(100vw - 80px)',
-                           ...(messageColors.has(message.id) && (message.message_type === 'image' || message.message_type === 'video') && {
-                             boxShadow: `0 0 30px ${messageColors.get(message.id)}30`
-                           }),
-                           ...(message.is_self_destruct && {
-                             boxShadow: `0 0 20px rgba(239, 68, 68, 0.3), ${messageColors.has(message.id) ? `0 0 30px ${messageColors.get(message.id)}30` : ''}`
-                           })
-                         }}
-                       >
+                   <div className="relative group">
+                     <div
+                       className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
+                         message.sender_id === user?.id
+                           ? 'bg-primary/20 text-white border-primary/30 rounded-br-md'
+                           : 'bg-background/30 text-foreground border-border/30 rounded-bl-md'
+                       } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
+                       style={{
+                         backdropFilter: 'blur(16px) saturate(140%)',
+                         WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                         wordWrap: 'break-word',
+                         overflowWrap: 'anywhere',
+                         wordBreak: 'break-word',
+                         maxWidth: 'calc(100vw - 80px)',
+                         ...(messageColors.has(message.id) && (message.message_type === 'image' || message.message_type === 'video') && {
+                           boxShadow: `0 0 30px ${messageColors.get(message.id)}30`
+                         })
+                       }}
+                     >
                       {/* Reply Preview */}
                       {message.replied_to_message && (
                         <div className="mb-2 border-l-2 border-white/30 pl-2">
@@ -1850,52 +1605,39 @@ if (!append && user && conversationId) {
                               </Button>
                             </div>
                           )}
-                           {/* Show caption if not equal to filename */}
-                           {message.content && message.content.trim() && message.content !== message.file_name && (
-                              <div className="space-y-2 relative">
-                                {/* Blur overlay for self-destruct messages */}
-                                {message.is_self_destruct && message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id) && (
-                                  <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-20 pointer-events-none">
-                                    <div className="text-white/80 text-xs font-medium bg-black/40 px-2 py-1 rounded">
-                                      🔒 Click to reveal
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                <div className={`text-sm leading-relaxed whitespace-pre-wrap ${
-                                  message.is_self_destruct && message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id)
-                                    ? 'blur-[2px] select-none'
-                                    : ''
-                                }`}>
-                                  {message.isTranslated && message.translatedContent 
-                                    ? message.translatedContent 
-                                    : message.content}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      if (message.translatedContent) {
-                                        toggleTranslation(message.id);
-                                      } else {
-                                        translateMessage(message.id, message.content);
-                                      }
-                                    }}
-                                    disabled={translatingMessageId === message.id}
-                                    className={`h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity ${
-                                      message.sender_id === user?.id 
-                                        ? 'text-white/80 hover:text-white hover:bg-white/10' 
-                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                                    }`}
-                                  >
-                                    <Languages className="h-3 w-3 mr-1" />
-                                    {translatingMessageId === message.id ? 'Translating...' : 
-                                     message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
-                                  </Button>
-                                </div>
-                              </div>
-                           )}
+                          {/* Show caption if not equal to filename */}
+                          {message.content && message.content.trim() && message.content !== message.file_name && (
+                             <div className="space-y-2">
+                               <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                                 {message.isTranslated && message.translatedContent 
+                                   ? message.translatedContent 
+                                   : message.content}
+                               </div>
+                               <div className="flex items-center gap-2">
+                                 <Button
+                                   size="sm"
+                                   variant="ghost"
+                                   onClick={() => {
+                                     if (message.translatedContent) {
+                                       toggleTranslation(message.id);
+                                     } else {
+                                       translateMessage(message.id, message.content);
+                                     }
+                                   }}
+                                   disabled={translatingMessageId === message.id}
+                                   className={`h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity ${
+                                     message.sender_id === user?.id 
+                                       ? 'text-white/80 hover:text-white hover:bg-white/10' 
+                                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                   }`}
+                                 >
+                                   <Languages className="h-3 w-3 mr-1" />
+                                   {translatingMessageId === message.id ? 'Translating...' : 
+                                    message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
+                                 </Button>
+                               </div>
+                             </div>
+                          )}
                         </div>
                       ) : (
 editingMessageId === message.id ? (
@@ -1912,21 +1654,8 @@ editingMessageId === message.id ? (
     </div>
   </div>
 ) : (
-  <div className="space-y-2 relative">
-    {/* Blur overlay for self-destruct messages */}
-    {message.is_self_destruct && message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id) && (
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-20 pointer-events-none">
-        <div className="text-white/80 text-xs font-medium bg-black/40 px-2 py-1 rounded">
-          🔒 Click to reveal
-        </div>
-      </div>
-    )}
-    
-    <div className={`text-sm leading-relaxed whitespace-pre-wrap ${
-      message.is_self_destruct && message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id)
-        ? 'blur-[2px] select-none'
-        : ''
-    }`}>
+  <div className="space-y-2">
+    <div className="text-sm leading-relaxed whitespace-pre-wrap">
       {message.isTranslated && message.translatedContent 
         ? message.translatedContent 
         : message.content}
@@ -2057,7 +1786,7 @@ editingMessageId === message.id ? (
                     </AvatarFallback>
                   </Avatar>
                 )}
-               </div>
+              </div>
             ))}
           </div>
         )}
@@ -2170,44 +1899,7 @@ editingMessageId === message.id ? (
             <Paperclip className="h-4 w-4 text-muted-foreground" />
           </Button>
           
-          <div className="flex-1 bg-background/50 backdrop-blur-sm border border-border rounded-xl p-2 relative">
-            {/* Command Menu */}
-            {showCommandMenu && (
-              <div className="absolute bottom-full left-0 w-full mb-2 z-50">
-                <div className="bg-popover border border-border rounded-lg shadow-lg max-h-64 overflow-hidden">
-                  <Command className="max-h-64">
-                    <CommandList className="max-h-64">
-                      <CommandEmpty className="py-2 px-3 text-sm text-muted-foreground">
-                        No commands found
-                      </CommandEmpty>
-                      <CommandGroup>
-                        {availableCommands
-                          .filter(cmd => 
-                            cmd.name.toLowerCase().includes(commandQuery.toLowerCase()) ||
-                            cmd.command.toLowerCase().includes(commandQuery.toLowerCase())
-                          )
-                          .map((cmd) => (
-                            <CommandItem
-                              key={cmd.id}
-                              value={cmd.command}
-                              onSelect={() => handleCommandSelect(cmd.command)}
-                              className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-accent text-accent-foreground"
-                            >
-                              <cmd.icon className="h-4 w-4 text-primary" />
-                              <div className="flex-1">
-                                <div className="font-medium text-sm">{cmd.name}</div>
-                                <div className="text-xs text-muted-foreground">{cmd.description}</div>
-                              </div>
-                              <div className="text-xs text-primary font-mono">{cmd.command}</div>
-                            </CommandItem>
-                          ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </div>
-              </div>
-            )}
-            
+          <div className="flex-1 bg-background/50 backdrop-blur-sm border border-border rounded-xl p-2">
             <textarea
               value={newMessage}
               onChange={handleInputChange}
@@ -2216,12 +1908,8 @@ editingMessageId === message.id ? (
                   e.preventDefault();
                   sendMessage();
                 }
-                if (e.key === 'Escape' && showCommandMenu) {
-                  setShowCommandMenu(false);
-                  setCommandQuery('');
-                }
               }}
-              placeholder="Type a secure message... (Use / for commands)"
+              placeholder="Type a secure message..."
               className="w-full bg-transparent resize-none text-foreground placeholder-muted-foreground focus:outline-none text-sm leading-relaxed min-h-[20px] max-h-32"
               rows={1}
               style={{ 
@@ -2279,14 +1967,6 @@ editingMessageId === message.id ? (
         mediaType={mediaModal.type}
         fileName={mediaModal.fileName}
         fileSize={mediaModal.fileSize}
-      />
-
-      {/* Schedule Message Modal */}
-      <ScheduleMessageModal
-        isOpen={showScheduleModal}
-        onClose={() => setShowScheduleModal(false)}
-        onSchedule={handleScheduleMessage}
-        defaultContent={scheduleContent}
       />
 
       {/* Typing Indicator */}

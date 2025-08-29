@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, MessageSquare, Users, Lock, Eye, Zap, FileText, Phone, Globe, Smartphone, UserX, ThumbsUp, AlertTriangle, Crown, Timer } from 'lucide-react';
+import { Shield, MessageSquare, Users, Lock, Eye, Zap, FileText, Phone, Globe, Smartphone, UserX, ThumbsUp, AlertTriangle, Crown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -54,14 +54,6 @@ const Features = () => {
       isPremium: false
     },
     {
-      icon: <Timer className="h-8 w-8 text-red-600" />,
-      title: "Self-Destructing Messages",
-      description: "Send messages and files that automatically delete once viewed by recipients using the /selfdestruct command for ultimate privacy.",
-      category: "Security",
-      isPremium: false,
-      isNew: true
-    },
-    {
       icon: <Eye className="h-8 w-8 text-amber-500" />,
       title: "Screenshot Protection",
       description: "Advanced screenshot and screen recording protection to prevent unauthorized capture of sensitive conversations.",
@@ -94,7 +86,6 @@ const Features = () => {
 
   const securityFeatures = [
     "Zero-knowledge architecture - we can't read your messages",
-    "Self-destructing messages that vanish once viewed",
     "Automatic message expiration and self-destruction",
     "Advanced threat detection and monitoring",
     "Secure key exchange protocols",

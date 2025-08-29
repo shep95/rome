@@ -331,12 +331,9 @@ export type Database = {
           file_url: string | null
           id: string
           is_anonymous: boolean | null
-          is_self_destruct: boolean | null
           message_type: string | null
           reactions_count: number | null
           replied_to_message_id: string | null
-          self_destruct_viewed_at: string | null
-          self_destruct_viewed_by: string | null
           sender_id: string
           sequence_number: number
         }
@@ -354,12 +351,9 @@ export type Database = {
           file_url?: string | null
           id?: string
           is_anonymous?: boolean | null
-          is_self_destruct?: boolean | null
           message_type?: string | null
           reactions_count?: number | null
           replied_to_message_id?: string | null
-          self_destruct_viewed_at?: string | null
-          self_destruct_viewed_by?: string | null
           sender_id: string
           sequence_number: number
         }
@@ -377,12 +371,9 @@ export type Database = {
           file_url?: string | null
           id?: string
           is_anonymous?: boolean | null
-          is_self_destruct?: boolean | null
           message_type?: string | null
           reactions_count?: number | null
           replied_to_message_id?: string | null
-          self_destruct_viewed_at?: string | null
-          self_destruct_viewed_by?: string | null
           sender_id?: string
           sequence_number?: number
         }
@@ -553,57 +544,6 @@ export type Database = {
           id?: string
           identifier?: string
           window_start?: string
-        }
-        Relationships: []
-      }
-      scheduled_messages: {
-        Row: {
-          content: string
-          conversation_id: string
-          created_at: string
-          file_name: string | null
-          file_size: number | null
-          file_url: string | null
-          id: string
-          is_self_destruct: boolean | null
-          message_type: string | null
-          replied_to_message_id: string | null
-          scheduled_for: string
-          sender_id: string
-          sent_at: string | null
-          status: string | null
-        }
-        Insert: {
-          content: string
-          conversation_id: string
-          created_at?: string
-          file_name?: string | null
-          file_size?: number | null
-          file_url?: string | null
-          id?: string
-          is_self_destruct?: boolean | null
-          message_type?: string | null
-          replied_to_message_id?: string | null
-          scheduled_for: string
-          sender_id: string
-          sent_at?: string | null
-          status?: string | null
-        }
-        Update: {
-          content?: string
-          conversation_id?: string
-          created_at?: string
-          file_name?: string | null
-          file_size?: number | null
-          file_url?: string | null
-          id?: string
-          is_self_destruct?: boolean | null
-          message_type?: string | null
-          replied_to_message_id?: string | null
-          scheduled_for?: string
-          sender_id?: string
-          sent_at?: string | null
-          status?: string | null
         }
         Relationships: []
       }
@@ -969,10 +909,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      cleanup_viewed_self_destruct_messages: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       create_direct_conversation: {
         Args: { _name: string; _other_user_id: string }
         Returns: string
@@ -1076,14 +1012,6 @@ export type Database = {
       }
       mark_messages_as_read: {
         Args: { p_conversation_id: string; p_up_to_message_id?: string }
-        Returns: undefined
-      }
-      mark_self_destruct_viewed: {
-        Args: { p_message_id: string; p_viewer_id: string }
-        Returns: undefined
-      }
-      process_scheduled_messages: {
-        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       search_profiles: {
