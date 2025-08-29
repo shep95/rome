@@ -326,36 +326,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     <>
       {/* Mobile and Tablet Navigation - Hamburger menu for screens < 1280px */}
       <div className="xl:hidden">
-        {/* Top Bar */}
-        <div className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <MobileSidebarTrigger onClick={() => setIsMobileSidebarOpen(true)} />
-              <img 
-                src="/lovable-uploads/7b059a2d-3395-46aa-86d1-555e872ff2b2.png" 
-                alt="ROME" 
-                className="w-6 h-6 lg:w-8 lg:h-8 object-cover rounded-md lg:rounded-lg"
-              />
-              <h1 className="text-foreground font-bold text-lg lg:text-xl">ROME</h1>
-            </div>
-            <div 
-              onClick={() => setIsProfileModalOpen(true)}
-              className="cursor-pointer"
-            >
-              {profileImage ? (
-                <img 
-                  src={profileImage} 
-                  alt="Profile" 
-                  className="w-8 h-8 lg:w-10 lg:h-10 object-cover rounded-lg border border-border"
-                />
-              ) : (
-                <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-xs lg:text-sm">
-                  {getUserInitial()}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
 
         {/* Popout Sidebar */}
         <MobileSidebar 
