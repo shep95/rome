@@ -1060,6 +1060,14 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      is_authenticated_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_service_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       log_security_event: {
         Args: {
           p_additional_data?: Json
@@ -1105,6 +1113,14 @@ export type Database = {
       }
       user_is_conversation_participant: {
         Args: { conversation_id: string; user_id: string }
+        Returns: boolean
+      }
+      validate_call_history_access: {
+        Args: { history_user_id: string }
+        Returns: boolean
+      }
+      validate_profile_access: {
+        Args: { profile_user_id: string }
         Returns: boolean
       }
       validate_user_session: {
