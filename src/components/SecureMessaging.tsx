@@ -19,6 +19,7 @@ import { MessageReactions } from './MessageReactions';
 import { AnonymousToggle } from './AnonymousToggle';
 import { AnonymousMessageLog } from './AnonymousMessageLog';
 import { LinkWarning } from './LinkWarning';
+import { ScheduleMessageModal } from './ScheduleMessageModal';
 import { extractDominantColor, extractVideoColor } from '@/lib/color-extraction';
 
 interface Message {
@@ -150,6 +151,8 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
   const [messageColors, setMessageColors] = useState<Map<string, string>>(new Map());
   const [revealedSelfDestructMessages, setRevealedSelfDestructMessages] = useState<Set<string>>(new Set());
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleContent, setScheduleContent] = useState('');
 
   // Handle self-destruct message interactions
   const handleSelfDestructClick = async (messageId: string, isRevealed: boolean) => {
@@ -950,12 +953,29 @@ if (!append && user && conversationId) {
     const currentReplyingTo = replyingTo;
     const currentIsAnonymous = isAnonymous;
     
-    // Check for self-destruct command
-    const isSelfDestruct = messageContent.startsWith('/selfdestruct ');
-    const actualContent = isSelfDestruct ? messageContent.replace('/selfdestruct ', '') : messageContent;
+    // Process message for special commands and features
+    let isSelfDestruct = false;
+    let shouldTranslate = false;
+    let processedContent = messageContent;
     
-    if (isSelfDestruct && !actualContent.trim() && selectedFiles.length === 0) {
-      toast.error('Self-destruct message cannot be empty');
+    // Handle self-destruct messages
+    if (messageContent.startsWith('/selfdestruct')) {
+      isSelfDestruct = true;
+      processedContent = messageContent.replace(/^\/selfdestruct\s*/, '').trim();
+      if (!processedContent && selectedFiles.length === 0) {
+        toast.error('Self-destruct message cannot be empty');
+        return;
+      }
+    }
+    
+    // Handle translation messages
+    if (messageContent.startsWith('🌐')) {
+      shouldTranslate = true;
+      processedContent = messageContent.replace(/^🌐\s*/, '').trim();
+    }
+
+    // Validate message content
+    if (!processedContent && selectedFiles.length === 0) {
       return;
     }
     
@@ -977,10 +997,29 @@ if (!append && user && conversationId) {
       }
     }
     
+    // Auto-translate if needed
+    if (shouldTranslate && processedContent) {
+      try {
+        const { data, error } = await supabase.functions.invoke('translate', {
+          body: { 
+            text: processedContent,
+            targetLanguage: selectedTargetLanguage || 'en'
+          }
+        });
+        
+        if (!error && data?.translatedText) {
+          processedContent = data.translatedText;
+        }
+      } catch (error) {
+        console.error('Translation error:', error);
+        // Continue with original message if translation fails
+      }
+    }
+    
     // Create optimistic message immediately
     let optimisticMessage: Message = {
       id: tempId,
-      content: actualContent || (currentFiles.length > 0 ? currentFiles[0].file.name : ''),
+      content: processedContent || (currentFiles.length > 0 ? currentFiles[0].file.name : ''),
       sender_id: user.id,
       created_at: new Date().toISOString(),
       message_type: currentFiles.length > 0 ? 'file' : 'text',
@@ -1041,10 +1080,10 @@ if (!append && user && conversationId) {
               : msg
           ));
           
-          if (!actualContent.trim()) {
+          if (!processedContent.trim()) {
             finalContent = fileName;
           } else {
-            finalContent = actualContent;
+            finalContent = processedContent;
           }
         } else {
           // File upload failed, remove optimistic message
@@ -1053,7 +1092,7 @@ if (!append && user && conversationId) {
           return;
         }
       } else {
-        finalContent = actualContent;
+        finalContent = processedContent;
       }
 
       console.log('📤 STORING MESSAGE AS PLAIN TEXT:', finalContent);
@@ -1162,14 +1201,69 @@ if (!append && user && conversationId) {
 
   // Handle command selection
   const handleCommandSelect = (command: string) => {
-    setNewMessage(command + ' ');
+    const messageWithoutCommand = newMessage.replace(/^\/\w*\s*/, '');
+    
+    switch (command) {
+      case '/selfdestruct':
+        setNewMessage(command + ' ' + messageWithoutCommand);
+        break;
+      case '/anonymous':
+        setIsAnonymous(true);
+        setNewMessage(messageWithoutCommand);
+        toast.success('Anonymous mode enabled for this message');
+        break;
+      case '/file':
+        fileInputRef.current?.click();
+        setNewMessage(messageWithoutCommand);
+        break;
+      case '/translate':
+        // Toggle auto-translation for this message
+        setNewMessage('🌐 ' + messageWithoutCommand);
+        toast.success('Message will be auto-translated');
+        break;
+      case '/schedule':
+        setScheduleContent(messageWithoutCommand);
+        setShowScheduleModal(true);
+        setNewMessage('');
+        break;
+      default:
+        setNewMessage(command + ' ' + messageWithoutCommand);
+    }
+    
     setShowCommandMenu(false);
     setCommandQuery('');
+    
     // Focus back to textarea after selection
     setTimeout(() => {
       const textarea = document.querySelector('textarea');
       textarea?.focus();
     }, 0);
+  };
+
+  // Handle scheduled message
+  const handleScheduleMessage = async (scheduledFor: Date, content: string, isSelfDestruct: boolean) => {
+    if (!user?.id || !conversationId) return;
+
+    try {
+      const { error } = await supabase
+        .from('scheduled_messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: content,
+          scheduled_for: scheduledFor.toISOString(),
+          is_self_destruct: isSelfDestruct,
+          replied_to_message_id: replyingTo?.id || null
+        });
+
+      if (error) throw error;
+
+      toast.success(`Message scheduled for ${scheduledFor.toLocaleDateString()} at ${scheduledFor.toLocaleTimeString()}`);
+      setReplyingTo(null);
+    } catch (error) {
+      console.error('Error scheduling message:', error);
+      toast.error('Failed to schedule message');
+    }
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -2182,6 +2276,14 @@ editingMessageId === message.id ? (
         mediaType={mediaModal.type}
         fileName={mediaModal.fileName}
         fileSize={mediaModal.fileSize}
+      />
+
+      {/* Schedule Message Modal */}
+      <ScheduleMessageModal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        onSchedule={handleScheduleMessage}
+        defaultContent={scheduleContent}
       />
 
       {/* Typing Indicator */}

@@ -556,6 +556,57 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          is_self_destruct: boolean | null
+          message_type: string | null
+          replied_to_message_id: string | null
+          scheduled_for: string
+          sender_id: string
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          is_self_destruct?: boolean | null
+          message_type?: string | null
+          replied_to_message_id?: string | null
+          scheduled_for: string
+          sender_id: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          is_self_destruct?: boolean | null
+          message_type?: string | null
+          replied_to_message_id?: string | null
+          scheduled_for?: string
+          sender_id?: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       secure_files: {
         Row: {
           content_type: string
@@ -1029,6 +1080,10 @@ export type Database = {
       }
       mark_self_destruct_viewed: {
         Args: { p_message_id: string; p_viewer_id: string }
+        Returns: undefined
+      }
+      process_scheduled_messages: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       search_profiles: {
