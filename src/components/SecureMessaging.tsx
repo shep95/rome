@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 import { GroupChatSettings } from './GroupChatSettings';
 import { DirectChatSettings } from './DirectChatSettings';
 import { LanguageSelector } from './LanguageSelector';
-import { extractColorFromMediaUrl } from '@/lib/color-extraction';
 import { MessageReactions } from './MessageReactions';
 import { AnonymousToggle } from './AnonymousToggle';
 import { AnonymousMessageLog } from './AnonymousMessageLog';
@@ -102,8 +101,6 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
-  const [isAtBottom, setIsAtBottom] = useState(true);
-  const [messageColors, setMessageColors] = useState<{ [messageId: string]: string }>({});
 
   useEffect(() => {
     if (conversationId && user) {
@@ -1329,17 +1326,6 @@ if (!append && user && conversationId) {
     setMediaModal(prev => ({ ...prev, isOpen: false }));
   };
 
-  const extractMediaColor = async (messageId: string, fileUrl: string, isVideo: boolean) => {
-    if (messageColors[messageId]) return; // Already extracted
-    
-    try {
-      const color = await extractColorFromMediaUrl(fileUrl, isVideo);
-      setMessageColors(prev => ({ ...prev, [messageId]: color }));
-    } catch (error) {
-      console.error('Error extracting color:', error);
-    }
-  };
-
   if (!conversationId) {
     return (
       <div 
@@ -1479,10 +1465,7 @@ if (!append && user && conversationId) {
                         wordWrap: 'break-word',
                         overflowWrap: 'anywhere',
                         wordBreak: 'break-word',
-                        maxWidth: 'calc(100vw - 80px)',
-                        ...(message.message_type !== 'text' && message.file_url && messageColors[message.id] && {
-                          boxShadow: `0 0 20px ${messageColors[message.id]}, 0 0 40px ${messageColors[message.id]}`
-                        })
+                        maxWidth: 'calc(100vw - 80px)'
                       }}
                     >
                       {/* Reply Preview */}
@@ -1533,7 +1516,6 @@ if (!append && user && conversationId) {
                                        }}
                                        onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
                                        onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
-                                       onLoad={() => extractMediaColor(message.id, message.file_url!, false)}
                                      />
                                     <div className="flex gap-3 text-xs">
                                       <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
@@ -1549,13 +1531,12 @@ if (!append && user && conversationId) {
                                        className="relative cursor-pointer"
                                        onClick={() => openMediaModal(message.file_url!, 'video', message.file_name, message.file_size)}
                                      >
-                                        <video 
-                                          src={message.file_url!}
-                                          className="max-w-full rounded-lg block pointer-events-none"
-                                          style={{ maxWidth: 'min(250px, calc(100vw - 100px))', maxHeight: '200px', width: 'auto', height: 'auto' }}
-                                          onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
-                                          onLoadedData={() => extractMediaColor(message.id, message.file_url!, true)}
-                                        />
+                                       <video 
+                                         src={message.file_url!}
+                                         className="max-w-full rounded-lg block pointer-events-none"
+                                         style={{ maxWidth: 'min(250px, calc(100vw - 100px))', maxHeight: '200px', width: 'auto', height: 'auto' }}
+                                         onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
+                                       />
                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
                                          <div className="bg-white/90 rounded-full p-2">
                                            <Video className="h-6 w-6 text-black" />
