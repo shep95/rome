@@ -9,6 +9,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  pinVerified: boolean;
+  requiresPinVerification: boolean;
+  verifyPin: () => void;
   signUp: (email: string, password: string, username?: string, code?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string, code?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -20,6 +23,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pinVerified, setPinVerified] = useState(false);
+  const [requiresPinVerification, setRequiresPinVerification] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -29,6 +34,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Handle PIN verification for auto-login
+        if (session?.user && event !== 'SIGNED_IN') {
+          // This is an existing session (auto-login), require PIN verification
+          setRequiresPinVerification(true);
+          setPinVerified(false);
+        } else if (session?.user && event === 'SIGNED_IN') {
+          // This is a fresh login, no PIN verification needed
+          setRequiresPinVerification(false);
+          setPinVerified(true);
+        } else {
+          // No session, reset PIN states
+          setRequiresPinVerification(false);
+          setPinVerified(false);
+        }
         
         // Load and persist user profile data
         if (session?.user) {
@@ -91,6 +111,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // If there's an existing session, require PIN verification
+      if (session?.user) {
+        setRequiresPinVerification(true);
+        setPinVerified(false);
+      }
       
       // Load profile data if user is already logged in
       if (session?.user) {
@@ -281,6 +307,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.log('Crypto keys already exist or initialization failed:', err);
           }
         }, 1000);
+        
+        // Fresh login, no PIN verification needed
+        setRequiresPinVerification(false);
+        setPinVerified(true);
       }
 
       return { error };
@@ -319,6 +349,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Force clear the session state immediately
       setSession(null);
       setUser(null);
+      setPinVerified(false);
+      setRequiresPinVerification(false);
       
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut({ scope: 'global' });
@@ -337,6 +369,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Clear local state even if signOut fails
       setSession(null);
       setUser(null);
+      setPinVerified(false);
+      setRequiresPinVerification(false);
       
       toast({
         title: "Signed out",
@@ -345,11 +379,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const verifyPin = () => {
+    setPinVerified(true);
+    setRequiresPinVerification(false);
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
       session,
       loading,
+      pinVerified,
+      requiresPinVerification,
+      verifyPin,
       signUp,
       signIn,
       signOut
