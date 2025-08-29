@@ -1002,16 +1002,19 @@ if (!append && user && conversationId) {
       try {
         const { data, error } = await supabase.functions.invoke('translate', {
           body: { 
-            text: processedContent,
-            targetLanguage: selectedTargetLanguage || 'en'
+            q: processedContent,
+            source: 'auto',
+            target: selectedTargetLanguage || 'en'
           }
         });
         
-        if (!error && data?.translatedText) {
-          processedContent = data.translatedText;
+        if (!error && data?.translated) {
+          processedContent = data.translated;
+          toast.success(`Message translated to ${data.targetLanguageName || selectedTargetLanguage}`);
         }
       } catch (error) {
         console.error('Translation error:', error);
+        toast.error('Translation failed, sending original message');
         // Continue with original message if translation fails
       }
     }
