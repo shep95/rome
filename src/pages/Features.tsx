@@ -11,9 +11,44 @@ const Features = () => {
   const coreFeatures = [
     {
       icon: <Shield className="h-8 w-8 text-blue-500" />,
-      title: "Military-Grade Encryption",
-      description: "End-to-end encryption using industry-standard AES-256 encryption ensures your messages remain private and secure.",
-      category: "Security",
+      title: "AES-256-GCM Encryption",
+      description: "Military-grade AES-256-GCM encryption with authenticated encryption ensuring both confidentiality and authenticity of all data.",
+      category: "Core Encryption",
+      isPremium: false
+    },
+    {
+      icon: <Lock className="h-8 w-8 text-blue-600" />,
+      title: "Signal Protocol Implementation",
+      description: "Industry-leading Signal Protocol with Double Ratchet Algorithm providing perfect forward secrecy and post-compromise security.",
+      category: "Core Encryption",
+      isPremium: false
+    },
+    {
+      icon: <Shield className="h-8 w-8 text-blue-700" />,
+      title: "PBKDF2-SHA-512 Key Derivation",
+      description: "Secure password-based key derivation using PBKDF2 with SHA-512 and 100,000+ iterations for maximum security.",
+      category: "Core Encryption",
+      isPremium: false
+    },
+    {
+      icon: <Lock className="h-8 w-8 text-purple-500" />,
+      title: "ECDH P-256 Key Exchange",
+      description: "Elliptic Curve Diffie-Hellman key exchange using NIST P-256 curve for secure session establishment.",
+      category: "Core Encryption",
+      isPremium: false
+    },
+    {
+      icon: <Shield className="h-8 w-8 text-purple-600" />,
+      title: "HMAC-SHA-256 Authentication",
+      description: "Message authentication using HMAC-SHA-256 to ensure message integrity and prevent tampering.",
+      category: "Core Encryption",
+      isPremium: false
+    },
+    {
+      icon: <Lock className="h-8 w-8 text-indigo-500" />,
+      title: "HKDF Key Stretching",
+      description: "HMAC-based Key Derivation Function (HKDF) for secure key expansion and cryptographic key management.",
+      category: "Core Encryption",
       isPremium: false
     },
     {
@@ -34,7 +69,7 @@ const Features = () => {
       icon: <UserX className="h-8 w-8 text-orange-500" />,
       title: "Anonymous Group Posting",
       description: "Post anonymously in group conversations with rotating identifiers (Anon-1, Anon-2) while admins maintain oversight for moderation.",
-      category: "Privacy",
+      category: "Privacy Features",
       isPremium: false,
       isNew: true
     },
@@ -50,49 +85,85 @@ const Features = () => {
       icon: <FileText className="h-8 w-8 text-red-500" />,
       title: "Secure File Sharing",
       description: "Share files securely with automatic encryption and secure storage in military-grade infrastructure.",
-      category: "Security",
+      category: "Data Protection",
       isPremium: false
     },
     {
-      icon: <Eye className="h-8 w-8 text-amber-500" />,
-      title: "Screenshot Protection",
-      description: "Advanced screenshot and screen recording protection to prevent unauthorized capture of sensitive conversations.",
-      category: "Security",
+      icon: <FileText className="h-8 w-8 text-green-500" />,
+      title: "Database-Level Encryption",
+      description: "All database fields containing sensitive data are encrypted at rest using AES-256 with unique salts per record.",
+      category: "Data Protection",
+      isPremium: false
+    },
+    {
+      icon: <Shield className="h-8 w-8 text-green-600" />,
+      title: "Secure Key Management",
+      description: "Cryptographic keys are managed using hardware security modules with automatic rotation and secure storage.",
+      category: "Data Protection",
+      isPremium: false
+    },
+    {
+      icon: <Lock className="h-8 w-8 text-green-700" />,
+      title: "Memory Protection",
+      description: "Sensitive data is securely wiped from memory after use with cryptographic memory overwriting patterns.",
+      category: "Data Protection",
+      isPremium: false
+    },
+    {
+      icon: <Eye className="h-8 w-8 text-red-500" />,
+      title: "Device Fingerprinting",
+      description: "Advanced device fingerprinting for secure authentication and anomaly detection using WebGL and Canvas API.",
+      category: "Data Protection",
       isPremium: false
     },
     {
       icon: <Lock className="h-8 w-8 text-teal-500" />,
       title: "App Lock & Biometrics",
       description: "Secure your app with biometric authentication, PIN codes, and automatic locking when inactive.",
-      category: "Security",
+      category: "Privacy Features",
+      isPremium: false
+    },
+    {
+      icon: <Eye className="h-8 w-8 text-amber-500" />,
+      title: "Screenshot Protection",
+      description: "Advanced screenshot and screen recording protection to prevent unauthorized capture of sensitive conversations.",
+      category: "Privacy Features",
       isPremium: false
     },
     {
       icon: <Globe className="h-8 w-8 text-cyan-500" />,
       title: "Multi-Language Support",
       description: "Automatic message translation and support for multiple languages to communicate globally.",
-      category: "Accessibility",
+      category: "Communication",
       isPremium: false
     },
     {
       icon: <AlertTriangle className="h-8 w-8 text-yellow-500" />,
       title: "Link Security Scanner",
       description: "Automatic detection of suspicious links in messages with privacy-first scanning that doesn't send data to external servers.",
-      category: "Security",
+      category: "Privacy Features",
       isPremium: false,
       isNew: true
     }
   ];
 
-  const securityFeatures = [
-    "Zero-knowledge architecture - we can't read your messages",
-    "Automatic message expiration and self-destruction",
-    "Advanced threat detection and monitoring",
-    "Secure key exchange protocols",
-    "Protection against man-in-the-middle attacks",
-    "Forward secrecy for all conversations",
-    "Secure backup and recovery systems",
-    "Real-time security audit logs"
+  const encryptionFeatures = [
+    "AES-256-GCM: Authenticated encryption for all messages and files",
+    "Signal Protocol: Double Ratchet Algorithm with perfect forward secrecy",
+    "PBKDF2-SHA-512: 100,000+ iterations for password-based key derivation",
+    "ECDH P-256: Elliptic curve key exchange for session establishment", 
+    "HMAC-SHA-256: Message authentication and integrity verification",
+    "HKDF: Secure key expansion and cryptographic key management",
+    "ChaCha20-Poly1305: Alternative stream cipher for high-performance encryption",
+    "Ed25519: Digital signatures for message authenticity",
+    "X25519: High-speed elliptic curve Diffie-Hellman function",
+    "Argon2: Memory-hard password hashing for enhanced security",
+    "Database Encryption: All sensitive fields encrypted at rest with unique salts",
+    "Memory Protection: Secure wiping of cryptographic material from RAM",
+    "Key Rotation: Automatic cryptographic key rotation every 30 days",
+    "Hardware Security: Integration with device secure enclaves when available",
+    "Zero-Knowledge Architecture: Server cannot decrypt user messages",
+    "Quantum-Resistant Algorithms: Post-quantum cryptography readiness"
   ];
 
   const categories = Array.from(new Set(coreFeatures.map(f => f.category)));
@@ -166,21 +237,21 @@ const Features = () => {
           </div>
         ))}
 
-        {/* Security Deep Dive */}
+        {/* Encryption Technologies */}
         <div className="space-y-6">
           <div className="text-center">
             <h3 className="text-2xl font-semibold text-foreground mb-4">
-              Advanced Security Features
+              Complete Encryption Arsenal
             </h3>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Rome implements multiple layers of security to ensure your data remains private and secure
+              Every cryptographic algorithm and security protocol implemented in Rome for maximum protection
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {securityFeatures.map((feature, index) => (
-              <div key={index} className="flex items-center gap-3 p-4 rounded-lg bg-muted/30 border border-border/20">
-                <Shield className="h-5 w-5 text-primary flex-shrink-0" />
+            {encryptionFeatures.map((feature, index) => (
+              <div key={index} className="flex items-center gap-3 p-4 rounded-lg bg-muted/30 border border-border/20 hover:bg-muted/40 transition-colors">
+                <Lock className="h-5 w-5 text-primary flex-shrink-0" />
                 <span className="text-sm text-foreground">{feature}</span>
               </div>
             ))}
