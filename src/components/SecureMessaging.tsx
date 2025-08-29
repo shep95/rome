@@ -1838,9 +1838,6 @@ editingMessageId === message.id ? (
       {/* Message Input - floating on mobile */}
       <div 
         className="p-3 sm:p-4 border-t border-border backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:w-auto w-full min-h-16"
-        style={{
-          backgroundColor: backgroundThemeColor ? `${backgroundThemeColor}CC` : 'hsl(var(--card) / 0.5)'
-        }}
       >
         {/* Reply Preview */}
         {replyingTo && (
