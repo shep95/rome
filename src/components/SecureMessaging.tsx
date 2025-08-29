@@ -149,33 +149,40 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
   const [messageColors, setMessageColors] = useState<Map<string, string>>(new Map());
+  const [revealedSelfDestructMessages, setRevealedSelfDestructMessages] = useState<Set<string>>(new Set());
 
-  // Mark self-destruct messages as viewed when they appear on screen
-  const markSelfDestructAsViewed = async (messageId: string) => {
+  // Handle self-destruct message interactions
+  const handleSelfDestructClick = async (messageId: string, isRevealed: boolean) => {
     if (!user?.id) return;
     
-    try {
-      await supabase.rpc('mark_self_destruct_viewed', {
-        p_message_id: messageId,
-        p_viewer_id: user.id
-      });
-    } catch (error) {
-      console.error('Error marking self-destruct message as viewed:', error);
+    if (!isRevealed) {
+      // First click: reveal the message
+      setRevealedSelfDestructMessages(prev => new Set([...prev, messageId]));
+      
+      // Mark as viewed in the database
+      try {
+        await supabase.rpc('mark_self_destruct_viewed', {
+          p_message_id: messageId,
+          p_viewer_id: user.id
+        });
+      } catch (error) {
+        console.error('Error marking self-destruct message as viewed:', error);
+      }
+    } else {
+      // Second click: delete the message with animation
+      try {
+        await supabase
+          .from('messages')
+          .delete()
+          .eq('id', messageId);
+        
+        toast.success("Self-destruct message deleted!");
+      } catch (error) {
+        console.error('Error deleting self-destruct message:', error);
+        toast.error("Failed to delete message");
+      }
     }
   };
-
-  // Auto-mark self-destruct messages as viewed when they appear
-  useEffect(() => {
-    if (!user?.id) return;
-    
-    messages.forEach(message => {
-      if (message.is_self_destruct && 
-          message.sender_id !== user.id && 
-          !message.self_destruct_viewed_at) {
-        markSelfDestructAsViewed(message.id);
-      }
-    });
-  }, [messages, user?.id]);
 
   // Extract color from media and store it
   const extractMediaColor = async (messageId: string, element: HTMLImageElement | HTMLVideoElement) => {
@@ -1581,35 +1588,52 @@ if (!append && user && conversationId) {
                     </p>
                   )}
                   
-                    <div className="relative group">
-                      {/* Self-destruct indicator */}
-                      {message.is_self_destruct && (
-                        <div className="absolute -top-2 -right-2 z-10 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
-                          💣 Self-Destruct
-                        </div>
-                      )}
-                      
-                      <div
-                        className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
-                          message.sender_id === user?.id
-                            ? `bg-primary/20 text-white border-primary/30 rounded-br-md ${message.is_self_destruct ? 'border-red-400/50' : ''}`
-                            : `bg-background/30 text-foreground border-border/30 rounded-bl-md ${message.is_self_destruct ? 'border-red-400/50' : ''}`
-                        } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
-                        style={{
-                          backdropFilter: 'blur(16px) saturate(140%)',
-                          WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-                          wordWrap: 'break-word',
-                          overflowWrap: 'anywhere',
-                          wordBreak: 'break-word',
-                          maxWidth: 'calc(100vw - 80px)',
-                          ...(messageColors.has(message.id) && (message.message_type === 'image' || message.message_type === 'video') && {
-                            boxShadow: `0 0 30px ${messageColors.get(message.id)}30`
-                          }),
-                          ...(message.is_self_destruct && {
-                            boxShadow: `0 0 20px rgba(239, 68, 68, 0.3), ${messageColors.has(message.id) ? `0 0 30px ${messageColors.get(message.id)}30` : ''}`
-                          })
-                        }}
-                      >
+                     <div className="relative group">
+                       {/* Self-destruct indicator */}
+                       {message.is_self_destruct && (
+                         <div className="absolute -top-2 -right-2 z-10 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                           💣 {message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id) 
+                             ? 'Click to reveal' 
+                             : message.sender_id !== user?.id && revealedSelfDestructMessages.has(message.id)
+                               ? 'Click to delete'
+                               : 'Self-Destruct'}
+                         </div>
+                       )}
+                       
+                       <div
+                         className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
+                           message.sender_id === user?.id
+                             ? `bg-primary/20 text-white border-primary/30 rounded-br-md ${message.is_self_destruct ? 'border-red-400/50' : ''}`
+                             : `bg-background/30 text-foreground border-border/30 rounded-bl-md ${message.is_self_destruct ? 'border-red-400/50' : ''}`
+                         } ${
+                           message.is_self_destruct && message.sender_id !== user?.id 
+                             ? 'cursor-pointer hover:border-red-400/70 hover:shadow-red-400/20' 
+                             : ''
+                         } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden ${
+                           message.is_self_destruct && message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id)
+                             ? 'blur-sm hover:blur-none'
+                             : ''
+                         }`}
+                         onClick={() => {
+                           if (message.is_self_destruct && message.sender_id !== user?.id) {
+                             handleSelfDestructClick(message.id, revealedSelfDestructMessages.has(message.id));
+                           }
+                         }}
+                         style={{
+                           backdropFilter: 'blur(16px) saturate(140%)',
+                           WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                           wordWrap: 'break-word',
+                           overflowWrap: 'anywhere',
+                           wordBreak: 'break-word',
+                           maxWidth: 'calc(100vw - 80px)',
+                           ...(messageColors.has(message.id) && (message.message_type === 'image' || message.message_type === 'video') && {
+                             boxShadow: `0 0 30px ${messageColors.get(message.id)}30`
+                           }),
+                           ...(message.is_self_destruct && {
+                             boxShadow: `0 0 20px rgba(239, 68, 68, 0.3), ${messageColors.has(message.id) ? `0 0 30px ${messageColors.get(message.id)}30` : ''}`
+                           })
+                         }}
+                       >
                       {/* Reply Preview */}
                       {message.replied_to_message && (
                         <div className="mb-2 border-l-2 border-white/30 pl-2">
@@ -1729,39 +1753,52 @@ if (!append && user && conversationId) {
                               </Button>
                             </div>
                           )}
-                          {/* Show caption if not equal to filename */}
-                          {message.content && message.content.trim() && message.content !== message.file_name && (
-                             <div className="space-y-2">
-                               <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                                 {message.isTranslated && message.translatedContent 
-                                   ? message.translatedContent 
-                                   : message.content}
-                               </div>
-                               <div className="flex items-center gap-2">
-                                 <Button
-                                   size="sm"
-                                   variant="ghost"
-                                   onClick={() => {
-                                     if (message.translatedContent) {
-                                       toggleTranslation(message.id);
-                                     } else {
-                                       translateMessage(message.id, message.content);
-                                     }
-                                   }}
-                                   disabled={translatingMessageId === message.id}
-                                   className={`h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity ${
-                                     message.sender_id === user?.id 
-                                       ? 'text-white/80 hover:text-white hover:bg-white/10' 
-                                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                                   }`}
-                                 >
-                                   <Languages className="h-3 w-3 mr-1" />
-                                   {translatingMessageId === message.id ? 'Translating...' : 
-                                    message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
-                                 </Button>
-                               </div>
-                             </div>
-                          )}
+                           {/* Show caption if not equal to filename */}
+                           {message.content && message.content.trim() && message.content !== message.file_name && (
+                              <div className="space-y-2 relative">
+                                {/* Blur overlay for self-destruct messages */}
+                                {message.is_self_destruct && message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id) && (
+                                  <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-20 pointer-events-none">
+                                    <div className="text-white/80 text-xs font-medium bg-black/40 px-2 py-1 rounded">
+                                      🔒 Click to reveal
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                <div className={`text-sm leading-relaxed whitespace-pre-wrap ${
+                                  message.is_self_destruct && message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id)
+                                    ? 'blur-[2px] select-none'
+                                    : ''
+                                }`}>
+                                  {message.isTranslated && message.translatedContent 
+                                    ? message.translatedContent 
+                                    : message.content}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      if (message.translatedContent) {
+                                        toggleTranslation(message.id);
+                                      } else {
+                                        translateMessage(message.id, message.content);
+                                      }
+                                    }}
+                                    disabled={translatingMessageId === message.id}
+                                    className={`h-6 px-2 text-xs opacity-70 hover:opacity-100 transition-opacity ${
+                                      message.sender_id === user?.id 
+                                        ? 'text-white/80 hover:text-white hover:bg-white/10' 
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                    }`}
+                                  >
+                                    <Languages className="h-3 w-3 mr-1" />
+                                    {translatingMessageId === message.id ? 'Translating...' : 
+                                     message.translatedContent ? (message.isTranslated ? 'Show Original' : 'Show Translation') : 'Translate'}
+                                  </Button>
+                                </div>
+                              </div>
+                           )}
                         </div>
                       ) : (
 editingMessageId === message.id ? (
@@ -1778,8 +1815,21 @@ editingMessageId === message.id ? (
     </div>
   </div>
 ) : (
-  <div className="space-y-2">
-    <div className="text-sm leading-relaxed whitespace-pre-wrap">
+  <div className="space-y-2 relative">
+    {/* Blur overlay for self-destruct messages */}
+    {message.is_self_destruct && message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id) && (
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-20 pointer-events-none">
+        <div className="text-white/80 text-xs font-medium bg-black/40 px-2 py-1 rounded">
+          🔒 Click to reveal
+        </div>
+      </div>
+    )}
+    
+    <div className={`text-sm leading-relaxed whitespace-pre-wrap ${
+      message.is_self_destruct && message.sender_id !== user?.id && !revealedSelfDestructMessages.has(message.id)
+        ? 'blur-[2px] select-none'
+        : ''
+    }`}>
       {message.isTranslated && message.translatedContent 
         ? message.translatedContent 
         : message.content}
