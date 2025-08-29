@@ -4,8 +4,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Zap, Shield, FileText, Users, Clock } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
 import { ThanosSnapEffect } from '@/components/ui/thanos-snap-effect';
@@ -73,6 +75,8 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const { uploadFile } = useFileUpload();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [showCommandMenu, setShowCommandMenu] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
   const [conversationDetails, setConversationDetails] = useState<any>(null);
   const [userWallpaper, setUserWallpaper] = useState<string>('');
   const [selectedFiles, setSelectedFiles] = useState<FilePreview[]>([]);
@@ -83,6 +87,45 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const [vhSet, setVhSet] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Available commands for the command menu
+  const availableCommands = [
+    {
+      id: 'selfdestruct',
+      name: 'Self-Destruct Message',
+      description: 'Send a message that disappears after being viewed',
+      icon: Zap,
+      command: '/selfdestruct',
+    },
+    {
+      id: 'anonymous',
+      name: 'Anonymous Message',
+      description: 'Send message without revealing your identity',
+      icon: Shield,
+      command: '/anonymous',
+    },
+    {
+      id: 'file',
+      name: 'Secure File',
+      description: 'Upload and send an encrypted file',
+      icon: FileText,
+      command: '/file',
+    },
+    {
+      id: 'translate',
+      name: 'Translate Message',
+      description: 'Auto-translate your message to recipient\'s language',
+      icon: Languages,
+      command: '/translate',
+    },
+    {
+      id: 'schedule',
+      name: 'Schedule Message',
+      description: 'Schedule message to be sent later',
+      icon: Clock,
+      command: '/schedule',
+    }
+  ];
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [mediaModal, setMediaModal] = useState<{
     isOpen: boolean;
@@ -1080,7 +1123,17 @@ if (!append && user && conversationId) {
 
   // Handle input changes with typing indicators
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNewMessage(e.target.value);
+    const value = e.target.value;
+    setNewMessage(value);
+
+    // Check if user typed "/" to show command menu
+    if (value === '/' || (value.startsWith('/') && !value.includes(' '))) {
+      setCommandQuery(value.slice(1)); // Remove the "/" for filtering
+      setShowCommandMenu(true);
+    } else {
+      setShowCommandMenu(false);
+      setCommandQuery('');
+    }
 
     // Set typing status
     if (!isTyping) {
@@ -1098,6 +1151,18 @@ if (!append && user && conversationId) {
       setIsTyping(false);
       setTypingStatus(false);
     }, 2000);
+  };
+
+  // Handle command selection
+  const handleCommandSelect = (command: string) => {
+    setNewMessage(command + ' ');
+    setShowCommandMenu(false);
+    setCommandQuery('');
+    // Focus back to textarea after selection
+    setTimeout(() => {
+      const textarea = document.querySelector('textarea');
+      textarea?.focus();
+    }, 0);
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1958,7 +2023,44 @@ editingMessageId === message.id ? (
             <Paperclip className="h-4 w-4 text-muted-foreground" />
           </Button>
           
-          <div className="flex-1 bg-background/50 backdrop-blur-sm border border-border rounded-xl p-2">
+          <div className="flex-1 bg-background/50 backdrop-blur-sm border border-border rounded-xl p-2 relative">
+            {/* Command Menu */}
+            {showCommandMenu && (
+              <div className="absolute bottom-full left-0 w-full mb-2 z-50">
+                <div className="bg-popover border border-border rounded-lg shadow-lg max-h-64 overflow-hidden">
+                  <Command className="max-h-64">
+                    <CommandList className="max-h-64">
+                      <CommandEmpty className="py-2 px-3 text-sm text-muted-foreground">
+                        No commands found
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {availableCommands
+                          .filter(cmd => 
+                            cmd.name.toLowerCase().includes(commandQuery.toLowerCase()) ||
+                            cmd.command.toLowerCase().includes(commandQuery.toLowerCase())
+                          )
+                          .map((cmd) => (
+                            <CommandItem
+                              key={cmd.id}
+                              value={cmd.command}
+                              onSelect={() => handleCommandSelect(cmd.command)}
+                              className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-accent text-accent-foreground"
+                            >
+                              <cmd.icon className="h-4 w-4 text-primary" />
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">{cmd.name}</div>
+                                <div className="text-xs text-muted-foreground">{cmd.description}</div>
+                              </div>
+                              <div className="text-xs text-primary font-mono">{cmd.command}</div>
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </div>
+              </div>
+            )}
+            
             <textarea
               value={newMessage}
               onChange={handleInputChange}
@@ -1967,8 +2069,12 @@ editingMessageId === message.id ? (
                   e.preventDefault();
                   sendMessage();
                 }
+                if (e.key === 'Escape' && showCommandMenu) {
+                  setShowCommandMenu(false);
+                  setCommandQuery('');
+                }
               }}
-              placeholder="Type a secure message... (Use /selfdestruct for vanishing messages)"
+              placeholder="Type a secure message... (Use / for commands)"
               className="w-full bg-transparent resize-none text-foreground placeholder-muted-foreground focus:outline-none text-sm leading-relaxed min-h-[20px] max-h-32"
               rows={1}
               style={{ 
