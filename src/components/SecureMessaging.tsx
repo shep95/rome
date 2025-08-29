@@ -17,6 +17,7 @@ import { MessageReactions } from './MessageReactions';
 import { AnonymousToggle } from './AnonymousToggle';
 import { AnonymousMessageLog } from './AnonymousMessageLog';
 import { LinkWarning } from './LinkWarning';
+import { extractDominantColor, extractVideoColor } from '@/lib/color-extraction';
 
 interface Message {
   id: string;
@@ -101,6 +102,20 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
+  const [messageColors, setMessageColors] = useState<Map<string, string>>(new Map());
+
+  // Extract color from media and store it
+  const extractMediaColor = async (messageId: string, element: HTMLImageElement | HTMLVideoElement) => {
+    try {
+      const color = element.tagName.toLowerCase() === 'video' 
+        ? await extractVideoColor(element as HTMLVideoElement)
+        : await extractDominantColor(element as HTMLImageElement);
+      
+      setMessageColors(prev => new Map(prev.set(messageId, color)));
+    } catch (error) {
+      console.error('Error extracting media color:', error);
+    }
+  };
 
   useEffect(() => {
     if (conversationId && user) {
@@ -1452,22 +1467,25 @@ if (!append && user && conversationId) {
                     </p>
                   )}
                   
-                  <div className="relative group">
-                    <div
-                      className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
-                        message.sender_id === user?.id
-                          ? 'bg-primary/20 text-white border-primary/30 rounded-br-md'
-                          : 'bg-background/30 text-foreground border-border/30 rounded-bl-md'
-                      } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
-                      style={{
-                        backdropFilter: 'blur(16px) saturate(140%)',
-                        WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-                        wordWrap: 'break-word',
-                        overflowWrap: 'anywhere',
-                        wordBreak: 'break-word',
-                        maxWidth: 'calc(100vw - 80px)'
-                      }}
-                    >
+                   <div className="relative group">
+                     <div
+                       className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
+                         message.sender_id === user?.id
+                           ? 'bg-primary/20 text-white border-primary/30 rounded-br-md'
+                           : 'bg-background/30 text-foreground border-border/30 rounded-bl-md'
+                       } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
+                       style={{
+                         backdropFilter: 'blur(16px) saturate(140%)',
+                         WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                         wordWrap: 'break-word',
+                         overflowWrap: 'anywhere',
+                         wordBreak: 'break-word',
+                         maxWidth: 'calc(100vw - 80px)',
+                         ...(messageColors.has(message.id) && (message.message_type === 'image' || message.message_type === 'video') && {
+                           boxShadow: `0 0 30px ${messageColors.get(message.id)}30`
+                         })
+                       }}
+                     >
                       {/* Reply Preview */}
                       {message.replied_to_message && (
                         <div className="mb-2 border-l-2 border-white/30 pl-2">
@@ -1503,20 +1521,21 @@ if (!append && user && conversationId) {
                               if (isImage) {
                                 return (
                                   <div className="space-y-2">
-                                     <img 
-                                       src={message.file_url!} 
-                                       alt={message.file_name || 'Image'}
-                                       className="max-w-full rounded-lg cursor-pointer block"
-                                       style={{ 
-                                         maxWidth: 'min(250px, calc(100vw - 100px))', 
-                                         maxHeight: '200px',
-                                         width: 'auto',
-                                         height: 'auto',
-                                         objectFit: 'cover'
-                                       }}
-                                       onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
-                                       onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
-                                     />
+                                      <img 
+                                        src={message.file_url!} 
+                                        alt={message.file_name || 'Image'}
+                                        className="max-w-full rounded-lg cursor-pointer block"
+                                        style={{ 
+                                          maxWidth: 'min(250px, calc(100vw - 100px))', 
+                                          maxHeight: '200px',
+                                          width: 'auto',
+                                          height: 'auto',
+                                          objectFit: 'cover'
+                                        }}
+                                        onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
+                                        onLoad={(e) => extractMediaColor(message.id, e.currentTarget)}
+                                        onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
+                                      />
                                     <div className="flex gap-3 text-xs">
                                       <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
                                         Download
@@ -1531,12 +1550,13 @@ if (!append && user && conversationId) {
                                        className="relative cursor-pointer"
                                        onClick={() => openMediaModal(message.file_url!, 'video', message.file_name, message.file_size)}
                                      >
-                                       <video 
-                                         src={message.file_url!}
-                                         className="max-w-full rounded-lg block pointer-events-none"
-                                         style={{ maxWidth: 'min(250px, calc(100vw - 100px))', maxHeight: '200px', width: 'auto', height: 'auto' }}
-                                         onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
-                                       />
+                                        <video 
+                                          src={message.file_url!}
+                                          className="max-w-full rounded-lg block pointer-events-none"
+                                          style={{ maxWidth: 'min(250px, calc(100vw - 100px))', maxHeight: '200px', width: 'auto', height: 'auto' }}
+                                          onLoadedData={(e) => extractMediaColor(message.id, e.currentTarget)}
+                                          onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
+                                        />
                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
                                          <div className="bg-white/90 rounded-full p-2">
                                            <Video className="h-6 w-6 text-black" />
