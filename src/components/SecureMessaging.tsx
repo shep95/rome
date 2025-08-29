@@ -104,6 +104,7 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
   const [messageColors, setMessageColors] = useState<Map<string, string>>(new Map());
+  const [backgroundThemeColor, setBackgroundThemeColor] = useState<string>('');
 
   // Enforce live anti-screenshot while viewing messages (mobile: true blocking, web: best-effort)
   useScreenshotProtection(true);
@@ -121,6 +122,25 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
     }
   };
 
+  // Extract theme color from background image
+  const extractBackgroundThemeColor = async (imageUrl: string) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = async () => {
+        try {
+          const color = await extractDominantColor(img);
+          setBackgroundThemeColor(color);
+        } catch (error) {
+          console.warn('Could not extract background theme color:', error);
+        }
+      };
+      img.src = imageUrl;
+    } catch (error) {
+      console.warn('Error loading background image for theme color:', error);
+    }
+  };
+
   useEffect(() => {
     if (conversationId && user) {
       // Immediately load wallpaper from cache to avoid flash
@@ -130,6 +150,8 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
         // Preload image to ensure it's cached
         const img = new Image();
         img.src = cachedWallpaper;
+        // Extract theme color from cached background
+        extractBackgroundThemeColor(cachedWallpaper);
       }
 
       // Reset state for new conversation
@@ -557,6 +579,8 @@ if (!append && user && conversationId) {
         // Preload image to ensure it's cached in browser
         const img = new Image();
         img.src = profile.wallpaper_url;
+        // Extract theme color from background image
+        await extractBackgroundThemeColor(profile.wallpaper_url);
       }
     } catch (error) {
       console.log('No wallpaper found for user');
@@ -1370,7 +1394,12 @@ if (!append && user && conversationId) {
   return (
     <div className="flex-1 flex flex-col bg-background overflow-hidden h-full" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
       {/* Chat Header - responsive positioning */}
-      <div className="p-3 sm:p-4 border-b border-border bg-card/50 md:relative fixed top-0 left-0 right-0 z-50 md:rounded-none rounded-b-2xl md:backdrop-blur-none backdrop-blur-xl">
+      <div 
+        className="p-3 sm:p-4 border-b border-border md:relative fixed top-0 left-0 right-0 z-50 md:backdrop-blur-none backdrop-blur-xl"
+        style={{
+          backgroundColor: backgroundThemeColor ? `${backgroundThemeColor}CC` : 'hsl(var(--card) / 0.5)'
+        }}
+      >
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Back button for mobile */}
           {onBackToMessages && (
@@ -1807,7 +1836,12 @@ editingMessageId === message.id ? (
       </div>
 
       {/* Message Input - floating on mobile */}
-      <div className="p-3 sm:p-4 border-t border-border bg-card/50 backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:rounded-none rounded-t-3xl md:w-auto w-full min-h-16">
+      <div 
+        className="p-3 sm:p-4 border-t border-border backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:w-auto w-full min-h-16"
+        style={{
+          backgroundColor: backgroundThemeColor ? `${backgroundThemeColor}CC` : 'hsl(var(--card) / 0.5)'
+        }}
+      >
         {/* Reply Preview */}
         {replyingTo && (
           <div className="mb-3 bg-card/80 backdrop-blur-sm border border-border rounded-lg p-3">
