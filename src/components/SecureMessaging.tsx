@@ -121,6 +121,19 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
     }
   };
 
+  // Auto-mark self-destruct messages as viewed when they appear
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    messages.forEach(message => {
+      if (message.is_self_destruct && 
+          message.sender_id !== user.id && 
+          !message.self_destruct_viewed_at) {
+        markSelfDestructAsViewed(message.id);
+      }
+    });
+  }, [messages, user?.id]);
+
   // Extract color from media and store it
   const extractMediaColor = async (messageId: string, element: HTMLImageElement | HTMLVideoElement) => {
     try {
@@ -1473,17 +1486,7 @@ if (!append && user && conversationId) {
                 </Button>
               </div>
             )}
-            {messages.map((message) => {
-              // Mark self-destruct messages as viewed when they appear on screen (only if not sent by current user)
-              React.useEffect(() => {
-                if (message.is_self_destruct && 
-                    message.sender_id !== user?.id && 
-                    !message.self_destruct_viewed_at) {
-                  markSelfDestructAsViewed(message.id);
-                }
-              }, [message.id, message.is_self_destruct, message.sender_id, message.self_destruct_viewed_at]);
-              
-              return (
+            {messages.map((message) => (
               <div
                 key={message.id}
                 data-message-id={message.id}
@@ -1843,8 +1846,7 @@ editingMessageId === message.id ? (
                   </Avatar>
                 )}
                </div>
-            )
-            })}
+            ))}
           </div>
         )}
         
