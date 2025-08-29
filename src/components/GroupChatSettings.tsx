@@ -9,8 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { UserSearchInput } from './UserSearchInput';
-import { Camera, X, UserPlus, Trash2, Save, History, UserX } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
+import { Camera, X, UserPlus, Trash2, Save, History } from 'lucide-react';
 
 interface GroupChatSettingsProps {
   isOpen: boolean;
@@ -25,7 +24,6 @@ interface Participant {
   id: string;
   user_id: string;
   role: string;
-  can_post_anonymously: boolean;
   profiles: {
     display_name: string;
     avatar_url?: string;
@@ -82,8 +80,7 @@ export const GroupChatSettings: React.FC<GroupChatSettingsProps> = ({
         .select(`
           id,
           user_id,
-          role,
-          can_post_anonymously
+          role
         `)
         .eq('conversation_id', conversationId)
         .is('left_at', null);
@@ -314,49 +311,6 @@ export const GroupChatSettings: React.FC<GroupChatSettingsProps> = ({
     }
   };
 
-  const toggleAnonymousPermission = async (participantId: string, currentPermission: boolean) => {
-    if (!isCreator) return;
-
-    // Optimistically update UI immediately
-    setParticipants(prev => prev.map(p => 
-      p.id === participantId 
-        ? { ...p, can_post_anonymously: !currentPermission }
-        : p
-    ));
-
-    try {
-      const { error } = await supabase
-        .from('conversation_participants')
-        .update({
-          can_post_anonymously: !currentPermission,
-          anonymous_revoked_at: !currentPermission ? null : new Date().toISOString(),
-          anonymous_revoked_by: !currentPermission ? null : user?.id
-        })
-        .eq('id', participantId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: !currentPermission ? "Anonymous posting enabled" : "Anonymous posting disabled"
-      });
-
-    } catch (error) {
-      console.error('Error toggling anonymous permission:', error);
-      // Revert the optimistic update on error
-      setParticipants(prev => prev.map(p => 
-        p.id === participantId 
-          ? { ...p, can_post_anonymously: currentPermission }
-          : p
-      ));
-      toast({
-        title: "Error",
-        description: "Failed to update anonymous permission",
-        variant: "destructive"
-      });
-    }
-  };
-
   const handleClearHistory = async () => {
     setClearingHistory(true);
     try {
@@ -506,74 +460,6 @@ export const GroupChatSettings: React.FC<GroupChatSettingsProps> = ({
               ))}
             </div>
           </div>
-
-          {/* Anonymous Members Control (Creator only) */}
-          {isCreator && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-orange-500">
-                <UserX className="h-4 w-4" />
-                <span className="text-sm font-medium">Anonymous Posting</span>
-              </div>
-              <div className="p-4 rounded-lg border border-orange-500/20 bg-orange-500/5">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Control which members can post anonymously in this group chat.
-                </p>
-                <div className="space-y-3 max-h-48 overflow-y-auto">
-                  {participants.map((participant) => (
-                    <div
-                      key={participant.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-background/30 border border-white/10"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={participant.profiles.avatar_url || ''} />
-                          <AvatarFallback className="bg-primary/20 text-xs">
-                            {participant.profiles.display_name?.charAt(0).toUpperCase() || 
-                             participant.profiles.username?.charAt(0).toUpperCase() || '?'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {participant.profiles.display_name || participant.profiles.username}
-                          </p>
-                          <div className="flex items-center space-x-2">
-                            <Badge variant={participant.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
-                              {participant.role}
-                            </Badge>
-                            {participant.user_id === user?.id && (
-                              <Badge variant="outline" className="text-xs">You</Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      {participant.user_id !== user?.id && (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs text-muted-foreground">
-                            {participant.can_post_anonymously ? 'Allowed' : 'Disabled'}
-                          </span>
-                          <Switch
-                            checked={participant.can_post_anonymously}
-                            onCheckedChange={() => toggleAnonymousPermission(participant.id, participant.can_post_anonymously)}
-                          />
-                        </div>
-                      )}
-                      {participant.user_id === user?.id && (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs text-muted-foreground">
-                            Owner
-                          </span>
-                          <Switch
-                            checked={true}
-                            disabled={true}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Clear History Section (Available to all users) */}
           {!showClearConfirm && (
