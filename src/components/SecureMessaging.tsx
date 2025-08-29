@@ -1482,7 +1482,7 @@ if (!append && user && conversationId) {
                 {message.sender_id !== user?.id && (
                   <Avatar className="h-8 w-8 rounded-lg flex-shrink-0 mb-1">
                     <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-lg" />
-                    <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+                    <AvatarFallback className="bg-muted text-muted-foreground text-xs rounded-lg">
                       {message.sender?.display_name?.[0] || 
                        message.sender?.username?.[0] || 
                        'U'}
