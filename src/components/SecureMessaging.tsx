@@ -18,6 +18,7 @@ import { AnonymousToggle } from './AnonymousToggle';
 import { AnonymousMessageLog } from './AnonymousMessageLog';
 import { LinkWarning } from './LinkWarning';
 import { extractDominantColor, extractVideoColor } from '@/lib/color-extraction';
+import { useScreenshotProtection } from '@/hooks/useScreenshotProtection';
 
 interface Message {
   id: string;
@@ -103,6 +104,9 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
   const [messageColors, setMessageColors] = useState<Map<string, string>>(new Map());
+
+  // Enforce live anti-screenshot while viewing messages (mobile: true blocking, web: best-effort)
+  useScreenshotProtection(true);
 
   // Extract color from media and store it
   const extractMediaColor = async (messageId: string, element: HTMLImageElement | HTMLVideoElement) => {
@@ -1447,8 +1451,8 @@ if (!append && user && conversationId) {
               >
                 {/* Avatar for others */}
                 {message.sender_id !== user?.id && (
-                  <Avatar className="h-8 w-8 rounded-full flex-shrink-0 mb-1">
-                    <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-full" />
+                  <Avatar className="h-8 w-8 rounded-lg flex-shrink-0 mb-1">
+                    <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-lg" />
                     <AvatarFallback className="bg-muted text-muted-foreground text-xs">
                       {message.sender?.display_name?.[0] || 
                        message.sender?.username?.[0] || 
@@ -1532,6 +1536,8 @@ if (!append && user && conversationId) {
                                           height: 'auto',
                                           objectFit: 'cover'
                                         }}
+                                        crossOrigin="anonymous"
+                                        referrerPolicy="no-referrer"
                                         onClick={() => openMediaModal(message.file_url!, 'image', message.file_name, message.file_size)}
                                         onLoad={(e) => extractMediaColor(message.id, e.currentTarget)}
                                         onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
@@ -1554,6 +1560,7 @@ if (!append && user && conversationId) {
                                           src={message.file_url!}
                                           className="max-w-full rounded-lg block pointer-events-none"
                                           style={{ maxWidth: 'min(250px, calc(100vw - 100px))', maxHeight: '200px', width: 'auto', height: 'auto' }}
+                                          crossOrigin="anonymous"
                                           onLoadedData={(e) => extractMediaColor(message.id, e.currentTarget)}
                                           onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
                                         />
@@ -1703,9 +1710,9 @@ editingMessageId === message.id ? (
                         {message.sender_id === user?.id && message.read_receipts && message.read_receipts.length > 0 && (
                           <div className="flex -space-x-1">
                             {message.read_receipts.slice(0, 3).map((read, index) => (
-                              <Avatar key={read.user_id} className="h-4 w-4 rounded-full border border-background/50">
-                                <AvatarImage src={read.profile?.avatar_url} className="rounded-full" />
-                                <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-full">
+                              <Avatar key={read.user_id} className="h-4 w-4 rounded-lg border border-background/50">
+                                <AvatarImage src={read.profile?.avatar_url} className="rounded-lg" />
+                                <AvatarFallback className="bg-primary/20 text-primary text-xs rounded-lg">
                                   {read.profile?.display_name?.[0] || read.profile?.username?.[0] || 'U'}
                                 </AvatarFallback>
                               </Avatar>
@@ -1777,8 +1784,8 @@ editingMessageId === message.id ? (
                 
                 {/* Avatar for current user */}
                 {message.sender_id === user?.id && (
-                  <Avatar className="h-8 w-8 rounded-full flex-shrink-0 mb-1">
-                    <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-full" />
+                  <Avatar className="h-8 w-8 rounded-lg flex-shrink-0 mb-1">
+                    <AvatarImage src={message.sender?.avatar_url || undefined} className="rounded-lg" />
                     <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                       {message.sender?.display_name?.[0] || 
                        message.sender?.username?.[0] || 
@@ -1857,6 +1864,8 @@ editingMessageId === message.id ? (
                     src={filePreview.url}
                     alt="Preview"
                     className="w-full h-16 sm:h-20 object-cover rounded-lg"
+                    crossOrigin="anonymous"
+                    referrerPolicy="no-referrer"
                   />
                 ) : filePreview.type === 'video' ? (
                   <div className="w-full h-16 sm:h-20 bg-muted rounded-lg flex items-center justify-center">

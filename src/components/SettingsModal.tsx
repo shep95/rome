@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import ScreenshotProtection from '@/plugins/ScreenshotProtection';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -150,8 +151,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     localStorage.setItem('rome-screenshot-protection', JSON.stringify(enabled));
     if (enabled) {
       toast.success('Screenshot protection enabled');
+      // Attempt to enable native protection on mobile
+      void ScreenshotProtection.enableProtection();
     } else {
       toast.success('Screenshot protection disabled');
+      void ScreenshotProtection.disableProtection();
     }
   };
 

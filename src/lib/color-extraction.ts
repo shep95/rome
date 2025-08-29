@@ -59,7 +59,7 @@ export const extractDominantColor = (element: HTMLImageElement | HTMLVideoElemen
       
       resolve(`rgb(${r}, ${g}, ${b})`);
     } catch (error) {
-      console.error('Error extracting color:', error);
+      console.warn('Color extraction fallback (likely CORS-tainted canvas):', error);
       resolve('rgb(59, 130, 246)'); // fallback blue
     }
   });
