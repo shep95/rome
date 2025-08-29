@@ -16,7 +16,9 @@ console.log = (...args: any[]) => {
         .replace(/supabase/gi, 'secure-backend')
         .replace(/lovable\.dev/gi, 'secure-platform')
         .replace(/postgres/gi, 'database')
-        .replace(/auth\.users/gi, 'auth.accounts');
+        .replace(/auth\.users/gi, 'auth.accounts')
+        .replace(/mnijromffaalvpadojbj/gi, 'secure-backend-id')
+        .replace(/\.supabase\.co/gi, '.secure-backend.com');
     }
     return arg;
   });
@@ -29,7 +31,9 @@ console.error = (...args: any[]) => {
       return arg
         .replace(/supabase/gi, 'secure-backend')
         .replace(/lovable\.dev/gi, 'secure-platform')
-        .replace(/postgres/gi, 'database');
+        .replace(/postgres/gi, 'database')
+        .replace(/mnijromffaalvpadojbj/gi, 'secure-backend-id')
+        .replace(/\.supabase\.co/gi, '.secure-backend.com');
     }
     return arg;
   });
@@ -42,7 +46,9 @@ console.warn = (...args: any[]) => {
       return arg
         .replace(/supabase/gi, 'secure-backend')
         .replace(/lovable\.dev/gi, 'secure-platform')
-        .replace(/postgres/gi, 'database');
+        .replace(/postgres/gi, 'database')
+        .replace(/mnijromffaalvpadojbj/gi, 'secure-backend-id')
+        .replace(/\.supabase\.co/gi, '.secure-backend.com');
     }
     return arg;
   });

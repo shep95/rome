@@ -1,4 +1,4 @@
-project_id = "mnijromffaalvpadojbj"
+project_id = "secure-backend-id"
 
 [functions.auth-security]
 verify_jwt = true

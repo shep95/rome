@@ -17,6 +17,7 @@ A ultra-secure messaging platform featuring military-grade end-to-end encryption
 - Military-grade encryption libraries
 - Real-time secure communications
 - Advanced security protocols
+- Custom secure backend infrastructure
 
 ## Deployment
 

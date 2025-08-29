@@ -1,4 +1,4 @@
-package app.lovable.a7d8165efbbb4120af13585f1fc7d3ae;
+package app.securelink.messaging;
 
 import android.app.Activity;
 import android.view.WindowManager;

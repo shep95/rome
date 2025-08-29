@@ -1,11 +1,11 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.a7d8165efbbb4120af13585f1fc7d3ae',
-  appName: 'rome',
+  appId: 'app.securelink.messaging',
+  appName: 'SecureLink',
   webDir: 'dist',
   server: {
-    url: 'https://a7d8165e-fbbb-4120-af13-585f1fc7d3ae.lovableproject.com?forceHideBadge=true',
+    url: 'https://securelink-app.example.com',
     cleartext: true
   },
   plugins: {
