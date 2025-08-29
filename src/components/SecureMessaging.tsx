@@ -1501,12 +1501,12 @@ if (!append && user && conversationId) {
                   )}
                   
                    <div className="relative group">
-                      <div
-                        className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
-                          message.sender_id === user?.id
-                            ? `${message.message_type === 'image' ? 'bg-transparent sm:bg-primary/20' : 'bg-primary/20'} text-white border-primary/30 rounded-br-md`
-                            : `${message.message_type === 'image' ? 'bg-transparent sm:bg-background/30' : 'bg-background/30'} text-foreground border-border/30 rounded-bl-md`
-                        } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
+                     <div
+                       className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
+                         message.sender_id === user?.id
+                           ? 'bg-primary/20 text-white border-primary/30 rounded-br-md'
+                           : 'bg-background/30 text-foreground border-border/30 rounded-bl-md'
+                       } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
                        style={{
                          backdropFilter: 'blur(16px) saturate(140%)',
                          WebkitBackdropFilter: 'blur(16px) saturate(140%)',
@@ -1838,6 +1838,9 @@ editingMessageId === message.id ? (
       {/* Message Input - floating on mobile */}
       <div 
         className="p-3 sm:p-4 border-t border-border backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:w-auto w-full min-h-16"
+        style={{
+          backgroundColor: backgroundThemeColor ? `${backgroundThemeColor}CC` : 'hsl(var(--card) / 0.5)'
+        }}
       >
         {/* Reply Preview */}
         {replyingTo && (
