@@ -51,6 +51,9 @@ interface Message {
   is_anonymous?: boolean;
   anonymous_id?: string;
   reactions_count?: number;
+  is_self_destruct?: boolean;
+  self_destruct_viewed_at?: string | null;
+  self_destruct_viewed_by?: string | null;
 }
 
 interface FilePreview {
@@ -103,6 +106,20 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
   const [messageColors, setMessageColors] = useState<Map<string, string>>(new Map());
+
+  // Mark self-destruct messages as viewed when they appear on screen
+  const markSelfDestructAsViewed = async (messageId: string) => {
+    if (!user?.id) return;
+    
+    try {
+      await supabase.rpc('mark_self_destruct_viewed', {
+        p_message_id: messageId,
+        p_viewer_id: user.id
+      });
+    } catch (error) {
+      console.error('Error marking self-destruct message as viewed:', error);
+    }
+  };
 
   // Extract color from media and store it
   const extractMediaColor = async (messageId: string, element: HTMLImageElement | HTMLVideoElement) => {
@@ -290,7 +307,7 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
 let query = supabase
   .from('messages')
   .select(`
-    id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata, edited_at, edit_count, is_anonymous, anonymous_id, reactions_count
+    id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata, edited_at, edit_count, is_anonymous, anonymous_id, reactions_count, is_self_destruct, self_destruct_viewed_at, self_destruct_viewed_by
   `)
   .eq('conversation_id', conversationId)
   .gte('created_at', filterFromTime) // Only show messages from when user joined or cleared history
@@ -870,6 +887,15 @@ if (!append && user && conversationId) {
     const currentReplyingTo = replyingTo;
     const currentIsAnonymous = isAnonymous;
     
+    // Check for self-destruct command
+    const isSelfDestruct = messageContent.startsWith('/selfdestruct ');
+    const actualContent = isSelfDestruct ? messageContent.replace('/selfdestruct ', '') : messageContent;
+    
+    if (isSelfDestruct && !actualContent.trim() && selectedFiles.length === 0) {
+      toast.error('Self-destruct message cannot be empty');
+      return;
+    }
+    
     // Generate temporary ID for optimistic update
     const tempId = `temp-${Date.now()}-${Math.random()}`;
     
@@ -891,7 +917,7 @@ if (!append && user && conversationId) {
     // Create optimistic message immediately
     let optimisticMessage: Message = {
       id: tempId,
-      content: messageContent || (currentFiles.length > 0 ? currentFiles[0].file.name : ''),
+      content: actualContent || (currentFiles.length > 0 ? currentFiles[0].file.name : ''),
       sender_id: user.id,
       created_at: new Date().toISOString(),
       message_type: currentFiles.length > 0 ? 'file' : 'text',
@@ -912,7 +938,10 @@ if (!append && user && conversationId) {
       replied_to_message: currentReplyingTo || undefined,
       is_anonymous: currentIsAnonymous,
       anonymous_id: anonymousId || null,
-      reactions_count: 0
+      reactions_count: 0,
+      is_self_destruct: isSelfDestruct,
+      self_destruct_viewed_at: null,
+      self_destruct_viewed_by: null,
     };
 
     // Add optimistic message to UI immediately
@@ -949,8 +978,10 @@ if (!append && user && conversationId) {
               : msg
           ));
           
-          if (!messageContent.trim()) {
+          if (!actualContent.trim()) {
             finalContent = fileName;
+          } else {
+            finalContent = actualContent;
           }
         } else {
           // File upload failed, remove optimistic message
@@ -958,6 +989,8 @@ if (!append && user && conversationId) {
           toast.error('Failed to upload file');
           return;
         }
+      } else {
+        finalContent = actualContent;
       }
 
       console.log('📤 STORING MESSAGE AS PLAIN TEXT:', finalContent);
@@ -978,7 +1011,8 @@ if (!append && user && conversationId) {
           replied_to_message_id: currentReplyingTo?.id || null,
           sequence_number: Date.now(),
           is_anonymous: currentIsAnonymous,
-          anonymous_id: anonymousId || null
+          anonymous_id: anonymousId || null,
+          is_self_destruct: isSelfDestruct
         });
 
       console.log('💾 DATABASE INSERT RESULT:', { error });
@@ -1439,11 +1473,23 @@ if (!append && user && conversationId) {
                 </Button>
               </div>
             )}
-            {messages.map((message) => (
+            {messages.map((message) => {
+              // Mark self-destruct messages as viewed when they appear on screen (only if not sent by current user)
+              React.useEffect(() => {
+                if (message.is_self_destruct && 
+                    message.sender_id !== user?.id && 
+                    !message.self_destruct_viewed_at) {
+                  markSelfDestructAsViewed(message.id);
+                }
+              }, [message.id, message.is_self_destruct, message.sender_id, message.self_destruct_viewed_at]);
+              
+              return (
               <div
                 key={message.id}
                 data-message-id={message.id}
-                className={`flex items-end gap-2 mb-3 relative z-10 w-full ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                className={`flex items-end gap-2 mb-3 relative z-10 w-full ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'} ${
+                  message.is_self_destruct ? 'animate-pulse' : ''
+                }`}
               >
                 {/* Avatar for others */}
                 {message.sender_id !== user?.id && (
@@ -1467,25 +1513,35 @@ if (!append && user && conversationId) {
                     </p>
                   )}
                   
-                   <div className="relative group">
-                     <div
-                       className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
-                         message.sender_id === user?.id
-                           ? 'bg-primary/20 text-white border-primary/30 rounded-br-md'
-                           : 'bg-background/30 text-foreground border-border/30 rounded-bl-md'
-                       } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
-                       style={{
-                         backdropFilter: 'blur(16px) saturate(140%)',
-                         WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-                         wordWrap: 'break-word',
-                         overflowWrap: 'anywhere',
-                         wordBreak: 'break-word',
-                         maxWidth: 'calc(100vw - 80px)',
-                         ...(messageColors.has(message.id) && (message.message_type === 'image' || message.message_type === 'video') && {
-                           boxShadow: `0 0 30px ${messageColors.get(message.id)}30`
-                         })
-                       }}
-                     >
+                    <div className="relative group">
+                      {/* Self-destruct indicator */}
+                      {message.is_self_destruct && (
+                        <div className="absolute -top-2 -right-2 z-10 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                          💣 Self-Destruct
+                        </div>
+                      )}
+                      
+                      <div
+                        className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
+                          message.sender_id === user?.id
+                            ? `bg-primary/20 text-white border-primary/30 rounded-br-md ${message.is_self_destruct ? 'border-red-400/50' : ''}`
+                            : `bg-background/30 text-foreground border-border/30 rounded-bl-md ${message.is_self_destruct ? 'border-red-400/50' : ''}`
+                        } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
+                        style={{
+                          backdropFilter: 'blur(16px) saturate(140%)',
+                          WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                          wordWrap: 'break-word',
+                          overflowWrap: 'anywhere',
+                          wordBreak: 'break-word',
+                          maxWidth: 'calc(100vw - 80px)',
+                          ...(messageColors.has(message.id) && (message.message_type === 'image' || message.message_type === 'video') && {
+                            boxShadow: `0 0 30px ${messageColors.get(message.id)}30`
+                          }),
+                          ...(message.is_self_destruct && {
+                            boxShadow: `0 0 20px rgba(239, 68, 68, 0.3), ${messageColors.has(message.id) ? `0 0 30px ${messageColors.get(message.id)}30` : ''}`
+                          })
+                        }}
+                      >
                       {/* Reply Preview */}
                       {message.replied_to_message && (
                         <div className="mb-2 border-l-2 border-white/30 pl-2">
@@ -1786,8 +1842,9 @@ editingMessageId === message.id ? (
                     </AvatarFallback>
                   </Avatar>
                 )}
-              </div>
-            ))}
+               </div>
+            )
+            })}
           </div>
         )}
         
@@ -1909,7 +1966,7 @@ editingMessageId === message.id ? (
                   sendMessage();
                 }
               }}
-              placeholder="Type a secure message..."
+              placeholder="Type a secure message... (Use /selfdestruct for vanishing messages)"
               className="w-full bg-transparent resize-none text-foreground placeholder-muted-foreground focus:outline-none text-sm leading-relaxed min-h-[20px] max-h-32"
               rows={1}
               style={{ 
