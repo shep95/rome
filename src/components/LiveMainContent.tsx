@@ -145,10 +145,12 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
     }
   };
 
-  // Load unread counts after conversations are loaded
+  // Load unread counts only when conversations are first loaded or user changes
   useEffect(() => {
-    loadUnreadCounts();
-  }, [conversations, groupChats, user]);
+    if ((conversations.length > 0 || groupChats.length > 0) && user) {
+      loadUnreadCounts();
+    }
+  }, [user]); // Only re-run when user changes, not on every conversation update
 
   // Clear notifications when a conversation is opened
   useEffect(() => {
