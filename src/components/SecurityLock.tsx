@@ -130,6 +130,15 @@ export const SecurityLock = ({
               </span>
             )}
           </p>
+          
+          <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Shield className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                <strong>Security Warning:</strong> Do not save this 4-digit code to any password manager or browser. Government agencies can request access to these stored codes from software companies.
+              </p>
+            </div>
+          </div>
         </DialogHeader>
         
         <div className="space-y-6">

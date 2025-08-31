@@ -1579,26 +1579,18 @@ if (!append && user && conversationId) {
                                   </div>
                                 );
                               } else if (isVideo) {
-                                return (
-                                   <div className="space-y-2">
-                                     <div 
-                                       className="relative cursor-pointer"
-                                       onClick={() => openMediaModal(message.file_url!, 'video', message.file_name, message.file_size)}
-                                     >
-                                        <video 
-                                          src={message.file_url!}
-                                          className="max-w-full rounded-lg block pointer-events-none"
-                                          style={{ maxWidth: 'min(250px, calc(100vw - 100px))', maxHeight: '200px', width: 'auto', height: 'auto' }}
-                                          crossOrigin="anonymous"
-                                          onLoadedData={(e) => extractMediaColor(message.id, e.currentTarget)}
-                                          onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
-                                        />
-                                       <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
-                                         <div className="bg-white/90 rounded-full p-2">
-                                           <Video className="h-6 w-6 text-black" />
-                                         </div>
-                                       </div>
-                                     </div>
+                                 return (
+                                    <div className="space-y-2">
+                                      <video 
+                                        src={message.file_url!}
+                                        className="max-w-full rounded-lg block"
+                                        controls
+                                        preload="metadata"
+                                        style={{ maxWidth: 'min(250px, calc(100vw - 100px))', maxHeight: '200px', width: 'auto', height: 'auto' }}
+                                        crossOrigin="anonymous"
+                                        onLoadedData={(e) => extractMediaColor(message.id, e.currentTarget)}
+                                        onError={() => { refreshSignedUrlForMessage(message.id, message.file_url); }}
+                                      />
                                     <div className="flex gap-3 text-xs">
                                       <a href={downloadHref} target="_blank" rel="noopener noreferrer" className="underline text-white/80 hover:text-white">
                                         Download
