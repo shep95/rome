@@ -1583,7 +1583,7 @@ if (!append && user && conversationId) {
                                     <div className="space-y-2">
                                       <video 
                                         src={message.file_url!}
-                                        className="max-w-full rounded-lg block"
+                                        className="max-w-full rounded-lg block pointer-events-auto"
                                         controls
                                         preload="metadata"
                                         style={{ maxWidth: 'min(250px, calc(100vw - 100px))', maxHeight: '200px', width: 'auto', height: 'auto' }}

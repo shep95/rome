@@ -12,11 +12,16 @@ import {
   Shield, 
   Image as ImageIcon,
   X,
-  Check
+  Check,
+  Eye,
+  EyeOff,
+  Lock,
+  Key
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import ScreenshotProtection from '@/plugins/ScreenshotProtection';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -31,6 +36,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [screenshotProtection, setScreenshotProtection] = useState(false);
   const backgroundInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
+
+  // Password change states
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  // PIN change states  
+  const [showPinForm, setShowPinForm] = useState(false);
+  const [pinForm, setPinForm] = useState({
+    currentPin: ['', '', '', ''],
+    newPin: ['', '', '', ''],
+    confirmPin: ['', '', '', '']
+  });
+  const [isChangingPin, setIsChangingPin] = useState(false);
 
   // Screenshot protection effect
   useEffect(() => {
@@ -169,6 +197,136 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     setProfileImage(null);
     localStorage.removeItem('rome-profile-image');
     toast.success('Profile image removed');
+  };
+
+  // Password change handlers
+  const handlePasswordChange = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters long');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    
+    try {
+      // Verify current password by attempting to re-authenticate
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user!.email!,
+        password: passwordForm.currentPassword
+      });
+
+      if (signInError) {
+        toast.error('Current password is incorrect');
+        setIsChangingPassword(false);
+        return;
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: passwordForm.newPassword
+      });
+
+      if (updateError) {
+        toast.error('Failed to update password');
+      } else {
+        toast.success('Password updated successfully');
+        setShowPasswordForm(false);
+        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      }
+    } catch (error) {
+      toast.error('An error occurred while updating password');
+    }
+    
+    setIsChangingPassword(false);
+  };
+
+  // PIN change handlers
+  const handlePinDigitChange = (formField: 'currentPin' | 'newPin' | 'confirmPin', index: number, value: string) => {
+    if (value.length > 1) return;
+    if (value && !/^\d$/.test(value)) return;
+
+    setPinForm(prev => ({
+      ...prev,
+      [formField]: prev[formField].map((digit, i) => i === index ? value : digit)
+    }));
+
+    // Auto-focus next input
+    if (value && index < 3) {
+      const nextInput = document.getElementById(`${formField}-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handlePinChange = async () => {
+    const currentPinValue = pinForm.currentPin.join('');
+    const newPinValue = pinForm.newPin.join('');
+    const confirmPinValue = pinForm.confirmPin.join('');
+
+    if (!currentPinValue || currentPinValue.length !== 4) {
+      toast.error('Please enter your current 4-digit PIN');
+      return;
+    }
+
+    if (!newPinValue || newPinValue.length !== 4) {
+      toast.error('Please enter a new 4-digit PIN');
+      return;
+    }
+
+    if (newPinValue !== confirmPinValue) {
+      toast.error('New PINs do not match');
+      return;
+    }
+
+    if (newPinValue === currentPinValue) {
+      toast.error('New PIN must be different from current PIN');
+      return;
+    }
+
+    setIsChangingPin(true);
+
+    try {
+      // Verify current PIN
+      const userSecurityCode = user?.user_metadata?.security_code;
+      
+      if (currentPinValue !== userSecurityCode) {
+        toast.error('Current PIN is incorrect');
+        setIsChangingPin(false);
+        return;
+      }
+
+      // Update PIN in user metadata
+      const { error } = await supabase.auth.updateUser({
+        data: { 
+          security_code: newPinValue 
+        }
+      });
+
+      if (error) {
+        toast.error('Failed to update PIN');
+      } else {
+        toast.success('PIN updated successfully');
+        setShowPinForm(false);
+        setPinForm({
+          currentPin: ['', '', '', ''],
+          newPin: ['', '', '', ''],
+          confirmPin: ['', '', '', '']
+        });
+      }
+    } catch (error) {
+      toast.error('An error occurred while updating PIN');
+    }
+
+    setIsChangingPin(false);
   };
 
   return (
@@ -436,28 +594,248 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       className="flex-shrink-0"
                     />
                   </div>
-                  
-                  {screenshotProtection && (
-                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4">
-                      <div className="flex items-center space-x-2 text-primary">
-                        <Check className="w-4 h-4 flex-shrink-0" />
-                        <span className="font-medium text-sm sm:text-base">Screenshot & Recording Protection Active</span>
-                      </div>
-                      <p className="text-muted-foreground text-xs sm:text-sm mt-2">
-                        The following features are now disabled:
-                      </p>
-                      <ul className="text-muted-foreground text-xs sm:text-sm mt-1 list-disc list-inside space-y-1">
-                        <li>Right-click context menu</li>
-                        <li>Developer tools (F12, Ctrl+Shift+I)</li>
-                        <li>Screenshot shortcuts (Print Screen, Cmd+Shift+3/4)</li>
-                        <li>Screen recording detection (with warnings)</li>
-                        <li>Text selection and dragging</li>
-                      </ul>
-                      <p className="text-muted-foreground text-xs mt-2 italic">
-                        Note: Screen sharing for video calls and social media is allowed but will show warnings.
-                      </p>
-                    </div>
-                  )}
+                   
+                   {screenshotProtection && (
+                     <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4">
+                       <div className="flex items-center space-x-2 text-primary">
+                         <Check className="w-4 h-4 flex-shrink-0" />
+                         <span className="font-medium text-sm sm:text-base">Screenshot & Recording Protection Active</span>
+                       </div>
+                       <p className="text-muted-foreground text-xs sm:text-sm mt-2">
+                         The following features are now disabled:
+                       </p>
+                       <ul className="text-muted-foreground text-xs sm:text-sm mt-1 list-disc list-inside space-y-1">
+                         <li>Right-click context menu</li>
+                         <li>Developer tools (F12, Ctrl+Shift+I)</li>
+                         <li>Screenshot shortcuts (Print Screen, Cmd+Shift+3/4)</li>
+                         <li>Screen recording detection (with warnings)</li>
+                         <li>Text selection and dragging</li>
+                       </ul>
+                       <p className="text-muted-foreground text-xs mt-2 italic">
+                         Note: Screen sharing for video calls and social media is allowed but will show warnings.
+                       </p>
+                     </div>
+                   )}
+
+                   {/* Password Change Section */}
+                   <div className="pt-4 border-t border-border">
+                     <div className="flex items-center justify-between mb-4">
+                       <div>
+                         <Label className="text-foreground text-lg font-medium">Password</Label>
+                         <p className="text-muted-foreground text-sm">Change your account password</p>
+                       </div>
+                       <Button
+                         onClick={() => setShowPasswordForm(!showPasswordForm)}
+                         variant="outline"
+                         size="sm"
+                       >
+                         <Key className="w-4 h-4 mr-2" />
+                         Change Password
+                       </Button>
+                     </div>
+
+                     {showPasswordForm && (
+                       <div className="bg-muted/20 rounded-lg p-4 space-y-4">
+                         <div className="space-y-2">
+                           <Label>Current Password</Label>
+                           <div className="relative">
+                             <Input
+                               type={showPasswords.current ? "text" : "password"}
+                               value={passwordForm.currentPassword}
+                               onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                               placeholder="Enter current password"
+                               autoComplete="current-password"
+                             />
+                             <Button
+                               type="button"
+                               variant="ghost"
+                               size="sm"
+                               className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                               onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
+                             >
+                               {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                             </Button>
+                           </div>
+                         </div>
+
+                         <div className="space-y-2">
+                           <Label>New Password</Label>
+                           <div className="relative">
+                             <Input
+                               type={showPasswords.new ? "text" : "password"}
+                               value={passwordForm.newPassword}
+                               onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                               placeholder="Enter new password (min 6 characters)"
+                               autoComplete="new-password"
+                             />
+                             <Button
+                               type="button"
+                               variant="ghost"
+                               size="sm"
+                               className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                               onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
+                             >
+                               {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                             </Button>
+                           </div>
+                         </div>
+
+                         <div className="space-y-2">
+                           <Label>Confirm New Password</Label>
+                           <div className="relative">
+                             <Input
+                               type={showPasswords.confirm ? "text" : "password"}
+                               value={passwordForm.confirmPassword}
+                               onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                               placeholder="Confirm new password"
+                               autoComplete="new-password"
+                             />
+                             <Button
+                               type="button"
+                               variant="ghost"
+                               size="sm"
+                               className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                               onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
+                             >
+                               {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                             </Button>
+                           </div>
+                         </div>
+
+                         <div className="flex gap-2">
+                           <Button
+                             onClick={handlePasswordChange}
+                             disabled={isChangingPassword}
+                             className="flex-1"
+                           >
+                             {isChangingPassword ? 'Updating...' : 'Update Password'}
+                           </Button>
+                           <Button
+                             variant="outline"
+                             onClick={() => {
+                               setShowPasswordForm(false);
+                               setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                             }}
+                             className="flex-1"
+                           >
+                             Cancel
+                           </Button>
+                         </div>
+                       </div>
+                     )}
+                   </div>
+
+                   {/* PIN Change Section */}
+                   <div className="pt-4 border-t border-border">
+                     <div className="flex items-center justify-between mb-4">
+                       <div>
+                         <Label className="text-foreground text-lg font-medium">4-Digit PIN</Label>
+                         <p className="text-muted-foreground text-sm">Change your security PIN used for app access</p>
+                       </div>
+                       <Button
+                         onClick={() => setShowPinForm(!showPinForm)}
+                         variant="outline"
+                         size="sm"
+                       >
+                         <Lock className="w-4 h-4 mr-2" />
+                         Change PIN
+                       </Button>
+                     </div>
+
+                     {showPinForm && (
+                       <div className="bg-muted/20 rounded-lg p-4 space-y-4">
+                         <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                           <div className="flex items-start gap-2">
+                             <Shield className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                             <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                               <strong>Security Warning:</strong> Do not save this PIN to any password manager or browser. Government agencies can request access to these stored codes from software companies.
+                             </p>
+                           </div>
+                         </div>
+
+                         <div className="space-y-2">
+                           <Label>Current PIN</Label>
+                           <div className="flex gap-2">
+                             {pinForm.currentPin.map((digit, index) => (
+                               <Input
+                                 key={index}
+                                 id={`currentPin-${index}`}
+                                 type="password"
+                                 inputMode="numeric"
+                                 maxLength={1}
+                                 value={digit}
+                                 onChange={(e) => handlePinDigitChange('currentPin', index, e.target.value)}
+                                 className="w-12 h-12 text-center text-lg font-semibold font-mono"
+                                 autoComplete="off"
+                               />
+                             ))}
+                           </div>
+                         </div>
+
+                         <div className="space-y-2">
+                           <Label>New PIN</Label>
+                           <div className="flex gap-2">
+                             {pinForm.newPin.map((digit, index) => (
+                               <Input
+                                 key={index}
+                                 id={`newPin-${index}`}
+                                 type="password"
+                                 inputMode="numeric"
+                                 maxLength={1}
+                                 value={digit}
+                                 onChange={(e) => handlePinDigitChange('newPin', index, e.target.value)}
+                                 className="w-12 h-12 text-center text-lg font-semibold font-mono"
+                                 autoComplete="off"
+                               />
+                             ))}
+                           </div>
+                         </div>
+
+                         <div className="space-y-2">
+                           <Label>Confirm New PIN</Label>
+                           <div className="flex gap-2">
+                             {pinForm.confirmPin.map((digit, index) => (
+                               <Input
+                                 key={index}
+                                 id={`confirmPin-${index}`}
+                                 type="password"
+                                 inputMode="numeric"
+                                 maxLength={1}
+                                 value={digit}
+                                 onChange={(e) => handlePinDigitChange('confirmPin', index, e.target.value)}
+                                 className="w-12 h-12 text-center text-lg font-semibold font-mono"
+                                 autoComplete="off"
+                               />
+                             ))}
+                           </div>
+                         </div>
+
+                         <div className="flex gap-2">
+                           <Button
+                             onClick={handlePinChange}
+                             disabled={isChangingPin}
+                             className="flex-1"
+                           >
+                             {isChangingPin ? 'Updating...' : 'Update PIN'}
+                           </Button>
+                           <Button
+                             variant="outline"
+                             onClick={() => {
+                               setShowPinForm(false);
+                               setPinForm({
+                                 currentPin: ['', '', '', ''],
+                                 newPin: ['', '', '', ''],
+                                 confirmPin: ['', '', '', '']
+                               });
+                             }}
+                             className="flex-1"
+                           >
+                             Cancel
+                           </Button>
+                         </div>
+                       </div>
+                     )}
+                   </div>
                 </CardContent>
               </Card>
             )}
