@@ -117,14 +117,14 @@ export const CallHistory = ({ isOpen, onClose }: CallHistoryProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl h-[95vh] sm:h-[90vh] md:h-[85vh] lg:h-[80vh] p-0 overflow-hidden m-2 sm:m-4" onInteractOutside={() => onClose()}>
+      <DialogContent className="w-[95vw] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl h-[95vh] sm:h-[90vh] md:h-[85vh] lg:h-[80vh] p-0 overflow-hidden flex flex-col m-2 sm:m-4">
         {/* Glassmorphic background */}
         <div className="absolute inset-0 bg-background/20 backdrop-blur-xl border border-border/50 rounded-lg" />
         
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col">
           {/* Header */}
-          <div className="p-4 sm:p-6 border-b border-border/50">
+          <div className="p-4 sm:p-6 border-b border-border/50 flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/20">
                 <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
@@ -137,7 +137,8 @@ export const CallHistory = ({ isOpen, onClose }: CallHistoryProps) => {
           </div>
 
           {/* Call History List */}
-          <ScrollArea className="flex-1 p-4 sm:p-6">
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <ScrollArea className="h-full p-4 sm:p-6">
             <div className="space-y-3 sm:space-y-4">
               {callHistory.map((call) => (
                 <div
@@ -195,7 +196,8 @@ export const CallHistory = ({ isOpen, onClose }: CallHistoryProps) => {
                 </p>
               </div>
             )}
-          </ScrollArea>
+            </ScrollArea>
+          </div>
 
           {/* Footer */}
           <div className="p-4 sm:p-6 border-t border-border/50">

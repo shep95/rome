@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Settings, 
   Upload, 
@@ -331,7 +332,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-6xl h-[90vh] max-h-[800px] bg-background/80 backdrop-blur-xl border-border p-0 overflow-hidden">
+      <DialogContent className="w-[95vw] max-w-6xl h-[90vh] max-h-[800px] bg-background/80 backdrop-blur-xl border-border p-0 overflow-hidden flex flex-col">
         <div className="flex flex-col lg:flex-row h-full">
           {/* Mobile/Tablet Tab Navigation */}
           <div className="lg:hidden bg-card/50 border-b border-border p-4">
@@ -450,7 +451,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </div>
 
           {/* Content */}
-          <div className="flex-1 p-4 md:p-6 overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <ScrollArea className="h-full p-4 md:p-6">
             {activeTab === 'appearance' && (
               <Card className="bg-card/50 border-border">
                 <CardHeader>
@@ -862,7 +864,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   </div>
                 </CardContent>
               </Card>
-            )}
+              )}
+            </ScrollArea>
           </div>
         </div>
       </DialogContent>

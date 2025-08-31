@@ -253,8 +253,8 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-2xl h-[85vh] max-h-[600px] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             Inbox
             {incomingPending.length > 0 && (
@@ -263,12 +263,12 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
           </DialogTitle>
         </DialogHeader>
 
-        {loading ? (
+        <div className="flex-1 min-h-0 overflow-hidden">{loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-muted-foreground">Loading requests...</div>
           </div>
         ) : (
-          <ScrollArea className="max-h-[65vh] pr-4">
+          <ScrollArea className="h-full pr-4">
             <div className="space-y-3">
               {requests.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
@@ -455,6 +455,7 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
             </div>
           </ScrollArea>
         )}
+        </div>
 
         {/* Full Message Preview Modal */}
         {selectedRequest && (
