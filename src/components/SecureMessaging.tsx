@@ -1585,7 +1585,9 @@ if (!append && user && conversationId) {
                                         src={message.file_url!}
                                         className="max-w-full rounded-lg block pointer-events-auto"
                                         controls
+                                        loop
                                         preload="metadata"
+                                        playsInline
                                         style={{ maxWidth: 'min(250px, calc(100vw - 100px))', maxHeight: '200px', width: 'auto', height: 'auto' }}
                                         crossOrigin="anonymous"
                                         onLoadedData={(e) => extractMediaColor(message.id, e.currentTarget)}
