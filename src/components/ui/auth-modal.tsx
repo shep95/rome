@@ -246,9 +246,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               pattern="[0-9]{4}"
               autoComplete="off"
             />
-            <p className="text-xs text-white/60">
-              {activeTab === 'signup' ? 'Create a 4-digit code for secure access' : 'Enter your 4-digit security code'}
-            </p>
+            <div className="space-y-1">
+              <p className="text-xs text-white/60">
+                {activeTab === 'signup' ? 'Create a 4-digit code for secure access' : 'Enter your 4-digit security code'}
+              </p>
+              <div className="bg-red-500/10 border border-red-500/20 rounded-md p-3">
+                <p className="text-xs text-red-400 font-medium">
+                  ⚠️ Security Warning: Do not save this 4-digit code to any password manager or browser. Government agencies can request access to these stored codes from software companies.
+                </p>
+              </div>
+            </div>
           </div>
 
           <Button
