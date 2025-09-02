@@ -276,7 +276,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error: { message: "Invalid code" } };
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
@@ -296,24 +296,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             description: error.message
           });
         }
-      } else {
-        // On successful login, initialize crypto keys if they don't exist
-        setTimeout(async () => {
-          try {
-            await CryptoUtils.generateIdentityKeys();
-            await CryptoUtils.generatePrekeys(100);
-          } catch (err) {
-            // Keys might already exist, which is fine
-            console.log('Crypto keys already exist or initialization failed:', err);
-          }
-        }, 1000);
-        
-        // Fresh login, no PIN verification needed
-        setRequiresPinVerification(false);
-        setPinVerified(true);
+        return { error };
       }
 
-      return { error };
+      // Verify security code against stored value
+      const storedCode = authData.user?.user_metadata?.security_code;
+      if (!storedCode || code !== storedCode) {
+        // Sign out the user since they provided wrong security code
+        await supabase.auth.signOut();
+        toast({
+          variant: "destructive",
+          title: "Invalid security code",
+          description: "The 4-digit security code you entered is incorrect."
+        });
+        return { error: { message: "Invalid security code" } };
+      }
+
+      // On successful login, initialize crypto keys if they don't exist
+      setTimeout(async () => {
+        try {
+          await CryptoUtils.generateIdentityKeys();
+          await CryptoUtils.generatePrekeys(100);
+        } catch (err) {
+          // Keys might already exist, which is fine
+          console.log('Crypto keys already exist or initialization failed:', err);
+        }
+      }, 1000);
+        
+      // Fresh login, no PIN verification needed
+      setRequiresPinVerification(false);
+      setPinVerified(true);
+
+      return { error: null };
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -323,7 +337,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { error };
     }
   };
-
   const signOut = async () => {
     try {
       // Store critical user data before clearing

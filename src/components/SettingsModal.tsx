@@ -305,19 +305,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         return;
       }
 
-      // Update PIN in user metadata and clear old PIN
+      // Update PIN in user metadata - this completely replaces the old PIN
       const { error } = await supabase.auth.updateUser({
         data: { 
-          security_code: newPinValue,
-          // Clear any old security codes when updating to new one
-          old_security_code: null
+          security_code: newPinValue
         }
       });
 
       if (error) {
         toast.error('Failed to update PIN');
       } else {
-        toast.success('PIN updated successfully - old code has been deleted');
+        // Force refresh user data to ensure old PIN is invalidated
+        await supabase.auth.refreshSession();
+        toast.success('PIN updated successfully - old code has been deleted and is no longer valid');
         setShowPinForm(false);
         setPinForm({
           currentPin: ['', '', '', ''],
