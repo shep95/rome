@@ -13,7 +13,7 @@ import {
   Settings, 
   Inbox, 
   Info, 
-  Heart,
+  DollarSign,
   Camera,
   Upload,
   ImageIcon,
@@ -246,7 +246,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           variant="ghost"
           className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
         >
-          <Heart className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+          <DollarSign className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
           <span className="text-sm font-medium">Subscribe</span>
         </Button>
         
