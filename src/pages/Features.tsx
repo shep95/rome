@@ -189,30 +189,6 @@ const Features = () => {
           </p>
         </div>
 
-        {/* User Statistics */}
-        <div className="text-center py-8">
-          <div className="inline-flex items-center justify-center w-full">
-            <Card className="border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors duration-300">
-              <CardContent className="p-8">
-                <div className="flex items-center justify-center gap-4">
-                  <Users className="h-12 w-12 text-primary" />
-                  <div className="text-left">
-                    <div className="text-4xl font-bold text-foreground mb-1">
-                      50,000+
-                    </div>
-                    <div className="text-lg text-muted-foreground">
-                      Trusted Users Worldwide
-                    </div>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mt-4 max-w-md">
-                  Join our growing community of security-conscious individuals and organizations who trust ROME for their private communications.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
         {/* Feature Categories */}
         {categories.map(category => (
           <div key={category} className="space-y-6">
