@@ -144,6 +144,20 @@ const Features = () => {
       category: "Privacy Features",
       isPremium: false,
       isNew: true
+    },
+    {
+      icon: <Globe className="h-8 w-8 text-blue-500" />,
+      title: "No IP Collection",
+      description: "We don't collect or log IP addresses, ensuring your location and network identity remain completely private.",
+      category: "Privacy Features",
+      isPremium: false
+    },
+    {
+      icon: <UserX className="h-8 w-8 text-green-500" />,
+      title: "Minimal Data Collection",
+      description: "Just Email & Password & No Phone Number Collection - we only collect what's absolutely necessary for secure communication.",
+      category: "Privacy Features",
+      isPremium: false
     }
   ];
 
