@@ -53,6 +53,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const [isAboutUsOpen, setIsAboutUsOpen] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const wallpaperInputRef = useRef<HTMLInputElement>(null);
@@ -108,8 +109,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     setIsAboutUsOpen(true);
   };
 
-  const handleDonationsClick = () => {
-    window.open('https://donate.stripe.com/fZu14p2SI677bve3Ttfw403', '_blank');
+  const handleSubscribeClick = () => {
+    setIsSubscriptionModalOpen(true);
   };
 
   const handleInboxClick = () => {
@@ -240,7 +241,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         
         <Button
           onClick={() => {
-            handleDonationsClick();
+            handleSubscribeClick();
             setIsMobileSidebarOpen(false);
           }}
           variant="ghost"
@@ -372,6 +373,37 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           {renderSidebarContent()}
         </div>
       </div>
+
+      {/* Subscription Modal */}
+      <Dialog open={isSubscriptionModalOpen} onOpenChange={setIsSubscriptionModalOpen}>
+        <DialogContent className="sm:max-w-md bg-background/20 backdrop-blur-xl border border-primary/20">
+          <div className="relative p-6">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background/30 to-accent/10 rounded-lg" />
+            <div className="relative z-10 text-center space-y-6">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center">
+                <DollarSign className="w-8 h-8 text-primary-foreground" />
+              </div>
+              
+              <div className="space-y-3">
+                <h3 className="text-2xl font-bold text-foreground">Subscribe to ROME</h3>
+                <p className="text-lg text-muted-foreground">
+                  Subscribe For $1.99/month For Unlimited & Hidden Access Features Of Rome
+                </p>
+              </div>
+              
+              <Button
+                onClick={() => {
+                  window.open('https://donate.stripe.com/fZu14p2SI677bve3Ttfw403', '_blank');
+                  setIsSubscriptionModalOpen(false);
+                }}
+                className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Subscribe Now
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Profile Modal */}
       <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
