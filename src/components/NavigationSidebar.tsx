@@ -349,8 +349,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   return (
     <>
-      {/* Mobile and Tablet Navigation - Hamburger menu for screens < 1280px */}
-      <div className="xl:hidden">
+      {/* Mobile and Tablet Navigation - Hamburger menu for screens < lg */}
+      <div className="lg:hidden">
         {/* Top Bar */}
         <div className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border p-4">
           <div className="flex items-center justify-between">
@@ -391,8 +391,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         </MobileSidebar>
       </div>
 
-      {/* Desktop Navigation - Fixed Sidebar (xl screens and up) */}
-      <div className="hidden xl:block fixed left-2 lg:left-4 xl:left-6 top-2 lg:top-4 bottom-2 lg:bottom-4 z-30">
+      {/* Desktop Navigation - Fixed Sidebar (lg screens and up) */}
+      <div className="hidden lg:block fixed left-2 lg:left-4 xl:left-6 top-2 lg:top-4 bottom-2 lg:bottom-4 z-30">
         <div className="w-56 lg:w-64 xl:w-72 bg-background/80 backdrop-blur-xl border border-border rounded-2xl h-full">
           {renderSidebarContent()}
         </div>

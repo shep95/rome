@@ -96,7 +96,7 @@ const Dashboard = () => {
       />
       
       {/* Main Content */}
-      <div className="flex-1 pt-16 md:pt-0 md:ml-60 lg:ml-72 xl:ml-80 min-h-screen w-full overflow-hidden">
+      <div className="flex-1 pt-16 lg:pt-0 lg:ml-60 xl:ml-72 2xl:ml-80 min-h-screen w-full overflow-hidden">
         {activeSection === 'secure-files' ? (
           <div className="flex-1 flex items-center justify-center bg-background min-h-screen p-2 sm:p-4 md:p-6">
             <SecureFiles />
