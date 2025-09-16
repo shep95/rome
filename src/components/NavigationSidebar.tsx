@@ -28,6 +28,7 @@ import {
   Globe
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { SettingsModal } from './SettingsModal';
 import { CallHistory } from './CallHistory';
@@ -153,141 +154,143 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       </div>
       
       {/* Navigation Items */}
-      <nav className="space-y-2 lg:space-y-3 flex-1">
-        <Button
-          onClick={() => {
-            onSectionChange('messages');
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
-            activeSection === 'messages'
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'text-foreground hover:text-primary hover:bg-primary/10'
-          }`}
-        >
-          <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Messages</span>
-        </Button>
-        
-        <Button
-          onClick={() => {
-            handleCallsClick();
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
-        >
-          <Phone className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Calls</span>
-        </Button>
-        
-        
-        <Button
-          onClick={() => {
-            handleInboxClick();
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 relative text-foreground hover:text-primary hover:bg-primary/10`}
-        >
-          <Inbox className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Inbox</span>
-          {messageRequestCount > 0 && (
-            <Badge 
-              variant="destructive" 
-              className="absolute top-1 lg:top-2 right-1 lg:right-2 h-4 w-4 lg:h-5 lg:w-5 rounded-full p-0 flex items-center justify-center text-xs font-bold"
-            >
-              {messageRequestCount}
-            </Badge>
-          )}
-        </Button>
+      <ScrollArea className="flex-1 -mx-2">
+        <nav className="space-y-2 lg:space-y-3 px-2">
+          <Button
+            onClick={() => {
+              onSectionChange('messages');
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
+              activeSection === 'messages'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'text-foreground hover:text-primary hover:bg-primary/10'
+            }`}
+          >
+            <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Messages</span>
+          </Button>
+          
+          <Button
+            onClick={() => {
+              handleCallsClick();
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
+          >
+            <Phone className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Calls</span>
+          </Button>
+          
+          
+          <Button
+            onClick={() => {
+              handleInboxClick();
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 relative text-foreground hover:text-primary hover:bg-primary/10`}
+          >
+            <Inbox className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Inbox</span>
+            {messageRequestCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute top-1 lg:top-2 right-1 lg:right-2 h-4 w-4 lg:h-5 lg:w-5 rounded-full p-0 flex items-center justify-center text-xs font-bold"
+              >
+                {messageRequestCount}
+              </Badge>
+            )}
+          </Button>
 
-        <Button
-          onClick={() => {
-            onShowReconnect?.();
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
-        >
-          <UserPlus className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Reconnect</span>
-        </Button>
-        
-        <Button
-          onClick={() => {
-            onSectionChange('features');
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
-            activeSection === 'features'
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'text-foreground hover:text-primary hover:bg-primary/10'
-          }`}
-        >
-          <Info className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Our Features</span>
-        </Button>
-        
-        <Button
-          onClick={() => {
-            onSectionChange('secure-files');
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
-            activeSection === 'secure-files'
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'text-foreground hover:text-primary hover:bg-primary/10'
-          }`}
-        >
-          <FileText className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Secure Files</span>
-        </Button>
-        
-        
-        <Button
-          onClick={() => {
-            handleSubscribeClick();
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
-        >
-          <DollarSign className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Subscribe</span>
-        </Button>
-        
-        <Button
-          onClick={() => {
-            handleDownloadClick();
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
-        >
-          <Download className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Download</span>
-        </Button>
-        
-        <Button
-          onClick={() => {
-            handleSettingsClick();
-            setIsMobileSidebarOpen(false);
-          }}
-          variant="ghost"
-          className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
-            activeSection === 'settings'
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'text-foreground hover:text-primary hover:bg-primary/10'
-          }`}
-        >
-          <Settings className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-          <span className="text-sm font-medium">Settings</span>
-        </Button>
-      </nav>
+          <Button
+            onClick={() => {
+              onShowReconnect?.();
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
+          >
+            <UserPlus className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Reconnect</span>
+          </Button>
+          
+          <Button
+            onClick={() => {
+              onSectionChange('features');
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
+              activeSection === 'features'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'text-foreground hover:text-primary hover:bg-primary/10'
+            }`}
+          >
+            <Info className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Our Features</span>
+          </Button>
+          
+          <Button
+            onClick={() => {
+              onSectionChange('secure-files');
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
+              activeSection === 'secure-files'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'text-foreground hover:text-primary hover:bg-primary/10'
+            }`}
+          >
+            <FileText className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Secure Files</span>
+          </Button>
+          
+          
+          <Button
+            onClick={() => {
+              handleSubscribeClick();
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
+          >
+            <DollarSign className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Subscribe</span>
+          </Button>
+          
+          <Button
+            onClick={() => {
+              handleDownloadClick();
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
+          >
+            <Download className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Download</span>
+          </Button>
+          
+          <Button
+            onClick={() => {
+              handleSettingsClick();
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
+              activeSection === 'settings'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'text-foreground hover:text-primary hover:bg-primary/10'
+            }`}
+          >
+            <Settings className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Settings</span>
+          </Button>
+        </nav>
+      </ScrollArea>
       
       
       {/* Profile Section */}
