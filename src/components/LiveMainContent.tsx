@@ -502,9 +502,10 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           </div>
         </div>
         
-        {/* Conversation List - Enhanced for tablet */}
-        <ScrollArea className="flex-1 p-3 md:p-4 lg:p-5 custom-scrollbar">
-          <div className="space-y-2 md:space-y-3">
+        {/* Conversation List - Scrollable for all screen sizes */}
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full p-3 md:p-4 lg:p-5">
+            <div className="space-y-2 md:space-y-3">
             {selectedTab === 'conversations' && conversations.map((conv) => (
               <Card 
                 key={conv.id} 
@@ -615,8 +616,9 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 <p className="text-sm">Create a group to start chatting!</p>
               </div>
             )}
-          </div>
-        </ScrollArea>
+            </div>
+          </ScrollArea>
+        </div>
       </div>
       
       {/* Right Panel - Chat Area */}
