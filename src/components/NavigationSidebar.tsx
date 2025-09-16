@@ -21,7 +21,11 @@ import {
   FileText,
   LogOut,
   MoreVertical,
-  UserPlus
+  UserPlus,
+  Download,
+  Smartphone,
+  Monitor,
+  Globe
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -54,6 +58,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const [isInboxOpen, setIsInboxOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const wallpaperInputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +116,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   const handleSubscribeClick = () => {
     setIsSubscriptionModalOpen(true);
+  };
+
+  const handleDownloadClick = () => {
+    setIsDownloadModalOpen(true);
   };
 
   const handleInboxClick = () => {
@@ -249,6 +258,18 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         >
           <DollarSign className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
           <span className="text-sm font-medium">Subscribe</span>
+        </Button>
+        
+        <Button
+          onClick={() => {
+            handleDownloadClick();
+            setIsMobileSidebarOpen(false);
+          }}
+          variant="ghost"
+          className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
+        >
+          <Download className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+          <span className="text-sm font-medium">Download</span>
         </Button>
         
         <Button
@@ -400,6 +421,73 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               >
                 Subscribe Now
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Download Modal */}
+      <Dialog open={isDownloadModalOpen} onOpenChange={setIsDownloadModalOpen}>
+        <DialogContent className="sm:max-w-lg bg-background/20 backdrop-blur-xl border border-primary/20">
+          <div className="relative p-6">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background/30 to-accent/10 rounded-lg" />
+            <div className="relative z-10 space-y-6">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mb-4">
+                  <Download className="w-8 h-8 text-primary-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground mb-2">Download ROME</h3>
+                <p className="text-muted-foreground">
+                  Get ROME on all your devices for secure messaging everywhere
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <Button
+                  onClick={() => {
+                    window.open('http://install.page/rome879', '_blank');
+                    setIsDownloadModalOpen(false);
+                  }}
+                  className="w-full h-14 bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 text-foreground font-semibold text-lg backdrop-blur-sm transition-all duration-300 flex items-center justify-center gap-3"
+                  variant="ghost"
+                >
+                  <Smartphone className="w-6 h-6" />
+                  <div className="text-left">
+                    <div className="font-semibold">Android</div>
+                    <div className="text-sm text-muted-foreground">Download for Android</div>
+                  </div>
+                </Button>
+                
+                <Button
+                  onClick={() => {
+                    window.open('http://install.page/rome879', '_blank');
+                    setIsDownloadModalOpen(false);
+                  }}
+                  className="w-full h-14 bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 text-foreground font-semibold text-lg backdrop-blur-sm transition-all duration-300 flex items-center justify-center gap-3"
+                  variant="ghost"
+                >
+                  <Smartphone className="w-6 h-6" />
+                  <div className="text-left">
+                    <div className="font-semibold">iOS</div>
+                    <div className="text-sm text-muted-foreground">Download for iPhone & iPad</div>
+                  </div>
+                </Button>
+                
+                <Button
+                  onClick={() => {
+                    window.open('http://install.page/rome879', '_blank');
+                    setIsDownloadModalOpen(false);
+                  }}
+                  className="w-full h-14 bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 text-foreground font-semibold text-lg backdrop-blur-sm transition-all duration-300 flex items-center justify-center gap-3"
+                  variant="ghost"
+                >
+                  <Globe className="w-6 h-6" />
+                  <div className="text-left">
+                    <div className="font-semibold">Web</div>
+                    <div className="text-sm text-muted-foreground">Access via browser</div>
+                  </div>
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
