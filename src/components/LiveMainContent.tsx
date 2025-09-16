@@ -447,7 +447,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 left-4 z-50 md:z-50 lg:hidden bg-card/80 backdrop-blur-sm border border-border/50"
+          className="absolute top-4 left-4 z-50 lg:hidden bg-card/80 backdrop-blur-sm border border-border/50"
           onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
         >
           <MessageCircle className="h-5 w-5" />
@@ -460,7 +460,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           ? `${isLeftPanelOpen ? 'translate-x-0' : '-translate-x-full'} absolute inset-y-0 left-0 z-40 bg-background/95 backdrop-blur-md border-r border-border lg:relative lg:translate-x-0 lg:bg-background lg:backdrop-blur-none` 
           : 'relative translate-x-0'
         } 
-        w-full sm:w-80 md:w-80 lg:w-96 xl:w-[400px] transition-transform duration-300 ease-in-out flex flex-col
+        w-full lg:w-96 xl:w-[400px] transition-transform duration-300 ease-in-out flex flex-col
       `}>
         {/* Tab Navigation - Enhanced for tablet */}
         <div className="p-4 md:p-5 lg:p-6 border-b border-border flex-shrink-0">
