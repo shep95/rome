@@ -79,7 +79,7 @@ export const MobileSidebarTrigger: React.FC<{
       size="icon"
       onClick={onClick}
       className={cn(
-        'h-8 w-8 text-muted-foreground hover:text-foreground md:hidden',
+        'h-8 w-8 text-muted-foreground hover:text-foreground lg:hidden',
         className
       )}
     >
