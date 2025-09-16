@@ -54,6 +54,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   const [unreadCounts, setUnreadCounts] = useState<{[key: string]: number}>({});
   const [directUnreadTotal, setDirectUnreadTotal] = useState(0);
   const [groupUnreadTotal, setGroupUnreadTotal] = useState(0);
+  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -440,9 +441,27 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   }
 
   return (
-    <div className="flex h-screen">
-      {/* Left Panel - Hidden on mobile when conversation is selected */}
-      <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 xl:w-[400px] border-r border-border flex-col`}>
+    <div className="flex h-screen relative">
+      {/* Mobile/Tablet Toggle Button - shown when conversation is selected */}
+      {selectedConversation && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 left-4 z-50 md:z-50 lg:hidden bg-card/80 backdrop-blur-sm border border-border/50"
+          onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
+        >
+          <MessageCircle className="h-5 w-5" />
+        </Button>
+      )}
+
+      {/* Left Panel - Overlay on mobile/tablet when conversation selected */}
+      <div className={`
+        ${selectedConversation 
+          ? `${isLeftPanelOpen ? 'translate-x-0' : '-translate-x-full'} absolute inset-y-0 left-0 z-40 bg-background/95 backdrop-blur-md border-r border-border lg:relative lg:translate-x-0 lg:bg-background lg:backdrop-blur-none` 
+          : 'relative translate-x-0'
+        } 
+        w-full sm:w-80 md:w-80 lg:w-96 xl:w-[400px] transition-transform duration-300 ease-in-out flex flex-col
+      `}>
         {/* Tab Navigation - Enhanced for tablet */}
         <div className="p-4 md:p-5 lg:p-6 border-b border-border flex-shrink-0">
           <div className="flex items-center justify-between mb-3 md:mb-4">
@@ -512,7 +531,10 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 className={`bg-card/50 border-border hover:bg-card/80 cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] ${
                   selectedConversation === conv.id ? 'ring-2 ring-primary bg-primary/10 shadow-lg' : ''
                 }`}
-                onClick={() => setSelectedConversation(conv.id)}
+                onClick={() => {
+                  setSelectedConversation(conv.id);
+                  setIsLeftPanelOpen(false); // Close panel on selection for mobile/tablet
+                }}
               >
                 <CardContent className="p-3 md:p-4 lg:p-5">
                   <div className="flex items-center space-x-3 md:space-x-4">
@@ -552,7 +574,10 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                   <div className="flex items-center space-x-3 md:space-x-4">
                     <Avatar 
                       className="h-10 w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-lg border border-border/50 flex-shrink-0"
-                      onClick={() => setSelectedConversation(group.id)}
+                      onClick={() => {
+                        setSelectedConversation(group.id);
+                        setIsLeftPanelOpen(false); // Close panel on selection for mobile/tablet
+                      }}
                     >
                       <AvatarImage src={group.avatar_url} className="rounded-lg object-cover" />
                       <AvatarFallback className="bg-primary/20 text-primary rounded-lg text-sm md:text-base lg:text-lg font-semibold">
@@ -561,7 +586,10 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                     </Avatar>
                     <div 
                       className="flex-1 min-w-0 cursor-pointer"
-                      onClick={() => setSelectedConversation(group.id)}
+                      onClick={() => {
+                        setSelectedConversation(group.id);
+                        setIsLeftPanelOpen(false); // Close panel on selection for mobile/tablet
+                      }}
                     >
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm md:text-base lg:text-lg font-medium text-foreground truncate pr-2">{group.name}</h4>
@@ -622,15 +650,32 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
       </div>
       
       {/* Right Panel - Chat Area */}
-      <div className={`${selectedConversation ? 'block' : 'hidden md:block'} flex-1`}>
-        {selectedConversation && (
+      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 items-center justify-center bg-background`}>
+        {selectedConversation ? (
           <SecureMessaging 
             key={selectedConversation} // Force re-render when conversation changes
             conversationId={selectedConversation} 
-            onBackToMessages={() => setSelectedConversation(null)}
+            onBackToMessages={() => {
+              setSelectedConversation(null);
+              setIsLeftPanelOpen(false);
+            }}
           />
+        ) : (
+          <div className="text-center text-muted-foreground">
+            <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-30" />
+            <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
+            <p className="text-sm">Choose a chat or group to start messaging</p>
+          </div>
         )}
       </div>
+
+      {/* Overlay backdrop for mobile/tablet */}
+      {selectedConversation && isLeftPanelOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsLeftPanelOpen(false)}
+        />
+      )}
       
       {/* User Search Modal */}
       <UserSearchDropdown
