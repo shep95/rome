@@ -1401,13 +1401,13 @@ if (!append && user && conversationId) {
         }}
       >
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Back button for mobile */}
+          {/* Back button for mobile and tablet */}
           {onBackToMessages && (
             <Button
               onClick={onBackToMessages}
               variant="ghost"
               size="sm"
-              className="md:hidden p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+              className="lg:hidden p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
             >
               <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
