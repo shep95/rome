@@ -442,7 +442,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   return (
     <div className="flex h-screen">
       {/* Left Panel - Hidden on mobile when conversation is selected */}
-      <div className={`${selectedConversation ? 'hidden md:block' : 'block'} w-full md:w-96 lg:w-[400px] xl:w-[450px] border-r border-border flex flex-col`}>
+      <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 xl:w-[400px] border-r border-border flex-col`}>
         {/* Tab Navigation - Enhanced for tablet */}
         <div className="p-4 md:p-5 lg:p-6 border-b border-border flex-shrink-0">
           <div className="flex items-center justify-between mb-3 md:mb-4">
