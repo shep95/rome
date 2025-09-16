@@ -428,33 +428,34 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
       {/* Download Modal */}
       <Dialog open={isDownloadModalOpen} onOpenChange={setIsDownloadModalOpen}>
-        <DialogContent className="sm:max-w-lg bg-background/20 backdrop-blur-xl border border-primary/20">
-          <div className="relative p-6">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background/30 to-accent/10 rounded-lg" />
-            <div className="relative z-10 space-y-6">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mb-4">
-                  <Download className="w-8 h-8 text-primary-foreground" />
-                </div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">Download ROME</h3>
-                <p className="text-muted-foreground">
+        <DialogContent className="sm:max-w-md bg-background/10 backdrop-blur-xl border border-border/20">
+          <div className="relative p-8">
+            <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/60 to-background/80 rounded-lg" />
+            <div className="relative z-10 text-center space-y-6">
+              <div className="w-16 h-16 mx-auto bg-amber-500 rounded-2xl flex items-center justify-center">
+                <Download className="w-8 h-8 text-white" />
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold text-foreground">Download ROME</h3>
+                <p className="text-muted-foreground text-sm">
                   Get ROME on all your devices for secure messaging everywhere
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-3">
                 <Button
                   onClick={() => {
                     window.open('http://install.page/rome879', '_blank');
                     setIsDownloadModalOpen(false);
                   }}
-                  className="w-full h-14 bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 text-foreground font-semibold text-lg backdrop-blur-sm transition-all duration-300 flex items-center justify-center gap-3"
+                  className="w-full h-12 bg-muted/30 hover:bg-muted/50 text-foreground border border-muted/40 transition-all duration-200 flex items-center justify-start gap-3 px-4"
                   variant="ghost"
                 >
-                  <Smartphone className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-semibold">Android</div>
-                    <div className="text-sm text-muted-foreground">Download for Android</div>
+                  <Smartphone className="w-5 h-5 text-muted-foreground" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-sm">Android</div>
+                    <div className="text-xs text-muted-foreground">Download for Android</div>
                   </div>
                 </Button>
                 
@@ -463,13 +464,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                     window.open('http://install.page/rome879', '_blank');
                     setIsDownloadModalOpen(false);
                   }}
-                  className="w-full h-14 bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 text-foreground font-semibold text-lg backdrop-blur-sm transition-all duration-300 flex items-center justify-center gap-3"
+                  className="w-full h-12 bg-muted/30 hover:bg-muted/50 text-foreground border border-muted/40 transition-all duration-200 flex items-center justify-start gap-3 px-4"
                   variant="ghost"
                 >
-                  <Smartphone className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-semibold">iOS</div>
-                    <div className="text-sm text-muted-foreground">Download for iPhone & iPad</div>
+                  <Smartphone className="w-5 h-5 text-muted-foreground" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-sm">iOS</div>
+                    <div className="text-xs text-muted-foreground">Download for iPhone & iPad</div>
                   </div>
                 </Button>
                 
@@ -478,13 +479,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                     window.open('http://install.page/rome879', '_blank');
                     setIsDownloadModalOpen(false);
                   }}
-                  className="w-full h-14 bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 text-foreground font-semibold text-lg backdrop-blur-sm transition-all duration-300 flex items-center justify-center gap-3"
+                  className="w-full h-12 bg-muted/30 hover:bg-muted/50 text-foreground border border-muted/40 transition-all duration-200 flex items-center justify-start gap-3 px-4"
                   variant="ghost"
                 >
-                  <Globe className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-semibold">Web</div>
-                    <div className="text-sm text-muted-foreground">Access via browser</div>
+                  <Globe className="w-5 h-5 text-muted-foreground" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-sm">Web</div>
+                    <div className="text-xs text-muted-foreground">Access via browser</div>
                   </div>
                 </Button>
               </div>
