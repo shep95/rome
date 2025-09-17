@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, ChevronDown } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
@@ -108,6 +108,8 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [messageColors, setMessageColors] = useState<Map<string, string>>(new Map());
   const [backgroundThemeColor, setBackgroundThemeColor] = useState<string>('');
   const [decryptingMessages, setDecryptingMessages] = useState<Set<string>>(new Set());
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Enforce live anti-screenshot while viewing messages (mobile: true blocking, web: best-effort)
   useScreenshotProtection(true);
@@ -227,6 +229,21 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
       window.removeEventListener('orientationchange', setVh);
       vv?.removeEventListener?.('resize', onVvResize as any);
     };
+  }, []);
+
+  // Handle scroll detection for scroll-down button
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 100; // 100px threshold
+      setShowScrollButton(!isAtBottom);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
   const loadConversationDetails = async () => {
@@ -1287,6 +1304,7 @@ if (!append && user && conversationId) {
   };
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setShowScrollButton(false);
   };
 
   const decodeMessage = async (content: any, candidateKeys: string[]) => {
@@ -1455,6 +1473,7 @@ if (!append && user && conversationId) {
 
       {/* Messages */}
       <div 
+        ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 relative custom-scrollbar md:mt-0 mt-16 md:mb-0 mb-20"
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
@@ -1866,6 +1885,22 @@ if (!append && user && conversationId) {
         {/* Typing Indicator */}
         {user?.id && (
           <TypingIndicator conversationId={conversationId} currentUserId={user.id} />
+        )}
+        
+        {/* Scroll Down Button */}
+        {showScrollButton && (
+          <div className="fixed bottom-24 right-4 z-50 md:absolute md:bottom-4 md:right-4">
+            <button
+              onClick={scrollToBottom}
+              className="p-3 rounded-full backdrop-blur-xl bg-white/10 border border-white/20 shadow-xl hover:bg-white/20 transition-all duration-300 group"
+              style={{
+                backdropFilter: 'blur(16px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+              }}
+            >
+              <ChevronDown className="h-5 w-5 text-white group-hover:scale-110 transition-transform duration-300" />
+            </button>
+          </div>
         )}
         
         <div ref={messagesEndRef} />
