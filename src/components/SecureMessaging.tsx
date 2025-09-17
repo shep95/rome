@@ -19,6 +19,7 @@ import { AnonymousMessageLog } from './AnonymousMessageLog';
 import { LinkWarning } from './LinkWarning';
 import { extractDominantColor, extractVideoColor } from '@/lib/color-extraction';
 import { useScreenshotProtection } from '@/hooks/useScreenshotProtection';
+import { BubbleWave } from '@/components/ui/bubble-wave';
 
 interface Message {
   id: string;
@@ -52,6 +53,7 @@ interface Message {
   is_anonymous?: boolean;
   anonymous_id?: string;
   reactions_count?: number;
+  isDecrypting?: boolean;
 }
 
 interface FilePreview {
@@ -105,6 +107,7 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
   const [messageColors, setMessageColors] = useState<Map<string, string>>(new Map());
   const [backgroundThemeColor, setBackgroundThemeColor] = useState<string>('');
+  const [decryptingMessages, setDecryptingMessages] = useState<Set<string>>(new Set());
 
   // Enforce live anti-screenshot while viewing messages (mobile: true blocking, web: best-effort)
   useScreenshotProtection(true);
@@ -353,171 +356,195 @@ if (senderIds.length > 0) {
   }
 }
 
-// Reverse to get chronological order and decrypt messages
-const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse().map(async (msg: any) => {
-  // Lookup sender profile from map
-  const senderProfile = profileMap.get(msg.sender_id) || null;
+// Reverse to get chronological order and prepare for decryption
+const messagesToDecrypt = (messagesToProcess as any[]).reverse();
 
-  // COMPREHENSIVE MESSAGE DECODING - Handle ALL legacy formats
-  let decryptedContent = '';
+// Fast decrypt messages with loading states and parallel batches for better performance
+const messageIds = messagesToDecrypt.map((msg: any) => msg.id);
+setDecryptingMessages(prev => new Set([...prev, ...messageIds]));
+
+const batchSize = 8; // Increase batch size for better performance
+const allDecryptedMessages: Message[] = [];
+
+for (let i = 0; i < messagesToDecrypt.length; i += batchSize) {
+  const batch = messagesToDecrypt.slice(i, i + batchSize);
   
-  console.log('🔍 Raw data_payload:', msg.data_payload);
-  console.log('🔍 Type:', typeof msg.data_payload);
+  const batchResults = await Promise.all(batch.map(async (msg: any) => {
+    // Lookup sender profile from map
+    const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
-
-  // Check if it's a Buffer from database (old encrypted messages)
-  if (msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer') {
-    console.log('📦 BUFFER TYPE - Processing buffer data...');
-    try {
-      const bufferData = new Uint8Array(msg.data_payload.data);
-      const base64String = btoa(String.fromCharCode(...bufferData));
-      console.log('📦 Buffer converted to base64:', base64String.substring(0, 50) + '...');
-      
-      // Try decryption first
-      try {
-        const { encryptionService } = await import('@/lib/encryption');
-        decryptedContent = await encryptionService.decryptMessage(base64String, conversationId);
-        console.log('✅ BUFFER DECRYPTION SUCCESS:', decryptedContent);
-      } catch (decryptError) {
-        console.log('⚠️ Buffer decryption failed, trying as raw text...');
-        // Try as raw UTF-8 text
-        decryptedContent = new TextDecoder().decode(bufferData);
-        console.log('✅ BUFFER AS TEXT:', decryptedContent);
-      }
-    } catch (error) {
-      console.error('❌ BUFFER PROCESSING FAILED:', error);
-      decryptedContent = '[Unable to read buffer message]';
-    }
-  } else {
-    // Handle string data - multiple formats possible
-    const rawContent = String(msg.data_payload || '');
-    console.log('📝 STRING DATA:', rawContent.substring(0, 100) + (rawContent.length > 100 ? '...' : ''));
+    // COMPREHENSIVE MESSAGE DECODING - Handle ALL legacy formats
+    let decryptedContent = '';
     
-    if (rawContent.startsWith('\\x')) {
-      console.log('🔧 HEX-ENCODED MESSAGE - Decoding...');
-      try {
-        // Decode hex string to bytes
-        const cleaned = rawContent.replace(/\\x/g, '');
-        const bytes: number[] = [];
-        for (let i = 0; i < cleaned.length; i += 2) {
-          bytes.push(parseInt(cleaned.substr(i, 2), 16));
-        }
-        const decodedText = new TextDecoder().decode(new Uint8Array(bytes));
-        console.log('🔧 Hex decoded to:', decodedText.substring(0, 50) + '...');
+    console.log('🔍 Raw data_payload:', msg.data_payload);
+    console.log('🔍 Type:', typeof msg.data_payload);
 
+    const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
+
+    // Check if it's a Buffer from database (old encrypted messages)
+    if (msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer') {
+      console.log('📦 BUFFER TYPE - Processing buffer data...');
+      try {
+        const bufferData = new Uint8Array(msg.data_payload.data);
+        const base64String = btoa(String.fromCharCode(...bufferData));
+        console.log('📦 Buffer converted to base64:', base64String.substring(0, 50) + '...');
+        
+        // Try decryption first
         try {
           const { encryptionService } = await import('@/lib/encryption');
-          decryptedContent = await encryptionService.decryptMessage(decodedText, conversationId);
-          console.log('✅ HEX→DECRYPT SUCCESS:', decryptedContent);
+          decryptedContent = await encryptionService.decryptMessage(base64String, conversationId);
+          console.log('✅ BUFFER DECRYPTION SUCCESS:', decryptedContent);
         } catch (decryptError) {
-          // If not decryptable, show decoded text as plain
-          decryptedContent = decodedText;
-          console.log('ℹ️ Not encrypted (or failed decrypt). Showing decoded text.');
+          console.log('⚠️ Buffer decryption failed, trying as raw text...');
+          // Try as raw UTF-8 text
+          decryptedContent = new TextDecoder().decode(bufferData);
+          console.log('✅ BUFFER AS TEXT:', decryptedContent);
         }
       } catch (error) {
-        console.error('❌ HEX DECODE FAILED:', error);
-        decryptedContent = '[Unable to decode hex message]';
-      }
-    } else if (isLikelyBase64(rawContent)) {
-      console.log('🔐 BASE64-LIKE STRING - Attempting decryption...');
-      try {
-        const { encryptionService } = await import('@/lib/encryption');
-        decryptedContent = await encryptionService.decryptMessage(rawContent, conversationId);
-        console.log('✅ BASE64 DECRYPT SUCCESS:', decryptedContent);
-      } catch (error) {
-        console.log('⚠️ Base64 decryption failed, showing as plain text');
-        decryptedContent = rawContent;
+        console.error('❌ BUFFER PROCESSING FAILED:', error);
+        decryptedContent = '[Unable to read buffer message]';
       }
     } else {
-      // Regular plain text message (new format)
-      decryptedContent = rawContent;
-      console.log('✅ PLAIN TEXT MESSAGE:', decryptedContent);
-    }
-  }
-
-  console.log('🎯 FINAL CONTENT:', decryptedContent);
-
-  // Decrypt file metadata (if present) with conversationId
-  let signedUrl: string | null = null;
-  let fileName: string | null = null;
-  if (msg.encrypted_file_metadata) {
-    try {
-      const { encryptionService } = await import('@/lib/encryption');
-
-      let decryptedMetaText: string | null = null;
-
-      // Handle Buffer type
-      if (typeof msg.encrypted_file_metadata === 'object' && msg.encrypted_file_metadata.type === 'Buffer') {
-        const bufferData = new Uint8Array(msg.encrypted_file_metadata.data);
-        const base64String = btoa(String.fromCharCode(...bufferData));
-        decryptedMetaText = await encryptionService.decryptMessage(base64String, conversationId);
-      } else {
-        // Handle string types (possibly hex-encoded)
-        const rawMeta = String(msg.encrypted_file_metadata);
-        let candidate = rawMeta;
-        if (rawMeta.startsWith('\\x')) {
-          const cleaned = rawMeta.replace(/\\x/g, '');
-          const bytes: number[] = [];
-          for (let i = 0; i < cleaned.length; i += 2) bytes.push(parseInt(cleaned.substr(i, 2), 16));
-          candidate = new TextDecoder().decode(new Uint8Array(bytes));
-        }
-        // Try to decrypt; if it fails, assume it's plain JSON
+      // Handle string data - multiple formats possible
+      const rawContent = String(msg.data_payload || '');
+      console.log('📝 STRING DATA:', rawContent.substring(0, 100) + (rawContent.length > 100 ? '...' : ''));
+      
+      if (rawContent.startsWith('\\x')) {
+        console.log('🔧 HEX-ENCODED MESSAGE - Decoding...');
         try {
-          decryptedMetaText = await encryptionService.decryptMessage(candidate, conversationId);
-        } catch {
-          decryptedMetaText = candidate;
-        }
-      }
+          // Decode hex string to bytes
+          const cleaned = rawContent.replace(/\\x/g, '');
+          const bytes: number[] = [];
+          for (let i = 0; i < cleaned.length; i += 2) {
+            bytes.push(parseInt(cleaned.substr(i, 2), 16));
+          }
+          const decodedText = new TextDecoder().decode(new Uint8Array(bytes));
+          console.log('🔧 Hex decoded to:', decodedText.substring(0, 50) + '...');
 
-      const fileMetadata = JSON.parse(decryptedMetaText || '{}');
-      fileName = fileMetadata.file_name || null;
-      if (fileMetadata.file_url) {
-        signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
+          try {
+            const { encryptionService } = await import('@/lib/encryption');
+            decryptedContent = await encryptionService.decryptMessage(decodedText, conversationId);
+            console.log('✅ HEX→DECRYPT SUCCESS:', decryptedContent);
+          } catch (decryptError) {
+            // If not decryptable, show decoded text as plain
+            decryptedContent = decodedText;
+            console.log('ℹ️ Not encrypted (or failed decrypt). Showing decoded text.');
+          }
+        } catch (error) {
+          console.error('❌ HEX DECODE FAILED:', error);
+          decryptedContent = '[Unable to decode hex message]';
+        }
+      } else if (isLikelyBase64(rawContent)) {
+        console.log('🔐 BASE64-LIKE STRING - Attempting decryption...');
+        try {
+          const { encryptionService } = await import('@/lib/encryption');
+          decryptedContent = await encryptionService.decryptMessage(rawContent, conversationId);
+          console.log('✅ BASE64 DECRYPT SUCCESS:', decryptedContent);
+        } catch (error) {
+          console.log('⚠️ Base64 decryption failed, showing as plain text');
+          decryptedContent = rawContent;
+        }
+      } else {
+        // Regular plain text message (new format)
+        decryptedContent = rawContent;
+        console.log('✅ PLAIN TEXT MESSAGE:', decryptedContent);
       }
-    } catch (e) {
-      console.error('Error decrypting file metadata:', e);
     }
-  } else if (msg.file_url) {
-    fileName = msg.file_name || null;
-    signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
+
+    console.log('🎯 FINAL CONTENT:', decryptedContent);
+
+    // Decrypt file metadata (if present) with conversationId  
+    let signedUrl: string | null = null;
+    let fileName: string | null = null;
+    if (msg.encrypted_file_metadata) {
+      try {
+        const { encryptionService } = await import('@/lib/encryption');
+
+        let decryptedMetaText: string | null = null;
+
+        // Handle Buffer type
+        if (typeof msg.encrypted_file_metadata === 'object' && msg.encrypted_file_metadata.type === 'Buffer') {
+          const bufferData = new Uint8Array(msg.encrypted_file_metadata.data);
+          const base64String = btoa(String.fromCharCode(...bufferData));
+          decryptedMetaText = await encryptionService.decryptMessage(base64String, conversationId);
+        } else {
+          // Handle string types (possibly hex-encoded)
+          const rawMeta = String(msg.encrypted_file_metadata);
+          let candidate = rawMeta;
+          if (rawMeta.startsWith('\\x')) {
+            const cleaned = rawMeta.replace(/\\x/g, '');
+            const bytes: number[] = [];
+            for (let i = 0; i < cleaned.length; i += 2) bytes.push(parseInt(cleaned.substr(i, 2), 16));
+            candidate = new TextDecoder().decode(new Uint8Array(bytes));
+          }
+          // Try to decrypt; if it fails, assume it's plain JSON
+          try {
+            decryptedMetaText = await encryptionService.decryptMessage(candidate, conversationId);
+          } catch {
+            decryptedMetaText = candidate;
+          }
+        }
+
+        const fileMetadata = JSON.parse(decryptedMetaText || '{}');
+        fileName = fileMetadata.file_name || null;
+        if (fileMetadata.file_url) {
+          signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
+        }
+      } catch (e) {
+        console.error('Error decrypting file metadata:', e);
+      }
+    } else if (msg.file_url) {
+      fileName = msg.file_name || null;
+      signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
+    }
+    
+    const message: Message = {
+      id: msg.id,
+      content: decryptedContent,
+      sender_id: msg.sender_id,
+      created_at: msg.created_at,
+      message_type: (msg.message_type as any) || 'text',
+      file_url: signedUrl,
+      file_name: fileName,
+      file_size: msg.file_size || null,
+      replied_to_message_id: msg.replied_to_message_id,
+      sender: {
+        username: senderProfile?.username || `user_${msg.sender_id.slice(0, 6)}`,
+        display_name: senderProfile?.display_name || senderProfile?.username || `user_${msg.sender_id.slice(0, 6)}`,
+        avatar_url: senderProfile?.avatar_url || null,
+      },
+      read_receipts: [],
+      replied_to_message: undefined,
+      edited_at: msg.edited_at || null,
+      edit_count: typeof msg.edit_count === 'number' ? msg.edit_count : 0,
+      is_anonymous: msg.is_anonymous || false,
+      anonymous_id: msg.anonymous_id || null,
+      reactions_count: msg.reactions_count || 0,
+    };
+
+    return message;
+  }));
+  
+  allDecryptedMessages.push(...batchResults);
+  
+  // Update UI progressively with each batch for smoother UX
+  if (!append) {
+    setMessages([...allDecryptedMessages]);
+  } else {
+    setMessages(prev => [...allDecryptedMessages, ...prev]);
   }
   
-  const message: Message = {
-    id: msg.id,
-    content: decryptedContent,
-    sender_id: msg.sender_id,
-    created_at: msg.created_at,
-    message_type: (msg.message_type as any) || 'text',
-    file_url: signedUrl,
-    file_name: fileName,
-    file_size: msg.file_size || null,
-    replied_to_message_id: msg.replied_to_message_id,
-    sender: {
-      username: senderProfile?.username || `user_${msg.sender_id.slice(0, 6)}`,
-      display_name: senderProfile?.display_name || senderProfile?.username || `user_${msg.sender_id.slice(0, 6)}`,
-      avatar_url: senderProfile?.avatar_url || null,
-    },
-    read_receipts: [],
-    replied_to_message: undefined,
-    edited_at: msg.edited_at || null,
-    edit_count: typeof msg.edit_count === 'number' ? msg.edit_count : 0,
-    is_anonymous: msg.is_anonymous || false,
-    anonymous_id: msg.anonymous_id || null,
-    reactions_count: msg.reactions_count || 0,
-  };
-
-  return message;
-}));
-
-// Update messages state based on whether we're appending or replacing
-if (append && decryptedMessages.length > 0) {
-  // Prepend older messages to the beginning of the array
-  setMessages(prev => [...decryptedMessages, ...prev]);
-} else {
-  // Replace all messages with fresh data
-  setMessages(decryptedMessages);
+  // Clear decrypting state for completed batch
+  const batchIds = batchResults.map(msg => msg.id);
+  setDecryptingMessages(prev => {
+    const updated = new Set(prev);
+    batchIds.forEach(id => updated.delete(id));
+    return updated;
+  });
 }
+
+// Final state update
+setHasMoreMessages(allDecryptedMessages.length === limit);
 
 // Mark messages as read when viewing them (only for fresh loads, not appends)
 if (!append && user && conversationId) {
@@ -1501,12 +1528,12 @@ if (!append && user && conversationId) {
                   )}
                   
                    <div className="relative group">
-                     <div
-                       className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
-                         message.sender_id === user?.id
-                           ? 'bg-primary/20 text-white border-primary/30 rounded-br-md'
-                           : 'bg-background/30 text-foreground border-border/30 rounded-bl-md'
-                       } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
+                      <div
+                        className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl border shadow-sm ${
+                          message.sender_id === user?.id
+                            ? 'bg-primary/20 text-white border-primary/30 rounded-br-md'
+                            : 'bg-background/30 text-foreground border-border/30 rounded-bl-md'
+                        } transition-all duration-300 hover:shadow-md w-full break-words backdrop-blur-xl overflow-hidden`}
                        style={{
                          backdropFilter: 'blur(16px) saturate(140%)',
                          WebkitBackdropFilter: 'blur(16px) saturate(140%)',
@@ -1669,27 +1696,46 @@ if (!append && user && conversationId) {
                              </div>
                           )}
                         </div>
-                      ) : (
-editingMessageId === message.id ? (
-  <div className="space-y-2">
-    <textarea
-      value={editText}
-      onChange={(e) => setEditText(e.target.value)}
-      className="w-full rounded-md bg-background/40 border border-border/40 p-2 text-sm"
-      rows={3}
-    />
-    <div className="flex gap-2">
-      <Button size="sm" onClick={saveEdit} variant="default">Save</Button>
-      <Button size="sm" onClick={cancelEditing} variant="outline">Cancel</Button>
-    </div>
-  </div>
-) : (
-  <div className="space-y-2">
-    <div className="text-sm leading-relaxed whitespace-pre-wrap">
-      {message.isTranslated && message.translatedContent 
-        ? message.translatedContent 
-        : message.content}
-    </div>
+                       ) : (
+                        // Show decrypting state for messages still being processed
+                        decryptingMessages.has(message.id) ? (
+                          <div className="flex items-center gap-2 py-2">
+                            <BubbleWave 
+                              size="sm" 
+                              className={`${
+                                message.sender_id === user?.id 
+                                  ? 'text-white/60' 
+                                  : 'text-muted-foreground/60'
+                              }`} 
+                            />
+                            <span className={`text-xs ${
+                              message.sender_id === user?.id 
+                                ? 'text-white/60' 
+                                : 'text-muted-foreground/60'
+                            }`}>
+                              Message is being decoded...
+                            </span>
+                          </div>
+                        ) : editingMessageId === message.id ? (
+                          <div className="space-y-2">
+                            <textarea
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              className="w-full rounded-md bg-background/40 border border-border/40 p-2 text-sm"
+                              rows={3}
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={saveEdit} variant="default">Save</Button>
+                              <Button size="sm" onClick={cancelEditing} variant="outline">Cancel</Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                              {message.isTranslated && message.translatedContent 
+                                ? message.translatedContent 
+                                : message.content}
+                            </div>
     {message.message_type === 'text' && (
       <div className="flex items-center gap-2">
         <Button
