@@ -28,7 +28,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useThirdPartyProtection } from '@/hooks/useThirdPartyProtection';
 import { toast } from 'sonner';
 
 interface SecureFile {
@@ -44,7 +43,6 @@ interface SecureFile {
 
 export const SecureFiles: React.FC = () => {
   const { user } = useAuth();
-  const { validateFile } = useThirdPartyProtection();
   const [files, setFiles] = useState<SecureFile[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
@@ -87,7 +85,7 @@ export const SecureFiles: React.FC = () => {
     }
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -95,13 +93,6 @@ export const SecureFiles: React.FC = () => {
     const maxSize = 800 * 1024 * 1024; // 800MB in bytes
     if (file.size > maxSize) {
       toast.error('File size must be less than 800MB');
-      return;
-    }
-
-    // Validate file security
-    const isFileSafe = await validateFile(file);
-    if (!isFileSafe) {
-      // File was blocked - error already shown by validateFile
       return;
     }
 
