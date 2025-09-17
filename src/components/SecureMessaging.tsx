@@ -99,7 +99,7 @@ const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 const [editText, setEditText] = useState('');
 const [translatingMessageId, setTranslatingMessageId] = useState<string | null>(null);
 const [showSettings, setShowSettings] = useState(false);
-const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
+  const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
@@ -692,6 +692,12 @@ if (!append && user && conversationId) {
                   decryptedContent = String(incoming.data_payload || '');
                 }
 
+                // Only proceed if decryption was successful and content is readable
+                if (!decryptedContent || decryptedContent.includes('Unable to') || /^[0-9a-fA-F]+$/.test(decryptedContent.trim())) {
+                  console.warn('Skipping message with unreadable content:', decryptedContent?.substring(0, 50));
+                  return;
+                }
+
                 // Handle file metadata
                 let fileMetadata = null;
                 if (incoming.encrypted_file_metadata) {
@@ -820,6 +826,12 @@ if (!append && user && conversationId) {
                   } catch (e) {
                     console.warn('Failed to parse file metadata:', e);
                   }
+                }
+
+                // Only add message if decryption was successful and content is readable
+                if (!decryptedContent || decryptedContent.includes('Unable to') || /^[0-9a-fA-F]+$/.test(decryptedContent.trim())) {
+                  console.warn('Skipping message with unreadable content:', decryptedContent?.substring(0, 50));
+                  return;
                 }
 
                 // Create the message object
