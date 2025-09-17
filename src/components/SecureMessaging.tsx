@@ -670,49 +670,55 @@ if (!append && user && conversationId) {
             if (incoming.sender_id === user?.id) {
               // Replace optimistic message with real message from database seamlessly
               try {
-                // Decrypt the real message content
+                // Decrypt the real message content using conversation key
                 let decryptedContent = '';
                 const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
-                
-                if (typeof incoming.data_payload === 'string') {
-                  if (incoming.data_payload.startsWith('\\x')) {
-                    const hexString = incoming.data_payload.slice(2);
-                    const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
-                    decryptedContent = new TextDecoder('utf-8').decode(bytes);
-                  } else if (isLikelyBase64(incoming.data_payload)) {
-                    try {
-                      decryptedContent = atob(incoming.data_payload);
-                    } catch {
+                try {
+                  const { encryptionService } = await import('@/lib/encryption');
+                  if (typeof incoming.data_payload === 'string') {
+                    if (incoming.data_payload.startsWith('\\x')) {
+                      const hexString = incoming.data_payload.slice(2);
+                      const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(b => parseInt(b, 16)) || []);
+                      const decodedText = new TextDecoder('utf-8').decode(bytes);
+                      try { decryptedContent = await encryptionService.decryptMessage(decodedText, conversationId); }
+                      catch { decryptedContent = decodedText; }
+                    } else if (isLikelyBase64(incoming.data_payload)) {
+                      try { decryptedContent = await encryptionService.decryptMessage(incoming.data_payload, conversationId); }
+                      catch { decryptedContent = incoming.data_payload; }
+                    } else {
                       decryptedContent = incoming.data_payload;
                     }
                   } else {
-                    decryptedContent = incoming.data_payload;
+                    decryptedContent = String(incoming.data_payload || '');
                   }
-                } else {
+                } catch {
                   decryptedContent = String(incoming.data_payload || '');
                 }
 
-                // Only proceed if decryption was successful and content is readable
-                if (!decryptedContent || decryptedContent.includes('Unable to') || /^[0-9a-fA-F]+$/.test(decryptedContent.trim())) {
-                  console.warn('Skipping message with unreadable content:', decryptedContent?.substring(0, 50));
-                  return;
-                }
 
-                // Handle file metadata
+                // Handle and decrypt file metadata
                 let fileMetadata = null;
                 if (incoming.encrypted_file_metadata) {
                   try {
+                    const { encryptionService } = await import('@/lib/encryption');
+                    let candidate = String(incoming.encrypted_file_metadata);
                     if (typeof incoming.encrypted_file_metadata === 'string' && incoming.encrypted_file_metadata.startsWith('\\x')) {
-                      const hexString = incoming.encrypted_file_metadata.slice(2);
+                      const hexString = candidate.slice(2);
                       const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
-                      const jsonString = new TextDecoder('utf-8').decode(bytes);
-                      fileMetadata = JSON.parse(jsonString);
-                    } else {
-                      fileMetadata = JSON.parse(incoming.encrypted_file_metadata);
+                      candidate = new TextDecoder('utf-8').decode(bytes);
                     }
+                    let decryptedMetaText = '';
+                    try { decryptedMetaText = await encryptionService.decryptMessage(candidate, conversationId); }
+                    catch { decryptedMetaText = candidate; }
+                    const parsed = JSON.parse(decryptedMetaText || '{}');
+                    const signed = parsed.file_url ? await getSignedUrlForSecureFiles(parsed.file_url) : null;
+                    fileMetadata = { file_url: signed, file_name: parsed.file_name };
                   } catch (e) {
-                    console.warn('Failed to parse file metadata:', e);
+                    console.warn('Failed to parse/decrypt file metadata:', e);
                   }
+                } else if (incoming.file_url) {
+                  const signed = await getSignedUrlForSecureFiles(incoming.file_url);
+                  fileMetadata = { file_url: signed, file_name: incoming.file_name };
                 }
 
                 // Replace the optimistic message with the real one
@@ -791,48 +797,52 @@ if (!append && user && conversationId) {
                 const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
                 
                 if (typeof incoming.data_payload === 'string') {
-                  if (incoming.data_payload.startsWith('\\x')) {
-                    // Handle hex-encoded strings
-                    const hexString = incoming.data_payload.slice(2);
-                    const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
-                    decryptedContent = new TextDecoder('utf-8').decode(bytes);
-                  } else if (isLikelyBase64(incoming.data_payload)) {
-                    // Handle base64 encoded strings
-                    try {
-                      decryptedContent = atob(incoming.data_payload);
-                    } catch {
+                  try {
+                    const { encryptionService } = await import('@/lib/encryption');
+                    if (incoming.data_payload.startsWith('\\x')) {
+                      const hexString = incoming.data_payload.slice(2);
+                      const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+                      const decodedText = new TextDecoder('utf-8').decode(bytes);
+                      try { decryptedContent = await encryptionService.decryptMessage(decodedText, conversationId); }
+                      catch { decryptedContent = decodedText; }
+                    } else if (isLikelyBase64(incoming.data_payload)) {
+                      try { decryptedContent = await encryptionService.decryptMessage(incoming.data_payload, conversationId); }
+                      catch { decryptedContent = incoming.data_payload; }
+                    } else {
                       decryptedContent = incoming.data_payload;
                     }
-                  } else {
-                    // Plain text
+                  } catch {
                     decryptedContent = incoming.data_payload;
                   }
                 } else {
                   decryptedContent = String(incoming.data_payload || '');
                 }
 
-                // Handle file metadata
+                // Handle and decrypt file metadata
                 let fileMetadata = null;
                 if (incoming.encrypted_file_metadata) {
                   try {
+                    const { encryptionService } = await import('@/lib/encryption');
+                    let candidate = String(incoming.encrypted_file_metadata);
                     if (typeof incoming.encrypted_file_metadata === 'string' && incoming.encrypted_file_metadata.startsWith('\\x')) {
-                      const hexString = incoming.encrypted_file_metadata.slice(2);
+                      const hexString = candidate.slice(2);
                       const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
-                      const jsonString = new TextDecoder('utf-8').decode(bytes);
-                      fileMetadata = JSON.parse(jsonString);
-                    } else {
-                      fileMetadata = JSON.parse(incoming.encrypted_file_metadata);
+                      candidate = new TextDecoder('utf-8').decode(bytes);
                     }
+                    let decryptedMetaText = '';
+                    try { decryptedMetaText = await encryptionService.decryptMessage(candidate, conversationId); }
+                    catch { decryptedMetaText = candidate; }
+                    const parsed = JSON.parse(decryptedMetaText || '{}');
+                    const signed = parsed.file_url ? await getSignedUrlForSecureFiles(parsed.file_url) : null;
+                    fileMetadata = { file_url: signed, file_name: parsed.file_name };
                   } catch (e) {
-                    console.warn('Failed to parse file metadata:', e);
+                    console.warn('Failed to parse/decrypt file metadata:', e);
                   }
+                } else if (incoming.file_url) {
+                  const signed = await getSignedUrlForSecureFiles(incoming.file_url);
+                  fileMetadata = { file_url: signed, file_name: incoming.file_name };
                 }
 
-                // Only add message if decryption was successful and content is readable
-                if (!decryptedContent || decryptedContent.includes('Unable to') || /^[0-9a-fA-F]+$/.test(decryptedContent.trim())) {
-                  console.warn('Skipping message with unreadable content:', decryptedContent?.substring(0, 50));
-                  return;
-                }
 
                 // Create the message object
                 const newMessage: Message = {
@@ -1000,21 +1010,28 @@ if (!append && user && conversationId) {
         }
       }
 
-      console.log('📤 STORING MESSAGE AS PLAIN TEXT:', finalContent);
+      // Encrypt message and metadata before storing
+      const { encryptionService } = await import('@/lib/encryption');
+      const encryptedContent = await encryptionService.encryptMessage(finalContent, conversationId);
+      const encryptedFileMeta = fileUrl && fileName
+        ? await encryptionService.encryptMessage(JSON.stringify({
+            file_url: fileUrl,
+            file_name: fileName,
+            content_type: currentFiles[0]?.file.type || 'application/octet-stream'
+          }), conversationId)
+        : null;
+
+      console.log('📤 Storing encrypted message payload');
 
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          data_payload: finalContent,
+          data_payload: encryptedContent,
           message_type: messageType,
           file_size: fileSize || null,
-          encrypted_file_metadata: fileUrl && fileName ? JSON.stringify({
-            file_url: fileUrl,
-            file_name: fileName,
-            content_type: currentFiles[0]?.file.type || 'application/octet-stream'
-          }) : null,
+          encrypted_file_metadata: encryptedFileMeta,
           replied_to_message_id: currentReplyingTo?.id || null,
           sequence_number: Date.now(),
           is_anonymous: currentIsAnonymous,
@@ -1253,11 +1270,13 @@ if (!append && user && conversationId) {
     const target = messages.find(m => m.id === editingMessageId);
     if (!target) return;
     try {
-      // Store edited message as plain text (no encryption)
+      // Encrypt edited message before storing
+      const { encryptionService } = await import('@/lib/encryption');
+      const encrypted = await encryptionService.encryptMessage(editText, conversationId);
       const { error } = await supabase
         .from('messages')
         .update({ 
-          data_payload: editText, // Plain text - NO ENCRYPTION
+          data_payload: encrypted,
           edited_at: new Date().toISOString(), 
           edit_count: (target.edit_count || 0) + 1 
         })
