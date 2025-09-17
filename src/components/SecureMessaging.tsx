@@ -197,11 +197,7 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
     }
   }, [conversationId, user]);
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      scrollToBottom();
-    }
-  }, [messages]);
+  // Removed automatic scrolling to let users navigate messages freely
 
   // Cache messages per conversation to persist between tab switches
   useEffect(() => {
