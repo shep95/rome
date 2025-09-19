@@ -181,19 +181,36 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       return false;
     };
 
-    // Enhanced right-click prevention
-    const preventContextMenu = (e: MouseEvent) => {
-      if (!protectionActive) return;
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      toast({
-        title: "Action Blocked",
-        description: "Right-click disabled for security.",
-        variant: "destructive",
-      });
-      return false;
-    };
+  // Enhanced right-click prevention with screen blur
+  const preventContextMenu = (e: MouseEvent) => {
+    if (!protectionActive) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    
+    // Immediately blur screen
+    blurScreen();
+    
+    toast({
+      title: "Screenshot Attempt Detected",
+      description: "Screen blurred to protect sensitive content.",
+      variant: "destructive",
+    });
+    return false;
+  };
+
+  // Screen blur function for screenshot attempts
+  const blurScreen = () => {
+    const blurOverlay = document.getElementById('rome-blur-overlay');
+    if (blurOverlay) {
+      blurOverlay.style.display = 'flex';
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        const overlay = document.getElementById('rome-blur-overlay');
+        if (overlay) overlay.style.display = 'none';
+      }, 3000);
+    }
+  };
 
     // Enhanced key combination blocking (but allow normal typing)
     const preventKeys = (e: KeyboardEvent) => {
@@ -213,14 +230,17 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
+          
+          // Immediately blur screen on screenshot attempt  
+          blurScreen();
+          
           if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-            navigator.clipboard.writeText('Screenshots disabled').catch(() => {});
+            navigator.clipboard.writeText('Screenshots disabled - content protected').catch(() => {});
           }
-          const shieldEl = document.getElementById('rome-screenshot-shield');
-          if (shieldEl) { shieldEl.style.display = 'block'; setTimeout(() => { const el = document.getElementById('rome-screenshot-shield'); if (el) el.style.display = 'none'; }, 2000); }
+          
           toast({
-            title: "Screenshot Blocked",
-            description: "Screenshots are disabled for privacy protection.",
+            title: "Screenshot Attempt Detected", 
+            description: "Screen blurred to protect sensitive content from unauthorized capture.",
             variant: "destructive",
           });
           return false;
@@ -250,14 +270,17 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
+        
+        // Immediately blur screen on screenshot attempt
+        blurScreen();
+        
         if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-          navigator.clipboard.writeText('Screenshots disabled').catch(() => {});
+          navigator.clipboard.writeText('Screenshots disabled - content protected').catch(() => {});
         }
-        const shieldEl = document.getElementById('rome-screenshot-shield');
-        if (shieldEl) { shieldEl.style.display = 'block'; setTimeout(() => { const el = document.getElementById('rome-screenshot-shield'); if (el) el.style.display = 'none'; }, 2000); }
+        
         toast({
-          title: "Screenshot Blocked",
-          description: "Screenshots are disabled for privacy protection.",
+          title: "Screenshot Attempt Detected",
+          description: "Screen blurred to protect sensitive content from unauthorized capture.",
           variant: "destructive",
         });
         return false;
@@ -273,11 +296,20 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.contentEditable === 'true')) {
         return;
       }
-      // Prevent volume + power button combinations on mobile
+      // Detect potential mobile screenshot gestures
       if (e.touches.length >= 2) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
+        
+        // Blur screen on mobile screenshot attempt
+        blurScreen();
+        
+        toast({
+          title: "Screenshot Attempt Detected",
+          description: "Screen blurred to protect sensitive content.",
+          variant: "destructive",
+        });
         return false;
       }
     };
@@ -328,7 +360,25 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
           user-drag: none !important;
           pointer-events: none !important;
         }
-        /* Screenshot shield overlay */
+        /* Blur overlay for screenshot protection */
+        #rome-blur-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.9);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          z-index: 2147483647; /* Max */
+          display: none;
+          justify-content: center;
+          align-items: center;
+          color: white;
+          font-size: 24px;
+          font-weight: bold;
+          text-align: center;
+          padding: 20px;
+        }
+        
+        /* Legacy shield overlay (kept for compatibility) */
         #rome-screenshot-shield {
           position: fixed;
           inset: 0;
@@ -340,7 +390,22 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       `;
       document.head.appendChild(style);
 
-      // Create shield overlay element
+      // Create blur overlay element for screenshot protection
+      let blurOverlay = document.getElementById('rome-blur-overlay') as HTMLDivElement | null;
+      if (!blurOverlay) {
+        blurOverlay = document.createElement('div');
+        blurOverlay.id = 'rome-blur-overlay';
+        blurOverlay.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">🚫</div>
+            <div>Screenshot Detected</div>
+            <div style="font-size: 16px; margin-top: 10px; opacity: 0.8;">Content Protected - Screen Blurred</div>
+          </div>
+        `;
+        document.body.appendChild(blurOverlay);
+      }
+      
+      // Create legacy shield overlay element (kept for compatibility)
       let shield = document.getElementById('rome-screenshot-shield') as HTMLDivElement | null;
       if (!shield) {
         shield = document.createElement('div');
@@ -358,23 +423,44 @@ export const useScreenshotProtection = (enabled: boolean = true) => {
       };
 
 
-      // Mobile-specific screenshot detection
+      // Enhanced mobile screenshot detection 
       const detectMobileScreenshot = () => {
-        // Detect app state changes (screenshot trigger on iOS/Android)
+        // Detect app state changes (potential screenshot trigger on iOS/Android)
         const handleVisibilityChange = () => {
-          // Do not blur the whole app to avoid dark screen issues
-          // We simply log and keep UI intact
-          console.debug('Visibility changed');
+          if (document.hidden && protectionActive) {
+            // App went to background - potential screenshot
+            setTimeout(() => {
+              if (!document.hidden) {
+                // App came back to foreground - likely screenshot taken
+                blurScreen();
+                toast({
+                  title: "Potential Screenshot Detected",
+                  description: "App backgrounding detected - screen blurred for protection.",
+                  variant: "destructive",
+                });
+              }
+            }, 100);
+          }
         };
         
-        // Avoid blurring the UI on focus loss
+        // Detect window focus loss (potential screenshot)
         const handleBlur = () => {
-          // No UI blur to prevent dark screen
+          if (protectionActive) {
+            setTimeout(() => {
+              blurScreen();
+              toast({
+                title: "Screenshot Attempt Suspected",
+                description: "Window focus lost - content protected.",
+                variant: "destructive",
+              });
+            }, 200);
+          }
         };
         
         const handleFocus = () => {
-          // Ensure UI is clear
-          document.body.style.filter = 'none';
+          // Ensure blur overlay is hidden when user returns
+          const overlay = document.getElementById('rome-blur-overlay');
+          if (overlay) overlay.style.display = 'none';
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
