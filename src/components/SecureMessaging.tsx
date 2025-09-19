@@ -353,143 +353,43 @@ if (senderIds.length > 0) {
   }
 }
 
-// Reverse to get chronological order and decrypt messages
-const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse().map(async (msg: any) => {
+// Process messages without encryption overhead - treat data_payload as plain text
+const processedMessages = (messagesToProcess as any[]).reverse().map((msg: any) => {
   // Lookup sender profile from map
   const senderProfile = profileMap.get(msg.sender_id) || null;
 
-  // COMPREHENSIVE MESSAGE DECODING - Handle ALL legacy formats
-  let decryptedContent = '';
-  
-  console.log('🔍 Raw data_payload:', msg.data_payload);
-  console.log('🔍 Type:', typeof msg.data_payload);
+  // Simply treat data_payload as plain text (no more encryption attempts)
+  const content = String(msg.data_payload || '');
 
-  const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
-
-  // Check if it's a Buffer from database (old encrypted messages)
-  if (msg.data_payload && typeof msg.data_payload === 'object' && msg.data_payload.type === 'Buffer') {
-    console.log('📦 BUFFER TYPE - Processing buffer data...');
-    try {
-      const bufferData = new Uint8Array(msg.data_payload.data);
-      const base64String = btoa(String.fromCharCode(...bufferData));
-      console.log('📦 Buffer converted to base64:', base64String.substring(0, 50) + '...');
-      
-      // Try decryption first
-      try {
-        const { encryptionService } = await import('@/lib/encryption');
-        decryptedContent = await encryptionService.decryptMessage(base64String, conversationId);
-        console.log('✅ BUFFER DECRYPTION SUCCESS:', decryptedContent);
-      } catch (decryptError) {
-        console.log('⚠️ Buffer decryption failed, trying as raw text...');
-        // Try as raw UTF-8 text
-        decryptedContent = new TextDecoder().decode(bufferData);
-        console.log('✅ BUFFER AS TEXT:', decryptedContent);
-      }
-    } catch (error) {
-      console.error('❌ BUFFER PROCESSING FAILED:', error);
-      decryptedContent = '[Unable to read buffer message]';
-    }
-  } else {
-    // Handle string data - multiple formats possible
-    const rawContent = String(msg.data_payload || '');
-    console.log('📝 STRING DATA:', rawContent.substring(0, 100) + (rawContent.length > 100 ? '...' : ''));
-    
-    if (rawContent.startsWith('\\x')) {
-      console.log('🔧 HEX-ENCODED MESSAGE - Decoding...');
-      try {
-        // Decode hex string to bytes
-        const cleaned = rawContent.replace(/\\x/g, '');
-        const bytes: number[] = [];
-        for (let i = 0; i < cleaned.length; i += 2) {
-          bytes.push(parseInt(cleaned.substr(i, 2), 16));
-        }
-        const decodedText = new TextDecoder().decode(new Uint8Array(bytes));
-        console.log('🔧 Hex decoded to:', decodedText.substring(0, 50) + '...');
-
-        try {
-          const { encryptionService } = await import('@/lib/encryption');
-          decryptedContent = await encryptionService.decryptMessage(decodedText, conversationId);
-          console.log('✅ HEX→DECRYPT SUCCESS:', decryptedContent);
-        } catch (decryptError) {
-          // If not decryptable, show decoded text as plain
-          decryptedContent = decodedText;
-          console.log('ℹ️ Not encrypted (or failed decrypt). Showing decoded text.');
-        }
-      } catch (error) {
-        console.error('❌ HEX DECODE FAILED:', error);
-        decryptedContent = '[Unable to decode hex message]';
-      }
-    } else if (isLikelyBase64(rawContent)) {
-      console.log('🔐 BASE64-LIKE STRING - Attempting decryption...');
-      try {
-        const { encryptionService } = await import('@/lib/encryption');
-        decryptedContent = await encryptionService.decryptMessage(rawContent, conversationId);
-        console.log('✅ BASE64 DECRYPT SUCCESS:', decryptedContent);
-      } catch (error) {
-        console.log('⚠️ Base64 decryption failed, showing as plain text');
-        decryptedContent = rawContent;
-      }
-    } else {
-      // Regular plain text message (new format)
-      decryptedContent = rawContent;
-      console.log('✅ PLAIN TEXT MESSAGE:', decryptedContent);
-    }
-  }
-
-  console.log('🎯 FINAL CONTENT:', decryptedContent);
-
-  // Decrypt file metadata (if present) with conversationId
-  let signedUrl: string | null = null;
-  let fileName: string | null = null;
+  // Handle file metadata - parse as JSON if present
+  let fileUrl = null;
+  let fileName = null;
   if (msg.encrypted_file_metadata) {
     try {
-      const { encryptionService } = await import('@/lib/encryption');
-
-      let decryptedMetaText: string | null = null;
-
-      // Handle Buffer type
-      if (typeof msg.encrypted_file_metadata === 'object' && msg.encrypted_file_metadata.type === 'Buffer') {
-        const bufferData = new Uint8Array(msg.encrypted_file_metadata.data);
-        const base64String = btoa(String.fromCharCode(...bufferData));
-        decryptedMetaText = await encryptionService.decryptMessage(base64String, conversationId);
-      } else {
-        // Handle string types (possibly hex-encoded)
-        const rawMeta = String(msg.encrypted_file_metadata);
-        let candidate = rawMeta;
-        if (rawMeta.startsWith('\\x')) {
-          const cleaned = rawMeta.replace(/\\x/g, '');
-          const bytes: number[] = [];
-          for (let i = 0; i < cleaned.length; i += 2) bytes.push(parseInt(cleaned.substr(i, 2), 16));
-          candidate = new TextDecoder().decode(new Uint8Array(bytes));
-        }
-        // Try to decrypt; if it fails, assume it's plain JSON
-        try {
-          decryptedMetaText = await encryptionService.decryptMessage(candidate, conversationId);
-        } catch {
-          decryptedMetaText = candidate;
-        }
-      }
-
-      const fileMetadata = JSON.parse(decryptedMetaText || '{}');
+      // Try parsing as JSON string directly
+      const fileMetadata = typeof msg.encrypted_file_metadata === 'string' 
+        ? JSON.parse(msg.encrypted_file_metadata)
+        : msg.encrypted_file_metadata;
+      
       fileName = fileMetadata.file_name || null;
       if (fileMetadata.file_url) {
-        signedUrl = await getSignedUrlForSecureFiles(fileMetadata.file_url);
+        fileUrl = fileMetadata.file_url;
       }
     } catch (e) {
-      console.error('Error decrypting file metadata:', e);
+      console.warn('Failed to parse file metadata as JSON:', e);
     }
   } else if (msg.file_url) {
     fileName = msg.file_name || null;
-    signedUrl = await getSignedUrlForSecureFiles(msg.file_url);
+    fileUrl = msg.file_url;
   }
   
   const message: Message = {
     id: msg.id,
-    content: decryptedContent,
+    content: content,
     sender_id: msg.sender_id,
     created_at: msg.created_at,
     message_type: (msg.message_type as any) || 'text',
-    file_url: signedUrl,
+    file_url: fileUrl,
     file_name: fileName,
     file_size: msg.file_size || null,
     replied_to_message_id: msg.replied_to_message_id,
@@ -508,15 +408,15 @@ const decryptedMessages = await Promise.all((messagesToProcess as any[]).reverse
   };
 
   return message;
-}));
+});
 
 // Update messages state based on whether we're appending or replacing
-if (append && decryptedMessages.length > 0) {
+if (append && processedMessages.length > 0) {
   // Prepend older messages to the beginning of the array
-  setMessages(prev => [...decryptedMessages, ...prev]);
+  setMessages(prev => [...processedMessages, ...prev]);
 } else {
   // Replace all messages with fresh data
-  setMessages(decryptedMessages);
+  setMessages(processedMessages);
 }
 
 // Mark messages as read when viewing them (only for fresh loads, not appends)
@@ -670,40 +570,16 @@ if (!append && user && conversationId) {
             if (incoming.sender_id === user?.id) {
               // Replace optimistic message with real message from database seamlessly
               try {
-                // Decrypt the real message content
-                let decryptedContent = '';
-                const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
-                
-                if (typeof incoming.data_payload === 'string') {
-                  if (incoming.data_payload.startsWith('\\x')) {
-                    const hexString = incoming.data_payload.slice(2);
-                    const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
-                    decryptedContent = new TextDecoder('utf-8').decode(bytes);
-                  } else if (isLikelyBase64(incoming.data_payload)) {
-                    try {
-                      decryptedContent = atob(incoming.data_payload);
-                    } catch {
-                      decryptedContent = incoming.data_payload;
-                    }
-                  } else {
-                    decryptedContent = incoming.data_payload;
-                  }
-                } else {
-                  decryptedContent = String(incoming.data_payload || '');
-                }
+                // Simply treat data_payload as plain text (no more decryption attempts)
+                const content = String(incoming.data_payload || '');
 
                 // Handle file metadata
                 let fileMetadata = null;
                 if (incoming.encrypted_file_metadata) {
                   try {
-                    if (typeof incoming.encrypted_file_metadata === 'string' && incoming.encrypted_file_metadata.startsWith('\\x')) {
-                      const hexString = incoming.encrypted_file_metadata.slice(2);
-                      const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
-                      const jsonString = new TextDecoder('utf-8').decode(bytes);
-                      fileMetadata = JSON.parse(jsonString);
-                    } else {
-                      fileMetadata = JSON.parse(incoming.encrypted_file_metadata);
-                    }
+                    fileMetadata = typeof incoming.encrypted_file_metadata === 'string' 
+                      ? JSON.parse(incoming.encrypted_file_metadata)
+                      : incoming.encrypted_file_metadata;
                   } catch (e) {
                     console.warn('Failed to parse file metadata:', e);
                   }
@@ -717,7 +593,7 @@ if (!append && user && conversationId) {
                     const newMessages = [...prev];
                     newMessages[tempMessageIndex] = {
                       id: incoming.id,
-                      content: decryptedContent,
+                      content: content,
                       sender_id: incoming.sender_id,
                       created_at: incoming.created_at,
                       message_type: incoming.message_type as 'text' | 'file' | 'image' | 'video',
@@ -743,7 +619,7 @@ if (!append && user && conversationId) {
                       // Add the real message if it doesn't exist
                       return [...prev, {
                         id: incoming.id,
-                        content: decryptedContent,
+                        content: content,
                         sender_id: incoming.sender_id,
                         created_at: incoming.created_at,
                         message_type: incoming.message_type as 'text' | 'file' | 'image' | 'video',
@@ -780,43 +656,16 @@ if (!append && user && conversationId) {
                   .eq('id', incoming.sender_id)
                   .single();
 
-                // Decrypt the message content
-                let decryptedContent = '';
-                const isLikelyBase64 = (s: string) => /^[A-Za-z0-9+/]+={0,2}$/.test(s) && s.length % 4 === 0 && s.length >= 16;
-                
-                if (typeof incoming.data_payload === 'string') {
-                  if (incoming.data_payload.startsWith('\\x')) {
-                    // Handle hex-encoded strings
-                    const hexString = incoming.data_payload.slice(2);
-                    const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
-                    decryptedContent = new TextDecoder('utf-8').decode(bytes);
-                  } else if (isLikelyBase64(incoming.data_payload)) {
-                    // Handle base64 encoded strings
-                    try {
-                      decryptedContent = atob(incoming.data_payload);
-                    } catch {
-                      decryptedContent = incoming.data_payload;
-                    }
-                  } else {
-                    // Plain text
-                    decryptedContent = incoming.data_payload;
-                  }
-                } else {
-                  decryptedContent = String(incoming.data_payload || '');
-                }
+                // Simply treat data_payload as plain text (no more decryption attempts)
+                const content = String(incoming.data_payload || '');
 
                 // Handle file metadata
                 let fileMetadata = null;
                 if (incoming.encrypted_file_metadata) {
                   try {
-                    if (typeof incoming.encrypted_file_metadata === 'string' && incoming.encrypted_file_metadata.startsWith('\\x')) {
-                      const hexString = incoming.encrypted_file_metadata.slice(2);
-                      const bytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
-                      const jsonString = new TextDecoder('utf-8').decode(bytes);
-                      fileMetadata = JSON.parse(jsonString);
-                    } else {
-                      fileMetadata = JSON.parse(incoming.encrypted_file_metadata);
-                    }
+                    fileMetadata = typeof incoming.encrypted_file_metadata === 'string' 
+                      ? JSON.parse(incoming.encrypted_file_metadata)
+                      : incoming.encrypted_file_metadata;
                   } catch (e) {
                     console.warn('Failed to parse file metadata:', e);
                   }
@@ -825,7 +674,7 @@ if (!append && user && conversationId) {
                 // Create the message object
                 const newMessage: Message = {
                   id: incoming.id,
-                  content: decryptedContent,
+                  content: content,
                   sender_id: incoming.sender_id,
                   created_at: incoming.created_at,
                   message_type: incoming.message_type as 'text' | 'file' | 'image' | 'video',
