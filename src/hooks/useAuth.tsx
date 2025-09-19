@@ -356,6 +356,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Clear security-related data only (keep profile data)
       // Security codes are never stored in localStorage
       
+      // Clear conversation encryption keys for security
+      const { conversationEncryption } = await import('@/lib/conversation-encryption');
+      conversationEncryption.clearAllKeys();
+      
       // Clear secure storage
       await SecurityUtils.clearSecureStorage();
       
