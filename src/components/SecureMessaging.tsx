@@ -316,7 +316,7 @@ const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('en');
 let query = supabase
   .from('messages')
   .select(`
-    id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, encrypted_file_metadata, edited_at, edit_count, is_anonymous, anonymous_id, reactions_count
+    id, data_payload, sender_id, created_at, message_type, file_url, file_name, file_size, replied_to_message_id, file_metadata, edited_at, edit_count, is_anonymous, anonymous_id, reactions_count
   `)
   .eq('conversation_id', conversationId)
   .gte('created_at', filterFromTime) // Only show messages from when user joined or cleared history
@@ -364,12 +364,12 @@ const processedMessages = (messagesToProcess as any[]).reverse().map((msg: any) 
   // Handle file metadata - parse as JSON if present
   let fileUrl = null;
   let fileName = null;
-  if (msg.encrypted_file_metadata) {
+  if (msg.file_metadata) {
     try {
       // Try parsing as JSON string directly
-      const fileMetadata = typeof msg.encrypted_file_metadata === 'string' 
-        ? JSON.parse(msg.encrypted_file_metadata)
-        : msg.encrypted_file_metadata;
+      const fileMetadata = typeof msg.file_metadata === 'string' 
+        ? JSON.parse(msg.file_metadata)
+        : msg.file_metadata;
       
       fileName = fileMetadata.file_name || null;
       if (fileMetadata.file_url) {
@@ -575,11 +575,11 @@ if (!append && user && conversationId) {
 
                 // Handle file metadata
                 let fileMetadata = null;
-                if (incoming.encrypted_file_metadata) {
+                if (incoming.file_metadata) {
                   try {
-                    fileMetadata = typeof incoming.encrypted_file_metadata === 'string' 
-                      ? JSON.parse(incoming.encrypted_file_metadata)
-                      : incoming.encrypted_file_metadata;
+                    fileMetadata = typeof incoming.file_metadata === 'string' 
+                      ? JSON.parse(incoming.file_metadata)
+                      : incoming.file_metadata;
                   } catch (e) {
                     console.warn('Failed to parse file metadata:', e);
                   }
@@ -661,11 +661,11 @@ if (!append && user && conversationId) {
 
                 // Handle file metadata
                 let fileMetadata = null;
-                if (incoming.encrypted_file_metadata) {
+                if (incoming.file_metadata) {
                   try {
-                    fileMetadata = typeof incoming.encrypted_file_metadata === 'string' 
-                      ? JSON.parse(incoming.encrypted_file_metadata)
-                      : incoming.encrypted_file_metadata;
+                    fileMetadata = typeof incoming.file_metadata === 'string' 
+                      ? JSON.parse(incoming.file_metadata)
+                      : incoming.file_metadata;
                   } catch (e) {
                     console.warn('Failed to parse file metadata:', e);
                   }
@@ -847,7 +847,7 @@ if (!append && user && conversationId) {
           data_payload: finalContent,
           message_type: messageType,
           file_size: fileSize || null,
-          encrypted_file_metadata: fileUrl && fileName ? JSON.stringify({
+          file_metadata: fileUrl && fileName ? JSON.stringify({
             file_url: fileUrl,
             file_name: fileName,
             content_type: currentFiles[0]?.file.type || 'application/octet-stream'
