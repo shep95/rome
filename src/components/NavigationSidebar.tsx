@@ -411,7 +411,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               <div className="space-y-3">
                 <h3 className="text-2xl font-bold text-foreground">Subscribe to ROME</h3>
                 <p className="text-lg text-muted-foreground">
-                  Subscribe For $1.99/month For Unlimited Access & Hidden Features Inside Of Rome
+                  Subscribe For $1.99/month For Unlimited & Hidden Access Features Of Rome
                 </p>
               </div>
               
