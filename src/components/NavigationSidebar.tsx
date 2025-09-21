@@ -608,17 +608,17 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       
       {/* Crypto Modal */}
       <Dialog open={isCryptoModalOpen} onOpenChange={setIsCryptoModalOpen}>
-        <DialogContent className="sm:max-w-md bg-background/10 backdrop-blur-2xl border border-primary/30 shadow-2xl">
+        <DialogContent className="sm:max-w-md bg-background/10 backdrop-blur-xl border border-border/20">
           <div className="relative p-8">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background/60 to-accent/20 rounded-lg backdrop-blur-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/60 to-background/80 rounded-lg" />
             <div className="relative z-10 text-center space-y-6">
-              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 to-amber-600 rounded-3xl flex items-center justify-center shadow-lg">
-                <Coins className="w-10 h-10 text-white" />
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center">
+                <Coins className="w-8 h-8 text-white" />
               </div>
               
               <div className="space-y-3">
-                <h3 className="text-3xl font-bold text-foreground">Aureum</h3>
-                <p className="text-lg text-muted-foreground leading-relaxed">
+                <h3 className="text-2xl font-bold text-foreground">Aureum</h3>
+                <p className="text-muted-foreground text-sm">
                   Aureum is the Next-gen privacy coin on AVA blockchain.
                 </p>
               </div>
