@@ -25,7 +25,8 @@ import {
   Download,
   Smartphone,
   Monitor,
-  Globe
+  Globe,
+  Coins
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -60,6 +61,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [isCryptoModalOpen, setIsCryptoModalOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const wallpaperInputRef = useRef<HTMLInputElement>(null);
@@ -121,6 +123,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   const handleDownloadClick = () => {
     setIsDownloadModalOpen(true);
+  };
+
+  const handleCryptoClick = () => {
+    setIsCryptoModalOpen(true);
   };
 
   const handleInboxClick = () => {
@@ -247,6 +253,18 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           >
             <FileText className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
             <span className="text-sm font-medium">Secure Files</span>
+          </Button>
+          
+          <Button
+            onClick={() => {
+              handleCryptoClick();
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
+          >
+            <Coins className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Crypto</span>
           </Button>
           
           
@@ -587,6 +605,27 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         isOpen={isAboutUsOpen}
         onClose={() => setIsAboutUsOpen(false)}
       />
+      
+      {/* Crypto Modal */}
+      <Dialog open={isCryptoModalOpen} onOpenChange={setIsCryptoModalOpen}>
+        <DialogContent className="sm:max-w-md bg-background/10 backdrop-blur-2xl border border-primary/30 shadow-2xl">
+          <div className="relative p-8">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background/60 to-accent/20 rounded-lg backdrop-blur-3xl" />
+            <div className="relative z-10 text-center space-y-6">
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 to-amber-600 rounded-3xl flex items-center justify-center shadow-lg">
+                <Coins className="w-10 h-10 text-white" />
+              </div>
+              
+              <div className="space-y-3">
+                <h3 className="text-3xl font-bold text-foreground">Aureum</h3>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Aureum is the Next-gen privacy coin on AVA blockchain.
+                </p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
