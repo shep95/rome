@@ -419,9 +419,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
       {/* Subscription Modal */}
       <Dialog open={isSubscriptionModalOpen} onOpenChange={setIsSubscriptionModalOpen}>
-        <DialogContent className="sm:max-w-md bg-background/20 backdrop-blur-xl border border-primary/20">
-          <div className="relative p-6">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background/30 to-accent/10 rounded-lg" />
+        <DialogContent className="sm:max-w-md bg-background/10 backdrop-blur-xl border border-border/20">
+          <div className="relative p-8">
+            <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/60 to-background/80 rounded-lg" />
             <div className="relative z-10 text-center space-y-6">
               <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center">
                 <DollarSign className="w-8 h-8 text-primary-foreground" />
