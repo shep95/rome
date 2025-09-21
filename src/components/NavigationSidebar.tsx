@@ -28,6 +28,7 @@ import {
   Globe,
   Coins
 } from 'lucide-react';
+import aureumLogo from '../assets/aureum-logo.png';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -612,8 +613,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           <div className="relative p-8">
             <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/60 to-background/80 rounded-lg" />
             <div className="relative z-10 text-center space-y-6">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center">
-                <Coins className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center">
+                <img src={aureumLogo} alt="Aureum Logo" className="w-16 h-16 object-contain" />
               </div>
               
               <div className="space-y-3">
