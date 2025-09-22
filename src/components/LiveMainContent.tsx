@@ -48,8 +48,8 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   const [groupChats, setGroupChats] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
-  const [isGroupCreationOpen, setIsGroupCreationOpen] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [isGroupCreationOpen, setIsGroupCreationOpen] = useState(false);
   const [selectedGroupForSettings, setSelectedGroupForSettings] = useState<string | null>(null);
   const [unreadCounts, setUnreadCounts] = useState<{[key: string]: number}>({});
   const [directUnreadTotal, setDirectUnreadTotal] = useState(0);
@@ -661,10 +661,23 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
             }}
           />
         ) : (
-          <div className="text-center text-muted-foreground">
-            <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-30" />
-            <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
-            <p className="text-sm">Choose a chat or group to start messaging</p>
+          <div 
+            className="relative w-full h-full flex items-center justify-center"
+            style={{
+              backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }}
+          >
+            {backgroundImage && (
+              <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+            )}
+            <div className="text-center text-muted-foreground relative z-10">
+              <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-30" />
+              <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
+              <p className="text-sm">Choose a chat or group to start messaging</p>
+            </div>
           </div>
         )}
       </div>
