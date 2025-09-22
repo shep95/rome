@@ -621,7 +621,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               <div className="space-y-3">
                 <h3 className="text-2xl font-bold text-foreground">Aureum</h3>
                 <p className="text-muted-foreground text-sm">
-                  Aureum is the Next-gen privacy coin on AVA blockchain.
+                  Aureum is the Next-gen privacy coin on ETH blockchain.
                 </p>
               </div>
             </div>
