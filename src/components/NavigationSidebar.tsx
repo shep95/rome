@@ -627,7 +627,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               
               <div className="mt-6">
                 <button className="w-full px-6 py-3 rounded-lg bg-background/10 backdrop-blur-xl border border-border/20 text-foreground font-medium hover:bg-background/20 transition-all duration-300">
-                  Buy On MetaMask
+                  Not Yet Tradable
                 </button>
               </div>
             </div>
