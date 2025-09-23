@@ -32,7 +32,7 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'appearance' | 'profile' | 'security' | 'shortcuts' | 'shares'>('appearance');
+  const [activeTab, setActiveTab] = useState<'appearance' | 'profile' | 'security' | 'shortcuts' | 'shares' | 'valuation'>('appearance');
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [screenshotProtection, setScreenshotProtection] = useState(false);
@@ -404,6 +404,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 <TrendingUp className="w-4 h-4" />
                 <span className="hidden sm:inline">Shares</span>
               </button>
+              
+              <button
+                onClick={() => setActiveTab('valuation')}
+                className={`flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                  activeTab === 'valuation'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span className="hidden sm:inline">Valuation</span>
+              </button>
             </nav>
           </div>
 
@@ -473,6 +485,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               >
                 <TrendingUp className="w-5 h-5" />
                 <span>Shares</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('valuation')}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all ${
+                  activeTab === 'valuation'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <TrendingUp className="w-5 h-5" />
+                <span>Valuation</span>
               </button>
             </nav>
           </div>
@@ -950,6 +974,79 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         </p>
                       </div>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {activeTab === 'valuation' && (
+              <Card className="bg-card/50 border-border">
+                <CardHeader>
+                  <CardTitle className="text-foreground flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5" />
+                    <span>Company Valuation</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Company Valuation */}
+                  <div>
+                    <div className="p-6 bg-primary/10 rounded-lg border border-primary/20">
+                      <div className="text-center">
+                        <h3 className="text-2xl font-bold text-foreground mb-2">Current Valuation</h3>
+                        <p className="text-4xl font-bold text-primary mb-4">$1,000,000</p>
+                        <p className="text-muted-foreground">ROME Corporate Valuation</p>
+                      </div>
+                      
+                      <div className="mt-6 pt-6 border-t border-border/50">
+                        <div className="flex items-center justify-center space-x-2">
+                          <span className="text-foreground font-medium">Launch Date:</span>
+                          <span className="text-primary font-bold">May 28th, 2025</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Equity Ownership */}
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground mb-4">Private Equity Owners of ROME</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
+                        <span className="text-foreground font-medium">Zorak Corp</span>
+                        <span className="text-primary font-bold">20%</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
+                        <span className="text-foreground font-medium">Asher Newton</span>
+                        <span className="text-primary font-bold">20%</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
+                        <span className="text-foreground font-medium">R8T</span>
+                        <span className="text-primary font-bold">20%</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
+                        <span className="text-foreground font-medium">Private Investor</span>
+                        <span className="text-primary font-bold">5%</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
+                        <span className="text-foreground font-medium">Private Investment #2</span>
+                        <span className="text-primary font-bold">5%</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                        <span className="text-foreground font-medium">Investment Grid Leftover</span>
+                        <span className="text-primary font-bold">30%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border/50">
+                    <p className="text-muted-foreground text-sm">
+                      <strong>Note:</strong> These valuations and ownership percentages are current as of the last assessment. 
+                      The company valuation may change based on market conditions and business performance leading up to the launch date.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
