@@ -1031,13 +1031,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       </div>
                       
                       <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
-                        <span className="text-foreground font-medium">Private Investment #2</span>
+                        <span className="text-foreground font-medium">Private Investor #2</span>
+                        <span className="text-primary font-bold">5%</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
+                        <span className="text-foreground font-medium">Trump P.</span>
                         <span className="text-primary font-bold">5%</span>
                       </div>
                       
                       <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
                         <span className="text-foreground font-medium">Investment Grid Leftover</span>
-                        <span className="text-primary font-bold">30%</span>
+                        <span className="text-primary font-bold">25%</span>
                       </div>
                     </div>
                   </div>
