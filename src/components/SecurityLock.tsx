@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogPortal, DialogOverlay } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Shield, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import holeShipBg from '@/assets/hole-ship-bg.jpeg';
 
 interface SecurityLockProps {
   isOpen: boolean;
@@ -111,12 +112,22 @@ export const SecurityLock = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onCancel ? () => onCancel() : () => {}}>
-      <DialogContent 
-        className={cn(
-          "sm:max-w-md",
-          isShaking && "animate-[shake_0.5s_ease-in-out]"
-        )}
-      >
+      <DialogPortal>
+        <DialogOverlay 
+          className="fixed inset-0 z-50 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+          style={{
+            backgroundImage: `url(${holeShipBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        />
+        <DialogContent 
+          className={cn(
+            "sm:max-w-md",
+            isShaking && "animate-[shake_0.5s_ease-in-out]"
+          )}
+        >
         <DialogHeader className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
             <Shield className="h-8 w-8 text-primary" />
@@ -180,7 +191,8 @@ export const SecurityLock = ({
             )}
           </div>
         </div>
-      </DialogContent>
+        </DialogContent>
+      </DialogPortal>
     </Dialog>
   );
 };
