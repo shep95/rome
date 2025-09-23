@@ -319,7 +319,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           <div 
             className="flex items-center cursor-pointer hover:bg-primary/5 p-2 rounded-lg transition-colors flex-1"
             onClick={() => {
-              setIsProfileModalOpen(true);
+              setIsSettingsOpen(true);
               setIsMobileSidebarOpen(false);
             }}
           >
@@ -384,7 +384,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               <h1 className="text-foreground font-bold text-lg lg:text-xl">ROME</h1>
             </div>
             <div 
-              onClick={() => setIsProfileModalOpen(true)}
+              onClick={() => setIsSettingsOpen(true)}
               className="cursor-pointer"
             >
               {profileImage ? (
