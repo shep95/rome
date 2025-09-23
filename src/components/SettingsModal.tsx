@@ -17,7 +17,8 @@ import {
   Eye,
   EyeOff,
   Lock,
-  Key
+  Key,
+  TrendingUp
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -31,7 +32,7 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'appearance' | 'profile' | 'security' | 'shortcuts'>('appearance');
+  const [activeTab, setActiveTab] = useState<'appearance' | 'profile' | 'security' | 'shortcuts' | 'shares'>('appearance');
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [screenshotProtection, setScreenshotProtection] = useState(false);
@@ -391,6 +392,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 <Settings className="w-4 h-4" />
                 <span className="hidden sm:inline">Shortcuts</span>
               </button>
+              
+              <button
+                onClick={() => setActiveTab('shares')}
+                className={`flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                  activeTab === 'shares'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span className="hidden sm:inline">Shares</span>
+              </button>
             </nav>
           </div>
 
@@ -448,6 +461,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               >
                 <Settings className="w-5 h-5" />
                 <span>Shortcuts</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('shares')}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all ${
+                  activeTab === 'shares'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <TrendingUp className="w-5 h-5" />
+                <span>Shares</span>
               </button>
             </nav>
           </div>
@@ -866,7 +891,69 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   </div>
                 </CardContent>
               </Card>
-              )}
+            )}
+
+            {activeTab === 'shares' && (
+              <Card className="bg-card/50 border-border">
+                <CardHeader>
+                  <CardTitle className="text-foreground flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5" />
+                    <span>Company Shares</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 rounded-lg border border-primary/20">
+                      <h3 className="text-foreground text-xl font-bold mb-3">Own Shares of the Company</h3>
+                      <p className="text-muted-foreground mb-4">
+                        You can now own actual shares of our company through our innovative crypto-based system. 
+                        This gives you a real stake in our success and the opportunity to profit from our growth.
+                      </p>
+                      
+                      <div className="bg-background/50 rounded-lg p-4 mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-foreground font-medium">Total Shares Available:</span>
+                          <span className="text-primary font-bold text-lg">36,900,000</span>
+                        </div>
+                        <p className="text-muted-foreground text-sm">
+                          These shares are issued on the digital currency and can be traded to generate profits.
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <h4 className="text-foreground font-semibold">How it works:</h4>
+                        <ul className="text-muted-foreground space-y-2 ml-4">
+                          <li className="flex items-start">
+                            <span className="text-primary mr-2">•</span>
+                            Purchase shares using our crypto currency system
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-primary mr-2">•</span>
+                            Trade shares with other users to potentially make money
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-primary mr-2">•</span>
+                            Benefit from company growth as share values increase
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-primary mr-2">•</span>
+                            Secure blockchain-based ownership verification
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                        <p className="text-foreground font-medium mb-2">Ready to get started?</p>
+                        <p className="text-muted-foreground text-sm">
+                          For more information about purchasing and trading company shares, 
+                          click the <strong>crypto tab</strong> on the left navigation bar to explore our digital currency options.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             </ScrollArea>
           </div>
         </div>
