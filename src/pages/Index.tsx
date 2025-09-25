@@ -40,14 +40,14 @@ const Index = () => {
         <div 
           className="absolute top-0 right-0 w-full h-full rounded-full opacity-20 blur-3xl"
           style={{
-            background: `radial-gradient(circle at 100% 50%, #c2a084 0%, #c2a084 30%, transparent 70%)`,
+            background: `radial-gradient(circle at 100% 50%, #c2a084 0%, #c2a084 50%, transparent 85%)`,
             transform: 'translateX(50%)'
           }}
         />
         <div 
           className="absolute top-12 right-0 w-96 h-96 rounded-full opacity-10 blur-2xl"
           style={{
-            background: `radial-gradient(circle at 100% 50%, #c2a084 0%, #c2a084 40%, transparent 80%)`,
+            background: `radial-gradient(circle at 100% 50%, #c2a084 0%, #c2a084 60%, transparent 90%)`,
             transform: 'translateX(40%)'
           }}
         />
