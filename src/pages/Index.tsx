@@ -36,7 +36,7 @@ const Index = () => {
   return (
     <>
       {/* Half bubble gradient on right side */}
-      <div className="fixed top-1/3 right-0 w-96 h-96 pointer-events-none z-0">
+      <div className="fixed top-1/4 right-0 w-[500px] h-[600px] pointer-events-none z-0">
         <div 
           className="absolute top-0 right-0 w-full h-full rounded-full opacity-20 blur-3xl"
           style={{
@@ -45,7 +45,7 @@ const Index = () => {
           }}
         />
         <div 
-          className="absolute top-8 right-0 w-80 h-80 rounded-full opacity-10 blur-2xl"
+          className="absolute top-12 right-0 w-96 h-96 rounded-full opacity-10 blur-2xl"
           style={{
             background: `radial-gradient(circle at 100% 50%, #c2a084 0%, #c2a084 40%, transparent 80%)`,
             transform: 'translateX(40%)'
@@ -93,21 +93,6 @@ const Index = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-8 justify-center items-center max-w-4xl mx-auto">
-            {/* Windows */}
-            <div className="group relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
-              <div className="relative bg-card border border-primary/20 rounded-2xl p-8 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all duration-300 min-w-[200px] text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center">
-                  <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 12V6.75l6-1.32v6.48L3 12zm17-5.25v18L11.5 22V12.75l8.5-5.25zm-8.5.75v8.25L3 18.75V12l8.5-.75z"/>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Windows</h3>
-                <p className="text-sm text-muted-foreground mb-4">Windows 10/11</p>
-                <div className="text-xs text-primary">Coming Soon</div>
-              </div>
-            </div>
-            
             {/* Android */}
             <div 
               className="group relative cursor-pointer"
