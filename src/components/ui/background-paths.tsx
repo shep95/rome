@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { SpotlightButton } from "@/components/ui/spotlight-button";
 import { ScrollDownButton } from "@/components/ui/scroll-down-button";
-import { useState, useEffect } from "react";
 function FloatingPaths({
   position
 }: {
@@ -44,34 +43,7 @@ export function BackgroundPaths({
   onSignUpClick
 }: BackgroundPathsProps) {
   const words = title.split(" ");
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
   return <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background">
-            {/* Mouse Following Glow */}
-            <div 
-              className="fixed pointer-events-none z-[1]"
-              style={{
-                left: mousePosition.x,
-                top: mousePosition.y,
-                transform: 'translate(-50%, -50%)',
-                width: '400px',
-                height: '400px',
-                background: 'radial-gradient(circle, rgba(194, 160, 132, 0.08) 0%, rgba(194, 160, 132, 0.04) 25%, rgba(194, 160, 132, 0.02) 50%, transparent 70%)',
-                borderRadius: '50%',
-                transition: 'all 0.1s ease-out',
-                opacity: 0.6,
-              }}
-            />
-            
             {/* Film Grain Effect */}
             <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-[1]" 
                  style={{
