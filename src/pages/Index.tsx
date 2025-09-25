@@ -35,6 +35,24 @@ const Index = () => {
 
   return (
     <>
+      {/* Half bubble gradient on right side */}
+      <div className="fixed top-1/3 right-0 w-96 h-96 pointer-events-none z-0">
+        <div 
+          className="absolute top-0 right-0 w-full h-full rounded-full opacity-20 blur-3xl"
+          style={{
+            background: `radial-gradient(circle at 100% 50%, #c2a084 0%, #c2a084 30%, transparent 70%)`,
+            transform: 'translateX(50%)'
+          }}
+        />
+        <div 
+          className="absolute top-8 right-0 w-80 h-80 rounded-full opacity-10 blur-2xl"
+          style={{
+            background: `radial-gradient(circle at 100% 50%, #c2a084 0%, #c2a084 40%, transparent 80%)`,
+            transform: 'translateX(40%)'
+          }}
+        />
+      </div>
+      
       <TopNavigation onSignUpClick={() => setIsAuthModalOpen(true)} />
       <BackgroundPaths title="ROME" />
       
