@@ -24,6 +24,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import ScreenshotProtection from '@/plugins/ScreenshotProtection';
 import { supabase } from '@/integrations/supabase/client';
+import { DeviceManagement } from '@/components/DeviceManagement';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -887,9 +888,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                            </Button>
                          </div>
                        </div>
-                     )}
-                   </div>
-                </CardContent>
+                      )}
+                    </div>
+
+                    {/* Device Management Section */}
+                    <DeviceManagement />
+                 </CardContent>
               </Card>
             )}
 
