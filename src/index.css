@@ -325,6 +325,40 @@ input, textarea, select {
 
   body {
     @apply bg-background text-foreground;
+    position: relative;
+  }
+
+  /* Film Grain Effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.03;
+    z-index: 1;
+    background-image: 
+      radial-gradient(circle at 20% 80%, hsl(var(--primary)) 2px, transparent 2px),
+      radial-gradient(circle at 80% 20%, hsl(var(--accent)) 2px, transparent 2px),
+      radial-gradient(circle at 40% 40%, hsl(var(--muted-foreground)) 1px, transparent 1px),
+      radial-gradient(circle at 60% 60%, hsl(var(--primary)) 1px, transparent 1px);
+    background-size: 100px 100px, 80px 80px, 40px 40px, 60px 60px;
+    animation: grain 8s steps(10) infinite;
+  }
+
+  @keyframes grain {
+    0%, 100% { transform: translate(0, 0) }
+    10% { transform: translate(-5%, -10%) }
+    20% { transform: translate(-15%, 5%) }
+    30% { transform: translate(7%, -25%) }
+    40% { transform: translate(-5%, 25%) }
+    50% { transform: translate(-15%, 10%) }
+    60% { transform: translate(15%, 0%) }
+    70% { transform: translate(0%, 15%) }
+    80% { transform: translate(3%, 35%) }
+    90% { transform: translate(-10%, 10%) }
   }
 }
 
