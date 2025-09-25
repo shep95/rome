@@ -8,7 +8,7 @@ export function GlassmorphismFooter() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="relative bg-card/20 backdrop-blur-xl border border-primary/20 rounded-3xl p-8 shadow-[0_0_30px_hsl(var(--primary)/0.2)]"
+          className="relative bg-card/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-[0_0_40px_hsl(var(--primary)/0.1)] before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/[0.02] before:to-transparent before:rounded-3xl before:pointer-events-none"
         >
           {/* Gradient overlay for extra glass effect */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/5 rounded-3xl pointer-events-none" />
@@ -52,7 +52,7 @@ export function GlassmorphismFooter() {
                 </svg>
               </a>
             </div>
-            <div className="pt-4 border-t border-primary/20">
+            <div className="pt-4 border-t border-white/10">
               <p className="text-xs text-muted-foreground/60">
                 © 2025 Zorak Corp. All rights reserved.
               </p>
