@@ -172,7 +172,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             variant="ghost"
             className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
               activeSection === 'messages'
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 film-grain-primary'
                 : 'text-foreground hover:text-primary hover:bg-primary/10'
             }`}
           >
@@ -233,7 +233,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             variant="ghost"
             className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
               activeSection === 'features'
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 film-grain-primary'
                 : 'text-foreground hover:text-primary hover:bg-primary/10'
             }`}
           >
@@ -249,7 +249,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             variant="ghost"
             className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
               activeSection === 'secure-files'
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 film-grain-primary'
                 : 'text-foreground hover:text-primary hover:bg-primary/10'
             }`}
           >
@@ -302,7 +302,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             variant="ghost"
             className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
               activeSection === 'settings'
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 film-grain-primary'
                 : 'text-foreground hover:text-primary hover:bg-primary/10'
             }`}
           >
@@ -440,7 +440,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                   window.open('https://donate.stripe.com/fZu14p2SI677bve3Ttfw403', '_blank');
                   setIsSubscriptionModalOpen(false);
                 }}
-                className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 film-grain-primary"
               >
                 Subscribe Now
               </Button>
