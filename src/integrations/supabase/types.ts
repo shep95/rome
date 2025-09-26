@@ -1135,6 +1135,10 @@ export type Database = {
         Args: { conversation_id: string; user_id: string }
         Returns: boolean
       }
+      validate_all_security_constraints: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       validate_call_history_access: {
         Args: { history_user_id: string }
         Returns: boolean
