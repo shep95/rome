@@ -47,7 +47,7 @@ export const GlassmorphismHeader: React.FC<GlassmorphismHeaderProps> = ({ onSign
               {/* Logo */}
               <div className="flex items-center space-x-2">
                 <img 
-                  src="/lovable-uploads/zorak-favicon.png" 
+                  src="/lovable-uploads/rome-favicon.png" 
                   alt="Logo" 
                   className="w-8 h-8 rounded-lg"
                 />
