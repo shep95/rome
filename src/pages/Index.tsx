@@ -5,7 +5,7 @@ import { AuthModal } from "@/components/ui/auth-modal";
 import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GlowingSection } from "@/components/GlowingSection";
 import { ScrollDownButton } from "@/components/ui/scroll-down-button";
-import { TopNavigation } from "@/components/ui/top-navigation";
+import { GlassmorphismHeader } from "@/components/ui/glassmorphism-header";
 import { GlassmorphismFooter } from "@/components/ui/glassmorphism-footer";
 import { useAuth } from '@/hooks/useAuth';
 
@@ -53,8 +53,10 @@ const Index = () => {
         />
       </div>
       
-      <TopNavigation onSignUpClick={() => setIsAuthModalOpen(true)} />
-      <BackgroundPaths title="ROME" />
+      <GlassmorphismHeader onSignUpClick={() => setIsAuthModalOpen(true)} />
+      <div className="pt-20">
+        <BackgroundPaths title="ROME" />
+      </div>
       
       {/* 3D Marquee Section */}
       <section id="marquee-section" className="relative bg-background py-12 sm:py-16 md:py-20">
