@@ -80,37 +80,6 @@ export const GlassmorphismHeader: React.FC<GlassmorphismHeaderProps> = ({ onSign
             </div>
           </div>
 
-          {/* Mobile navigation */}
-          <div className="md:hidden mt-2">
-            <div className="relative">
-              {/* Film grain overlay for mobile nav */}
-              <div 
-                className="absolute inset-0 rounded-xl opacity-20 pointer-events-none"
-                style={{
-                  background: `
-                    radial-gradient(circle at 25% 25%, transparent 20%, rgba(255, 255, 255, 0.05) 21%, rgba(255, 255, 255, 0.05) 34%, transparent 35%, transparent),
-                    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.08), transparent 50%)
-                  `,
-                  backgroundSize: '80px 80px, 60px 60px'
-                }}
-              />
-              
-              <div className="relative bg-background/70 backdrop-blur-sm border border-border/20 rounded-xl p-3">
-                <div className="flex justify-center space-x-6">
-                  {navItems.map((item, index) => (
-                    <button
-                      key={index}
-                      onClick={item.action}
-                      className="flex flex-col items-center space-y-1 p-2 rounded-lg text-foreground/80 hover:text-foreground hover:bg-primary/10 transition-all duration-200 group"
-                    >
-                      <item.icon className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                      <span className="text-xs font-medium">{item.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </nav>
     </header>
