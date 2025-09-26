@@ -1106,6 +1106,10 @@ export type Database = {
         Args: { phone_value: string }
         Returns: string
       }
+      monitor_suspicious_activity: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       process_scheduled_messages: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1137,6 +1141,10 @@ export type Database = {
       }
       validate_profile_access: {
         Args: { profile_user_id: string }
+        Returns: boolean
+      }
+      validate_secure_data_access: {
+        Args: { operation: string; table_name: string }
         Returns: boolean
       }
       validate_user_session: {
