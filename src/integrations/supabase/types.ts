@@ -957,6 +957,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          max_attempts?: number
+          operation_type: string
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
       cleanup_expired_rate_limits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1089,6 +1097,14 @@ export type Database = {
       mark_self_destruct_viewed: {
         Args: { p_message_id: string; p_viewer_id: string }
         Returns: undefined
+      }
+      mask_email_for_security: {
+        Args: { email_value: string }
+        Returns: string
+      }
+      mask_phone_for_security: {
+        Args: { phone_value: string }
+        Returns: string
       }
       process_scheduled_messages: {
         Args: Record<PropertyKey, never>
