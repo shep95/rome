@@ -621,7 +621,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               <div className="space-y-3">
                 <h3 className="text-2xl font-bold text-foreground">Aureum</h3>
                 <p className="text-muted-foreground text-sm">
-                  Aureum is the next-gen privacy currency and public share of the company, you can trade, generate money & own a piece of ROME through our digital currency kind of like stocks but for crypto. We hold Aureum on ETH blockchain
+                  Aureum is the next gen crypto currency that is tradable on the ETH blockchain built by ZORAK TEAM, When Buying You Own A Share Of ROME & ZORAK
                 </p>
               </div>
               
