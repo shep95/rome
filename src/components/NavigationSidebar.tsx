@@ -618,11 +618,21 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                 <img src={aureumLogo} alt="Aureum Logo" className="w-16 h-16 object-contain" />
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <h3 className="text-2xl font-bold text-foreground">Aureum</h3>
-                <p className="text-muted-foreground text-sm">
-                  Aureum is the next gen crypto currency that is tradable on the ETH blockchain built by ZORAK TEAM, When Buying You Own A Share Of ROME & ZORAK
-                </p>
+                <div className="space-y-3 text-center">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Capital Asset Of Zorak & Rome | Generate Wealth Through Long & Short Trading
+                  </p>
+                  <div className="space-y-2">
+                    <p className="text-foreground text-sm font-medium">
+                      Market Supply: 36,900,000 Tokens
+                    </p>
+                    <p className="text-muted-foreground text-xs">
+                      Starting Price: $0.24 | Daily Value Fluctuation
+                    </p>
+                  </div>
+                </div>
               </div>
               
               <div className="mt-6">
