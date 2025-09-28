@@ -341,7 +341,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           <div className="lg:hidden bg-card/50 border-b border-border p-4">
             <div className="flex items-center space-x-2 mb-4">
               <Settings className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-bold text-foreground">Settings</h2>
+              <h2 className="text-lg font-bold text-foreground">Sovereign Control</h2>
             </div>
             
             <nav className="flex space-x-1 overflow-x-auto">
@@ -412,7 +412,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           <div className="hidden lg:block w-64 bg-card/50 border-r border-border p-6">
             <div className="flex items-center space-x-2 mb-8">
               <Settings className="w-6 h-6 text-primary" />
-              <h2 className="text-xl font-bold text-foreground">Settings</h2>
+              <h2 className="text-xl font-bold text-foreground">Sovereign Control</h2>
             </div>
             
             <nav className="space-y-2">
@@ -487,7 +487,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 <CardHeader>
                   <CardTitle className="text-foreground flex items-center space-x-2">
                     <ImageIcon className="w-5 h-5" />
-                    <span>Appearance Settings</span>
+                    <span>Appearance Sovereign Control</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -540,7 +540,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 <CardHeader>
                   <CardTitle className="text-foreground flex items-center space-x-2">
                     <User className="w-5 h-5" />
-                    <span>Profile Settings</span>
+                    <span>Profile Sovereign Control</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -606,7 +606,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 <CardHeader>
                   <CardTitle className="text-foreground flex items-center space-x-2">
                     <Shield className="w-5 h-5" />
-                    <span>Security Settings</span>
+                    <span>Security Sovereign Control</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">

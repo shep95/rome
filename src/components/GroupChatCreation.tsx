@@ -226,7 +226,7 @@ export const GroupChatCreation = ({ isOpen, onClose, onGroupCreated }: GroupChat
 
         {step === 3 && (
           <div className="space-y-4">
-            <h3 className="font-medium">Group Settings</h3>
+            <h3 className="font-medium">Group Sovereign Control</h3>
             
             <div className="space-y-4">
               <div className="flex items-center justify-between">

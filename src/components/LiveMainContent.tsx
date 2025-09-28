@@ -427,12 +427,12 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
       <div className="flex-1 flex items-center justify-center bg-background">
         <div className="text-center text-foreground">
           <h2 className="text-2xl font-bold mb-4">
-            {activeSection === 'calls' ? 'Secure Calls' : 'Settings'}
+            {activeSection === 'calls' ? 'Secure Calls' : 'Sovereign Control'}
           </h2>
           <p className="text-muted-foreground">
             {activeSection === 'calls' 
               ? 'End-to-end encrypted voice and video calls coming soon'
-              : 'Configure your security settings and preferences'
+              : 'Configure your sovereign control and preferences'
             }
           </p>
         </div>

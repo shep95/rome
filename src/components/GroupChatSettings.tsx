@@ -351,7 +351,7 @@ export const GroupChatSettings: React.FC<GroupChatSettingsProps> = ({
       <DialogContent className="sm:max-w-[600px] p-0 bg-background/20 backdrop-blur-xl border border-white/20 shadow-2xl">
         {/* Glass morphic header */}
         <div className="relative p-6 bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/20">
-          <h2 className="text-xl font-semibold text-foreground">Group Settings</h2>
+          <h2 className="text-xl font-semibold text-foreground">Group Sovereign Control</h2>
           <Button
             variant="ghost"
             size="icon"

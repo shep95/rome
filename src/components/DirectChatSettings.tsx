@@ -188,7 +188,7 @@ export const DirectChatSettings: React.FC<DirectChatSettingsProps> = ({
       <DialogContent className="w-[95vw] max-w-md mx-auto p-0 bg-background/95 backdrop-blur-xl border border-white/20 shadow-2xl">
         {/* Header */}
         <div className="relative p-4 sm:p-6 bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/20">
-          <h2 className="text-lg sm:text-xl font-semibold text-foreground">Chat Settings</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground">Chat Sovereign Control</h2>
           <Button
             variant="ghost"
             size="icon"

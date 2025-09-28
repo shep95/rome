@@ -521,7 +521,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Profile Settings</DialogTitle>
+            <DialogTitle>Profile Sovereign Control</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-6">
