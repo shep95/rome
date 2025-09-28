@@ -307,7 +307,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             }`}
           >
             <Settings className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-            <span className="text-sm font-medium">Settings</span>
+            <span className="text-sm font-medium">Sovereign Control</span>
           </Button>
         </nav>
       </ScrollArea>
