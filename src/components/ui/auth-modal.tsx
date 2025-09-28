@@ -134,7 +134,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 : 'text-white/70 hover:text-white'
             }`}
           >
-            Login
+            Enter The Kingdom
           </button>
           <button
             onClick={() => setActiveTab('signup')}

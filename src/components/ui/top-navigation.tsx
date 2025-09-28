@@ -13,7 +13,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onSignUpClick }) =
         variant="outline"
         className="h-12 px-6 bg-background/90 backdrop-blur-sm rounded-md shadow-lg border border-border/20 hover:bg-background/95 text-foreground hover:text-foreground text-sm font-medium"
       >
-        Login | Sign Up
+        Enter The Kingdom | Sign Up
       </Button>
     </nav>
   );

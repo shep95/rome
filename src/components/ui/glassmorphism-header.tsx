@@ -74,7 +74,7 @@ export const GlassmorphismHeader: React.FC<GlassmorphismHeaderProps> = ({ onSign
                 className="flex items-center space-x-2 bg-primary/10 border-primary/20 hover:bg-primary/20 hover:border-primary/30 transition-all duration-200"
               >
                 <LogIn className="w-4 h-4" />
-                <span className="hidden sm:inline">Login</span>
+                <span className="hidden sm:inline">Enter The Kingdom</span>
               </Button>
             </div>
           </div>
