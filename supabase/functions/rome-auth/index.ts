@@ -136,21 +136,38 @@ serve(async (req) => {
 
     switch (action) {
       case 'signup': {
-        const { email, password } = data;
+        const { email, password, loginUsername } = data;
         
-        // Generate unique username
-        let username: string;
+        // Check if login username already exists
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('login_username')
+          .eq('login_username', loginUsername)
+          .maybeSingle();
+          
+        if (existingProfile) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Login username already taken'
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        // Generate unique display username
+        let displayUsername: string;
         let attempts = 0;
         do {
-          username = generateUsername();
+          displayUsername = generateUsername();
           attempts++;
           
           if (attempts > 10) {
-            throw new Error('Unable to generate unique username');
+            throw new Error('Unable to generate unique display username');
           }
           
-          // Check if username is blocked
-          if (isUsernameBlocked(username)) {
+          // Check if display username is blocked
+          if (isUsernameBlocked(displayUsername)) {
             continue;
           }
           
@@ -158,7 +175,7 @@ serve(async (req) => {
           const { data: existingUser } = await supabase
             .from('profiles')
             .select('username')
-            .eq('username', username)
+            .eq('username', displayUsername)
             .maybeSingle();
             
           if (!existingUser) {
@@ -178,8 +195,9 @@ serve(async (req) => {
           password: password,
           email_confirm: true,
           user_metadata: {
-            username: username,
-            display_name: username,
+            loginUsername: loginUsername,
+            username: displayUsername,
+            display_name: displayUsername,
             hashedEmail: hashedEmail
           }
         });
@@ -193,8 +211,9 @@ serve(async (req) => {
           .from('profiles')
           .insert({
             id: authUser.user.id,
-            username: username,
-            display_name: username,
+            login_username: loginUsername,
+            username: displayUsername,
+            display_name: displayUsername,
             email_encrypted: hashedEmail
           });
           
@@ -217,7 +236,8 @@ serve(async (req) => {
         
         return new Response(JSON.stringify({
           success: true,
-          username: username,
+          loginUsername: loginUsername,
+          displayUsername: displayUsername,
           user_id: authUser.user.id
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -225,13 +245,13 @@ serve(async (req) => {
       }
       
       case 'signin': {
-        const { username, password } = data;
+        const { loginUsername, password } = data;
         
-        // Find user by username
+        // Find user by login username
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, username')
-          .eq('username', username)
+          .select('id, username, login_username')
+          .eq('login_username', loginUsername)
           .maybeSingle();
           
         if (profileError || !profile) {
@@ -290,7 +310,8 @@ serve(async (req) => {
         return new Response(JSON.stringify({
           success: true,
           user_id: profile.id,
-          username: profile.username,
+          loginUsername: profile.login_username,
+          displayUsername: profile.username,
           email: authUser.user.email
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }

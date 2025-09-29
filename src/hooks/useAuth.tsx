@@ -9,8 +9,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: any; username?: string }>;
-  signIn: (username: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, loginUsername: string) => Promise<{ error: any; displayUsername?: string }>;
+  signIn: (loginUsername: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, loginUsername: string) => {
     try {
       // Validate email format and check for temporary emails
       const emailValidation = TempEmailValidator.validateEmail(email);
@@ -168,15 +168,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Call secure signup endpoint
-      const response = await supabase.functions.invoke('rome-auth', {
-        body: {
-          action: 'signup',
-          data: { email, password }
-        }
+      const { data, error } = await supabase.functions.invoke('rome-auth', {
+        body: { action: 'signup', data: { email, password, loginUsername } }
       });
 
-      if (response.error || !response.data?.success) {
-        const errorMsg = response.data?.error || response.error?.message || 'Sign up failed';
+      if (error || !data?.success) {
+        const errorMsg = data?.error || error?.message || 'Sign up failed';
         toast({
           variant: "destructive",
           title: "Sign up failed",
@@ -187,10 +184,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       toast({
         title: "Account created successfully!",
-        description: `Your username is: ${response.data.username}. Please remember it for login.`
+        description: `Your display name is: ${data.displayUsername}. Use your login username to sign in.`
       });
 
-      return { error: null, username: response.data.username };
+      return { error: null, displayUsername: data.displayUsername };
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -201,10 +198,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signIn = async (username: string, password: string) => {
+  const signIn = async (loginUsername: string, password: string) => {
     try {
       // Validate username format
-      if (!username || !/^[a-z0-9_]{6,20}$/.test(username)) {
+      if (!loginUsername || !/^[a-z0-9_]{6,20}$/.test(loginUsername)) {
         toast({
           variant: "destructive",
           title: "Invalid username",
@@ -214,15 +211,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Call secure signin endpoint
-      const response = await supabase.functions.invoke('rome-auth', {
-        body: {
-          action: 'signin',
-          data: { username, password }
-        }
+      const { data, error } = await supabase.functions.invoke('rome-auth', {
+        body: { action: 'signin', data: { loginUsername, password } }
       });
 
-      if (response.error || !response.data?.success) {
-        const errorMsg = response.data?.error || response.error?.message || 'Sign in failed';
+      if (error || !data?.success) {
+        const errorMsg = data?.error || error?.message || 'Sign in failed';
         toast({
           variant: "destructive",
           title: "Invalid credentials",
@@ -233,7 +227,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Now sign in with Supabase using the email
       const { error: authError } = await supabase.auth.signInWithPassword({
-        email: response.data.email,
+        email: data.email,
         password: password
       });
 
@@ -259,7 +253,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       toast({
         title: "Welcome back!",
-        description: `Signed in as ${response.data.username}`
+        description: `Signed in as ${data.displayUsername}`
       });
 
       return { error: null };

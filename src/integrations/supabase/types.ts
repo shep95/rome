@@ -498,6 +498,7 @@ export type Database = {
           email: string | null
           email_encrypted: string | null
           id: string
+          login_username: string | null
           screenshot_protection_enabled: boolean | null
           updated_at: string
           username: string | null
@@ -510,6 +511,7 @@ export type Database = {
           email?: string | null
           email_encrypted?: string | null
           id: string
+          login_username?: string | null
           screenshot_protection_enabled?: boolean | null
           updated_at?: string
           username?: string | null
@@ -522,6 +524,7 @@ export type Database = {
           email?: string | null
           email_encrypted?: string | null
           id?: string
+          login_username?: string | null
           screenshot_protection_enabled?: boolean | null
           updated_at?: string
           username?: string | null
