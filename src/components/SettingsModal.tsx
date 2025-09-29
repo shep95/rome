@@ -36,6 +36,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [screenshotProtection, setScreenshotProtection] = useState(false);
+  const [showUsername, setShowUsername] = useState(false);
+  const [profileData, setProfileData] = useState<{username?: string, login_username?: string, display_name?: string} | null>(null);
   const backgroundInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
 
@@ -132,7 +134,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     }
   }, [screenshotProtection]);
 
-  // Load saved settings
+  // Load saved settings and profile data
   useEffect(() => {
     const savedBackground = localStorage.getItem('rome-background-image');
     const savedProfile = localStorage.getItem('rome-profile-image');
@@ -141,7 +143,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     if (savedBackground) setBackgroundImage(savedBackground);
     if (savedProfile) setProfileImage(savedProfile);
     if (savedScreenshotProtection) setScreenshotProtection(JSON.parse(savedScreenshotProtection));
-  }, []);
+
+    // Load profile data from Supabase
+    const loadProfileData = async () => {
+      if (user?.id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, login_username, display_name')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          setProfileData(profile);
+        }
+      }
+    };
+
+    loadProfileData();
+  }, [user?.id]);
 
   const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -590,10 +609,59 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     <p className="text-muted-foreground text-sm mb-4">
                       Your account details
                     </p>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div>
                         <Label className="text-muted-foreground text-sm">Email</Label>
                         <p className="text-foreground">{user?.email}</p>
+                      </div>
+                      
+                      {/* Username Section */}
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-muted-foreground text-sm">Display Username (Public)</Label>
+                          <p className="text-foreground font-mono">{profileData?.username || 'Loading...'}</p>
+                        </div>
+                        
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <Label className="text-muted-foreground text-sm">Login Username (Private)</Label>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowUsername(!showUsername)}
+                              className="h-8 px-3"
+                            >
+                              {showUsername ? (
+                                <>
+                                  <EyeOff className="w-3 h-3 mr-1" />
+                                  Hide
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  Show
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                          <div className="relative">
+                            <p className={`text-foreground font-mono transition-all duration-200 ${
+                              showUsername ? '' : 'filter blur-md select-none'
+                            }`}>
+                              {profileData?.login_username || 'Loading...'}
+                            </p>
+                            {!showUsername && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                                  Click "Show" to reveal
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            This is the username you use to sign in. Keep it private for security.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
