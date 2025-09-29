@@ -99,6 +99,17 @@ export const UserSearchDropdown = ({ isOpen, onClose }: UserSearchDropdownProps)
           <DialogHeader>
             <DialogTitle>Send Message to User</DialogTitle>
           </DialogHeader>
+          
+          <div className="mb-4 p-3 bg-muted/50 rounded-lg border-l-4 border-primary">
+            <p className="text-sm font-medium text-foreground mb-2">📋 How to get someone's username:</p>
+            <ol className="text-sm text-muted-foreground space-y-1">
+              <li>1. Ask the person to open their <span className="font-medium text-foreground">Sovereign Control</span></li>
+              <li>2. Go to their <span className="font-medium text-foreground">Profile</span> tab</li>
+              <li>3. Copy their <span className="font-medium text-foreground">Display Username</span></li>
+              <li>4. Send it to you to search below</li>
+            </ol>
+          </div>
+          
           <div className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
