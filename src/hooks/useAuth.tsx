@@ -9,11 +9,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  pinVerified: boolean;
-  requiresPinVerification: boolean;
-  verifyPin: () => void;
-  signUp: (email: string, password: string, username?: string, code?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string, code?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string) => Promise<{ error: any; username?: string }>;
+  signIn: (username: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -23,8 +20,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [pinVerified, setPinVerified] = useState(false);
-  const [requiresPinVerification, setRequiresPinVerification] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,25 +30,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Handle PIN verification for auto-login
-        if (session?.user && event !== 'SIGNED_IN') {
-          // This is an existing session (auto-login), require PIN verification
-          setRequiresPinVerification(true);
-          setPinVerified(false);
-        } else if (session?.user && event === 'SIGNED_IN') {
-          // This is a fresh login, no PIN verification needed
-          setRequiresPinVerification(false);
-          setPinVerified(true);
-        } else {
-          // No session, reset PIN states
-          setRequiresPinVerification(false);
-          setPinVerified(false);
-        }
-        
         // Load and persist user profile data
         if (session?.user) {
-          // Security codes are never stored in localStorage for security
-          
           // Try to restore from backup first
           const backupData = sessionStorage.getItem(`rome-backup-${session.user.email}`);
           if (backupData) {
@@ -98,10 +76,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               console.error('Error loading user profile:', error);
             }
           }, 0);
-        } else {
-          // Clear security-sensitive data when user logs out - but keep profile data in backup
-          // Security codes are never stored in localStorage
-          // Don't clear profile images and wallpapers - they're backed up
         }
       }
     );
@@ -112,16 +86,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // If there's an existing session, require PIN verification
-      if (session?.user) {
-        setRequiresPinVerification(true);
-        setPinVerified(false);
-      }
-      
       // Load profile data if user is already logged in
       if (session?.user) {
-        // Security codes are never stored in localStorage for security
-        
         // Try to restore from backup first
         const backupData = sessionStorage.getItem(`rome-backup-${session.user.email}`);
         if (backupData) {
@@ -166,7 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, username?: string, code?: string) => {
+  const signUp = async (email: string, password: string) => {
     try {
       // Validate email format and check for temporary emails
       const emailValidation = TempEmailValidator.validateEmail(email);
@@ -190,16 +156,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error: { message: "Password too weak" } };
       }
 
-      // Validate 4-digit code
-      if (!code || code.length !== 4 || !/^\d{4}$/.test(code)) {
-        toast({
-          variant: "destructive",
-          title: "Invalid security code",
-          description: "Please enter a 4-digit numeric security code."
-        });
-        return { error: { message: "Invalid code" } };
-      }
-
       // Check password against breach database
       const breachCheck = await SecurityUtils.checkPasswordBreach(password);
       if (breachCheck.breached) {
@@ -211,48 +167,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error: { message: "Password compromised" } };
       }
 
-      // Generate device fingerprint
-      const deviceInfo = await SecurityUtils.generateDeviceFingerprint();
-      
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            username: username || email.split('@')[0],
-            display_name: username || email.split('@')[0],
-            device_fingerprint: deviceInfo.fingerprint,
-            security_code: code
-          }
+      // Call secure signup endpoint
+      const response = await supabase.functions.invoke('rome-auth', {
+        body: {
+          action: 'signup',
+          data: { email, password }
         }
       });
 
-
-      if (error) {
-        if (error.message.includes('already registered')) {
-          toast({
-            variant: "destructive",
-            title: "Account already exists",
-            description: "Please sign in instead or use a different email."
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Sign up failed",
-            description: error.message
-          });
-        }
-      } else {
+      if (response.error || !response.data?.success) {
+        const errorMsg = response.data?.error || response.error?.message || 'Sign up failed';
         toast({
-          title: "Check your email",
-          description: "We've sent you a confirmation link to complete your registration."
+          variant: "destructive",
+          title: "Sign up failed",
+          description: errorMsg
         });
+        return { error: { message: errorMsg } };
       }
 
-      return { error };
+      toast({
+        title: "Account created successfully!",
+        description: `Your username is: ${response.data.username}. Please remember it for login.`
+      });
+
+      return { error: null, username: response.data.username };
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -354,7 +292,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // Clear security-related data only (keep profile data)
-      // Security codes are never stored in localStorage
       
       // Clear secure storage
       await SecurityUtils.clearSecureStorage();
@@ -362,8 +299,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Force clear the session state immediately
       setSession(null);
       setUser(null);
-      setPinVerified(false);
-      setRequiresPinVerification(false);
       
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut({ scope: 'global' });
@@ -382,8 +317,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Clear local state even if signOut fails
       setSession(null);
       setUser(null);
-      setPinVerified(false);
-      setRequiresPinVerification(false);
       
       toast({
         title: "Signed out",
@@ -392,19 +325,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const verifyPin = () => {
-    setPinVerified(true);
-    setRequiresPinVerification(false);
-  };
-
   return (
     <AuthContext.Provider value={{
       user,
       session,
       loading,
-      pinVerified,
-      requiresPinVerification,
-      verifyPin,
       signUp,
       signIn,
       signOut

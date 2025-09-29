@@ -18,87 +18,36 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    username: '',
-    code: ''
+    username: ''
   });
   const [loading, setLoading] = useState(false);
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
-  const [usernameCheckTimeout, setUsernameCheckTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [generatedUsername, setGeneratedUsername] = useState<string>('');
   const { signIn, signUp } = useAuth();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Check username availability when username changes
-    if (field === 'username' && activeTab === 'signup') {
-      if (usernameCheckTimeout) {
-        clearTimeout(usernameCheckTimeout);
-      }
-      
-      if (value.length >= 3) {
-        setUsernameStatus('checking');
-        const timeout = setTimeout(() => {
-          checkUsernameAvailability(value);
-        }, 500); // Debounce for 500ms
-        setUsernameCheckTimeout(timeout);
-      } else {
-        setUsernameStatus('idle');
-      }
-    }
   };
-
-  const checkUsernameAvailability = async (username: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', username.toLowerCase())
-        .maybeSingle();
-
-      if (error) {
-        console.error('Username check error:', error);
-        setUsernameStatus('idle');
-        return;
-      }
-
-      setUsernameStatus(data ? 'taken' : 'available');
-    } catch (error) {
-      console.error('Username check error:', error);
-      setUsernameStatus('idle');
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (usernameCheckTimeout) {
-        clearTimeout(usernameCheckTimeout);
-      }
-    };
-  }, [usernameCheckTimeout]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Check if username is taken before submitting signup
-    if (activeTab === 'signup' && usernameStatus === 'taken') {
-      return;
-    }
-    
     setLoading(true);
 
     try {
       let result;
       if (activeTab === 'signup') {
-        result = await signUp(formData.email, formData.password, formData.username, formData.code);
+        result = await signUp(formData.email, formData.password);
+        if (!result.error && result.username) {
+          setGeneratedUsername(result.username);
+        }
       } else {
-        result = await signIn(formData.email, formData.password, formData.code);
+        result = await signIn(formData.username, formData.password);
       }
 
       if (!result.error) {
         onSuccess();
         onClose();
-        setFormData({ email: '', password: '', username: '', code: '' });
-        setUsernameStatus('idle');
+        setFormData({ email: '', password: '', username: '' });
+        setGeneratedUsername('');
       }
     } finally {
       setLoading(false);
@@ -150,69 +99,46 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {activeTab === 'signup' && (
+          {activeTab === 'signup' ? (
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-white">
+                Email (Recovery Only)
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50"
+                placeholder="Enter your email for account recovery"
+                required
+              />
+              <p className="text-xs text-white/60">
+                Email is only used for account recovery. Your username will be auto-generated.
+              </p>
+            </div>
+          ) : (
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm font-medium text-white">
                 Username
               </Label>
-              <div className="relative">
-                <Input
-                  id="username"
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
-                  className={`bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50 pr-10 ${
-                    usernameStatus === 'available' ? 'border-green-400/50' : 
-                    usernameStatus === 'taken' ? 'border-red-400/50' : ''
-                  }`}
-                  placeholder="Choose a username"
-                  minLength={3}
-                />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  {usernameStatus === 'checking' && (
-                    <Loader2 className="h-4 w-4 animate-spin text-white/50" />
-                  )}
-                  {usernameStatus === 'available' && (
-                    <Check className="h-4 w-4 text-green-400" />
-                  )}
-                  {usernameStatus === 'taken' && (
-                    <AlertCircle className="h-4 w-4 text-red-400" />
-                  )}
-                </div>
-              </div>
-              {formData.username.length >= 3 && (
-                <p className={`text-xs ${
-                  usernameStatus === 'available' ? 'text-green-400' :
-                  usernameStatus === 'taken' ? 'text-red-400' :
-                  usernameStatus === 'checking' ? 'text-white/60' : 'text-white/60'
-                }`}>
-                  {usernameStatus === 'checking' && 'Checking availability...'}
-                  {usernameStatus === 'available' && '✓ Username is available'}
-                  {usernameStatus === 'taken' && '✗ Username is already taken'}
-                </p>
-              )}
-              {formData.username.length > 0 && formData.username.length < 3 && (
-                <p className="text-xs text-white/60">
-                  Username must be at least 3 characters
-                </p>
-              )}
+              <Input
+                id="username"
+                type="text"
+                value={formData.username}
+                onChange={(e) => handleInputChange('username', e.target.value.toLowerCase())}
+                className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50"
+                placeholder="Enter your username"
+                required
+                pattern="^[a-z0-9_]{6,20}$"
+                minLength={6}
+                maxLength={20}
+              />
+              <p className="text-xs text-white/60">
+                6-20 characters, lowercase letters, numbers, and underscores only
+              </p>
             </div>
           )}
-
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-white">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
 
           <div className="space-y-2">
             <Label htmlFor="password" className="text-sm font-medium text-white">
@@ -230,38 +156,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="code" className="text-sm font-medium text-white">
-              4-Digit Security Code
-            </Label>
-            <Input
-              id="code"
-              type="password"
-              value={formData.code}
-              onChange={(e) => handleInputChange('code', e.target.value.replace(/\D/g, '').slice(0, 4))}
-              className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50 text-center text-lg tracking-widest font-mono"
-              placeholder="••••"
-              required
-              maxLength={4}
-              pattern="[0-9]{4}"
-              autoComplete="off"
-            />
-            <div className="space-y-1">
-              <p className="text-xs text-white/60">
-                {activeTab === 'signup' ? 'Create a 4-digit code for secure access' : 'Enter your 4-digit security code'}
+          {generatedUsername && (
+            <div className="bg-green-500/10 border border-green-500/20 rounded-md p-3">
+              <p className="text-sm text-green-400 font-medium">
+                🎉 Your username: <span className="font-mono">{generatedUsername}</span>
               </p>
-              <div className="bg-red-500/10 border border-red-500/20 rounded-md p-3">
-                <p className="text-xs text-red-400 font-medium">
-                  ⚠️ Security Warning: Do not save this 4-digit code to any password manager or browser. Government agencies can request access to these stored codes from software companies.
-                </p>
-              </div>
+              <p className="text-xs text-green-300 mt-1">
+                Save this username - you'll need it to log in!
+              </p>
             </div>
-          </div>
+          )}
 
           <Button
             type="submit"
             className="w-full bg-white/20 hover:bg-white/30 text-white font-medium py-2.5 backdrop-blur-sm border border-white/10 disabled:opacity-50"
-            disabled={loading || (activeTab === 'signup' && (usernameStatus === 'taken' || usernameStatus === 'checking'))}
+            disabled={loading}
           >
             {loading ? (
               <>
@@ -269,15 +178,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 {activeTab === 'login' ? 'Signing In...' : 'Creating Account...'}
               </>
             ) : (
-              activeTab === 'login' ? 'Sign In' : 'Create Account'
+              activeTab === 'login' ? 'Enter The Kingdom' : 'Create Account'
             )}
           </Button>
         </form>
 
         <div className="text-center text-sm text-white/70 mt-4">
           {activeTab === 'signup' ? 
-            'Check your email for a confirmation link after signing up' :
-            'Military grade encryption ensures your data stays secure'
+            'Your username will be auto-generated for maximum security' :
+            'Military grade encryption with Argon2 password hashing'
           }
         </div>
       </DialogContent>
