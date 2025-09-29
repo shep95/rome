@@ -263,7 +263,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       });
 
       if (updateError) {
-        toast.error('Failed to update password');
+        if (updateError.message?.includes('same password') || updateError.message?.includes('same_password')) {
+          toast.error('New password must be different from your current password');
+        } else {
+          toast.error('Failed to update password: ' + updateError.message);
+        }
       } else {
         toast.success('Password updated successfully');
         setShowPasswordForm(false);
