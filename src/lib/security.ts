@@ -32,8 +32,25 @@ export class SecurityUtils {
 
 static async validatePassword(password: string): Promise<PasswordValidation> {
   // Client-side validation only; never send raw password to server
+  
+  // BUFFER OVERFLOW PROTECTION: Enforce 100 character maximum
+  if (password.length > 100) {
+    return {
+      valid: false,
+      strength: 'weak',
+      checks: {
+        length: false,
+        hasUppercase: false,
+        hasLowercase: false,
+        hasNumbers: false,
+        hasSpecialChars: false,
+        notCommon: false
+      }
+    };
+  }
+  
   const checks = {
-    length: password.length >= 12,
+    length: password.length >= 12 && password.length <= 100,
     hasUppercase: /[A-Z]/.test(password),
     hasLowercase: /[a-z]/.test(password),
     hasNumbers: /[0-9]/.test(password),

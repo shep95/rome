@@ -145,13 +145,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error: { message: emailValidation.error } };
       }
 
+      // BUFFER OVERFLOW PROTECTION: Check password length first
+      if (password.length > 100) {
+        toast({
+          variant: "destructive",
+          title: "Password too long",
+          description: "Password must be 100 characters or less for security."
+        });
+        return { error: { message: "Password too long" } };
+      }
+
       // Validate password strength
       const passwordValidation = await SecurityUtils.validatePassword(password);
       if (!passwordValidation.valid) {
         toast({
           variant: "destructive",
           title: "Password too weak",
-          description: "Please choose a stronger password with at least 12 characters, including uppercase, lowercase, numbers, and special characters."
+          description: "Please choose a stronger password with at least 12 characters (max 100), including uppercase, lowercase, numbers, and special characters."
         });
         return { error: { message: "Password too weak" } };
       }

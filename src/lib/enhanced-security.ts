@@ -23,16 +23,94 @@ export interface SecurityIssue {
 
 class EnhancedSecurityManager {
   private static instance: EnhancedSecurityManager;
-  private keyRotationInterval: number = 90 * 24 * 60 * 60 * 1000; // 90 days
+  private keyRotationInterval: number = 24 * 60 * 60 * 1000; // 24 hours (daily rotation)
   private sessionKeys: Map<string, { key: CryptoKey; timestamp: number }> = new Map();
+  private rotationCheckInterval: number | null = null;
 
   private constructor() {}
 
   static getInstance(): EnhancedSecurityManager {
     if (!EnhancedSecurityManager.instance) {
       EnhancedSecurityManager.instance = new EnhancedSecurityManager();
+      EnhancedSecurityManager.instance.startAutoKeyRotation();
     }
     return EnhancedSecurityManager.instance;
+  }
+
+  /**
+   * Start automatic key rotation every 24 hours
+   */
+  private startAutoKeyRotation(): void {
+    // Check every hour if rotation is needed
+    this.rotationCheckInterval = window.setInterval(async () => {
+      await this.checkAndRotateKeys();
+    }, 60 * 60 * 1000); // Check every hour
+    
+    // Also check immediately on startup
+    this.checkAndRotateKeys();
+  }
+
+  /**
+   * Check if keys need rotation and rotate if necessary
+   */
+  private async checkAndRotateKeys(): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const lastRotation = await this.getLastKeyRotationTime();
+      const now = Date.now();
+      
+      if (!lastRotation || (now - lastRotation) >= this.keyRotationInterval) {
+        console.log('Automatic key rotation triggered');
+        
+        const response = await supabase.functions.invoke('crypto-utils', {
+          body: {
+            action: 'rotate_keys'
+          }
+        });
+
+        if (!response.error) {
+          await this.setLastKeyRotationTime(now);
+          console.log('Keys rotated successfully');
+        }
+      }
+    } catch (error) {
+      console.error('Auto key rotation check failed:', error);
+    }
+  }
+
+  /**
+   * Get last key rotation timestamp from secure storage
+   */
+  private async getLastKeyRotationTime(): Promise<number | null> {
+    try {
+      const stored = localStorage.getItem('rome_last_key_rotation');
+      return stored ? parseInt(stored, 10) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Store last key rotation timestamp
+   */
+  private async setLastKeyRotationTime(timestamp: number): Promise<void> {
+    try {
+      localStorage.setItem('rome_last_key_rotation', timestamp.toString());
+    } catch (error) {
+      console.error('Failed to store rotation timestamp:', error);
+    }
+  }
+
+  /**
+   * Stop automatic key rotation (cleanup)
+   */
+  stopAutoKeyRotation(): void {
+    if (this.rotationCheckInterval) {
+      clearInterval(this.rotationCheckInterval);
+      this.rotationCheckInterval = null;
+    }
   }
 
   /**
@@ -198,7 +276,7 @@ class EnhancedSecurityManager {
           severity: 'medium',
           description: 'Keys are overdue for rotation',
           impact: 'Increased risk if keys are compromised over time',
-          solution: 'Implement automatic key rotation every 90 days'
+          solution: 'Automatic key rotation occurs every 24 hours'
         });
         penalty += 10;
       }

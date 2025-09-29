@@ -138,6 +138,47 @@ serve(async (req) => {
       case 'signup': {
         const { email, password, loginUsername } = data;
         
+        // BUFFER OVERFLOW PROTECTION: Limit payload sizes
+        if (!email || !password || !loginUsername) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'All fields are required'
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        if (password.length > 100) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Password must be 100 characters or less'
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        if (email.length > 255) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Email must be 255 characters or less'
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        if (loginUsername.length > 50) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Username must be 50 characters or less'
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
         // Check if login username already exists
         const { data: existingProfile } = await supabase
           .from('profiles')
@@ -267,6 +308,37 @@ serve(async (req) => {
       
       case 'signin': {
         const { loginUsername, password } = data;
+        
+        // BUFFER OVERFLOW PROTECTION: Limit payload sizes
+        if (!loginUsername || !password) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'All fields are required'
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        if (password.length > 100) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Invalid credentials'
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        if (loginUsername.length > 50) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Invalid credentials'
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
         
         // Find user by login username
         const { data: profile, error: profileError } = await supabase
