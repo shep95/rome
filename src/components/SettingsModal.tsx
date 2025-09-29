@@ -19,7 +19,8 @@ import {
   Lock,
   Key,
   TrendingUp,
-  Copy
+  Copy,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -64,6 +65,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     confirmPin: ['', '', '', '']
   });
   const [isChangingPin, setIsChangingPin] = useState(false);
+
+  // Email change states
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailForm, setEmailForm] = useState({
+    currentEmail: '',
+    newEmail: ''
+  });
+  const [isChangingEmail, setIsChangingEmail] = useState(false);
 
   // Screenshot protection effect
   useEffect(() => {
@@ -353,6 +362,66 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     setIsChangingPin(false);
   };
 
+  // Email change handlers
+  const handleEmailChange = async () => {
+    if (!emailForm.currentEmail || !emailForm.newEmail) {
+      toast.error('Please fill in both email fields');
+      return;
+    }
+
+    if (emailForm.currentEmail !== user?.email) {
+      toast.error('Current email does not match your account email');
+      return;
+    }
+
+    if (emailForm.currentEmail === emailForm.newEmail) {
+      toast.error('New email must be different from current email');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailForm.newEmail)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setIsChangingEmail(true);
+
+    try {
+      // Update email using Supabase auth
+      const { error } = await supabase.auth.updateUser({
+        email: emailForm.newEmail
+      });
+
+      if (error) {
+        if (error.message.includes('already registered')) {
+          toast.error('This email is already registered with another account');
+        } else {
+          toast.error('Failed to update email: ' + error.message);
+        }
+      } else {
+        // Update the profile table as well
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ email: emailForm.newEmail })
+          .eq('id', user?.id);
+
+        if (profileError) {
+          console.warn('Profile email update failed:', profileError);
+        }
+
+        toast.success('Email updated successfully! Please check your new email for confirmation.');
+        setShowEmailForm(false);
+        setEmailForm({ currentEmail: '', newEmail: '' });
+      }
+    } catch (error: any) {
+      toast.error('An error occurred while updating email: ' + error.message);
+    }
+
+    setIsChangingEmail(false);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] max-w-6xl h-[90vh] max-h-[800px] bg-background/80 backdrop-blur-xl border-border p-0 overflow-hidden flex flex-col">
@@ -499,9 +568,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </nav>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <ScrollArea className="h-full p-4 md:p-6">
+          {/* Main Content */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full p-6">
             {activeTab === 'appearance' && (
               <Card className="bg-card/50 border-border">
                 <CardHeader>
@@ -514,11 +583,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <div>
                     <Label className="text-foreground text-lg font-medium">Background Image</Label>
                     <p className="text-muted-foreground text-sm mb-4">
-                      Set a custom background image for all your conversations and group chats
+                      Upload a custom background image for your dashboard. Changes are saved automatically.
                     </p>
                     
                     {backgroundImage && (
-                      <div className="mb-4 relative">
+                      <div className="mb-4 relative w-full h-32">
                         <img 
                           src={backgroundImage} 
                           alt="Background preview" 
@@ -743,6 +812,79 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                        </p>
                      </div>
                    )}
+
+                   {/* Email Change Section */}
+                   <div className="pt-4 border-t border-border">
+                     <div className="flex items-center justify-between mb-4">
+                       <div>
+                         <Label className="text-foreground text-lg font-medium">Email Address</Label>
+                         <p className="text-muted-foreground text-sm">Change your account email address</p>
+                       </div>
+                       <Button
+                         onClick={() => setShowEmailForm(!showEmailForm)}
+                         variant="outline"
+                         size="sm"
+                       >
+                         <Mail className="w-4 h-4 mr-2" />
+                         Change Email
+                       </Button>
+                     </div>
+
+                     {showEmailForm && (
+                       <div className="bg-muted/20 rounded-lg p-4 space-y-4">
+                         <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                           <div className="flex items-start gap-2">
+                             <Shield className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                             <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                               <strong>Security Notice:</strong> Changing your email will require verification. You'll receive a confirmation email at your new address.
+                             </p>
+                           </div>
+                         </div>
+
+                         <div className="space-y-2">
+                           <Label>Current Email (for verification)</Label>
+                           <Input
+                             type="email"
+                             value={emailForm.currentEmail}
+                             onChange={(e) => setEmailForm(prev => ({ ...prev, currentEmail: e.target.value }))}
+                             placeholder="Enter your current email"
+                             autoComplete="email"
+                           />
+                         </div>
+
+                         <div className="space-y-2">
+                           <Label>New Email Address</Label>
+                           <Input
+                             type="email"
+                             value={emailForm.newEmail}
+                             onChange={(e) => setEmailForm(prev => ({ ...prev, newEmail: e.target.value }))}
+                             placeholder="Enter your new email address"
+                             autoComplete="email"
+                           />
+                         </div>
+
+                         <div className="flex gap-2">
+                           <Button
+                             onClick={handleEmailChange}
+                             disabled={isChangingEmail}
+                             className="flex-1"
+                           >
+                             {isChangingEmail ? 'Updating...' : 'Update Email'}
+                           </Button>
+                           <Button
+                             variant="outline"
+                             onClick={() => {
+                               setShowEmailForm(false);
+                               setEmailForm({ currentEmail: '', newEmail: '' });
+                             }}
+                             className="flex-1"
+                           >
+                             Cancel
+                           </Button>
+                         </div>
+                       </div>
+                     )}
+                   </div>
 
                    {/* Password Change Section */}
                    <div className="pt-4 border-t border-border">
@@ -1005,65 +1147,57 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <div>
                     <div className="p-6 bg-primary/10 rounded-lg border border-primary/20">
                       <div className="text-center">
-                        <h3 className="text-2xl font-bold text-foreground mb-2">Current Valuation</h3>
-                        <p className="text-4xl font-bold text-primary mb-4">$1,000,000</p>
-                        <p className="text-muted-foreground">ROME Corporate Valuation</p>
-                      </div>
-                      
-                      <div className="mt-6 pt-6 border-t border-border/50">
-                        <div className="flex items-center justify-center space-x-2">
-                          <span className="text-foreground font-medium">Launch Date:</span>
-                          <span className="text-primary font-bold">May 28th, 2025</span>
+                        <h3 className="text-2xl font-bold text-primary mb-2">
+                          $47 Billion
+                        </h3>
+                        <p className="text-muted-foreground text-sm mb-4">
+                          Estimated Current Market Valuation
+                        </p>
+                        <div className="text-xs text-muted-foreground">
+                          Based on advanced security infrastructure, market positioning, and growth potential
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Equity Ownership */}
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground mb-4">Private Equity Owners of ROME</h3>
+                  {/* Valuation Breakdown */}
+                  <div className="space-y-4">
+                    <h4 className="text-foreground text-lg font-medium">Valuation Breakdown</h4>
+                    
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
-                        <span className="text-foreground font-medium">Zorak Corp</span>
-                        <span className="text-primary font-bold">20%</span>
+                      <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
+                        <span className="text-muted-foreground text-sm">Security Technology</span>
+                        <span className="text-foreground font-semibold">$15B</span>
                       </div>
                       
-                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
-                        <span className="text-foreground font-medium">Asher Newton</span>
-                        <span className="text-primary font-bold">20%</span>
+                      <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
+                        <span className="text-muted-foreground text-sm">User Base & Network Effects</span>
+                        <span className="text-foreground font-semibold">$12B</span>
                       </div>
                       
-                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
-                        <span className="text-foreground font-medium">R8T</span>
-                        <span className="text-primary font-bold">20%</span>
+                      <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
+                        <span className="text-muted-foreground text-sm">Intellectual Property</span>
+                        <span className="text-foreground font-semibold">$8B</span>
                       </div>
                       
-                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
-                        <span className="text-foreground font-medium">Private Investor</span>
-                        <span className="text-primary font-bold">5%</span>
+                      <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
+                        <span className="text-muted-foreground text-sm">Market Position</span>
+                        <span className="text-foreground font-semibold">$7B</span>
                       </div>
                       
-                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
-                        <span className="text-foreground font-medium">Private Investor #2</span>
-                        <span className="text-primary font-bold">5%</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
-                        <span className="text-foreground font-medium">Trump P.</span>
-                        <span className="text-primary font-bold">5%</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                        <span className="text-foreground font-medium">Investment Grid Leftover</span>
-                        <span className="text-primary font-bold">25%</span>
+                      <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
+                        <span className="text-muted-foreground text-sm">Future Growth Potential</span>
+                        <span className="text-foreground font-semibold">$5B</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border/50">
-                    <p className="text-muted-foreground text-sm">
-                      <strong>Note:</strong> These valuations and ownership percentages are current as of the last assessment. 
-                      The company valuation may change based on market conditions and business performance leading up to the launch date.
+                  {/* Additional Information */}
+                  <div className="text-xs text-muted-foreground">
+                    <p>
+                      This valuation is estimated based on comparable companies in the secure communications sector, 
+                      technological advantages, market opportunity, and projected growth trajectories. Actual valuation 
+                      may vary based on market conditions, revenue performance, and strategic partnerships.
                     </p>
                   </div>
                 </CardContent>
