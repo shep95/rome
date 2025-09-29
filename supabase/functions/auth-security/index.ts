@@ -75,8 +75,8 @@ serve(async (req) => {
           .limit(1);
 
         const remaining = rows && rows.length ? Math.max(0, max - rows[0].count) : max;
-        const allowed = remaining > 0;
-        return new Response(JSON.stringify({ allowed, remainingAttempts: remaining }), {
+        const isAllowed = remaining > 0;
+        return new Response(JSON.stringify({ allowed: isAllowed, remainingAttempts: remaining }), {
           headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
         });
       }

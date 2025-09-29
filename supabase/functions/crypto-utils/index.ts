@@ -6,6 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Utility function to convert Uint8Array to proper ArrayBuffer for Deno
+function toArrayBuffer(uint8Array: Uint8Array): ArrayBuffer {
+  // Create a new ArrayBuffer and copy the data
+  const buffer = new ArrayBuffer(uint8Array.byteLength);
+  const view = new Uint8Array(buffer);
+  view.set(uint8Array);
+  return buffer;
+}
+
 // Enhanced Signal Protocol with Double Ratchet Implementation
 class EnhancedSignalCrypto {
   // Security constants
@@ -59,7 +68,7 @@ class EnhancedSignalCrypto {
     const signature = await crypto.subtle.sign(
       "Ed25519",
       identityPrivate,
-      prekeyPublic
+      toArrayBuffer(prekeyPublic)
     );
     return new Uint8Array(signature);
   }
@@ -185,8 +194,8 @@ class EnhancedSignalCrypto {
     const isValid = await crypto.subtle.verify(
       "HMAC",
       keyMaterial.macKey,
-      hmac,
-      hmacData
+      toArrayBuffer(hmac),
+      toArrayBuffer(hmacData)
     );
 
     if (!isValid) {
@@ -197,11 +206,11 @@ class EnhancedSignalCrypto {
     const decryptedData = await crypto.subtle.decrypt(
       {
         name: "AES-GCM",
-        iv: iv,
-        additionalData: header
+        iv: toArrayBuffer(iv),
+        additionalData: toArrayBuffer(header)
       },
       keyMaterial.encryptionKey,
-      encryptedData
+      toArrayBuffer(encryptedData)
     );
 
     const decoder = new TextDecoder();
@@ -240,9 +249,9 @@ class EnhancedSignalCrypto {
     
     // Encrypt the private key
     const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: toArrayBuffer(iv) },
       encryptionKey,
-      privateKey
+      toArrayBuffer(privateKey)
     );
 
     return {
@@ -268,7 +277,7 @@ class EnhancedSignalCrypto {
     const decryptionKey = await crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: toArrayBuffer(salt),
         iterations: this.PBKDF2_ITERATIONS,
         hash: 'SHA-512'
       },
@@ -284,7 +293,7 @@ class EnhancedSignalCrypto {
     );
     
     const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: toArrayBuffer(iv) },
       decryptionKey,
       encryptedBytes
     );
@@ -304,7 +313,7 @@ class EnhancedSignalCrypto {
   static async ratchetChainKey(chainKey: Uint8Array): Promise<{ newChainKey: Uint8Array; messageKey: Uint8Array }> {
     const hmacKey = await crypto.subtle.importKey(
       "raw",
-      chainKey,
+      toArrayBuffer(chainKey),
       { name: "HMAC", hash: "SHA-512" },
       false,
       ["sign"]
@@ -770,7 +779,7 @@ async function verifyKeyIntegrity(supabase: any, userId: string) {
     const needsRotation = daysSinceCreation > 90;
     
     // Check prekey availability
-    const availablePrekeys = prekeys?.filter(pk => !pk.used_at).length || 0;
+    const availablePrekeys = prekeys?.filter((pk: any) => !pk.used_at).length || 0;
     const needsMorePrekeys = availablePrekeys < 10;
 
     return new Response(

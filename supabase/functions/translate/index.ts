@@ -161,8 +161,8 @@ async function tryTranslation(text: string, source: string, target: string) {
       } else {
         console.log(`⚠️ ${provider.name} returned same text or empty result`);
       }
-    } catch (error) {
-      console.log(`❌ ${provider.name} failed:`, error.message);
+    } catch (error: unknown) {
+      console.log(`❌ ${provider.name} failed:`, (error as Error).message || String(error));
       continue; // Try next provider
     }
   }
@@ -199,7 +199,7 @@ serve(async (req) => {
       });
     }
 
-    if (!target || !languageMap[target]) {
+    if (!target || !languageMap[target as keyof typeof languageMap]) {
       return new Response(JSON.stringify({ 
         error: 'Invalid target language code',
         availableLanguages: Object.keys(languageMap)
@@ -215,7 +215,7 @@ serve(async (req) => {
         translated: q,
         sourceLanguage: source,
         targetLanguage: target,
-        targetLanguageName: languageMap[target].name,
+        targetLanguageName: languageMap[target as keyof typeof languageMap]?.name || target,
         skipped: true
       }), { headers: corsHeaders });
     }
@@ -231,7 +231,7 @@ serve(async (req) => {
         translated: q, // Return original text as fallback
         sourceLanguage: source,
         targetLanguage: target,
-        targetLanguageName: languageMap[target].name,
+        targetLanguageName: languageMap[target as keyof typeof languageMap]?.name || target,
         fallback: true,
         error: 'Translation services temporarily unavailable, showing original text'
       }), { headers: corsHeaders });
@@ -241,14 +241,14 @@ serve(async (req) => {
       translated,
       sourceLanguage: source,
       targetLanguage: target,
-      targetLanguageName: languageMap[target].name
+      targetLanguageName: languageMap[target as keyof typeof languageMap]?.name || target
     }), { headers: corsHeaders });
 
   } catch (e) {
     console.error('❌ Translation service error:', e);
     return new Response(JSON.stringify({ 
       error: 'Internal translation service error',
-      message: String(e?.message || e)
+      message: String((e as any)?.message || e)
     }), { 
       status: 500, 
       headers: corsHeaders 
