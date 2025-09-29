@@ -1,5 +1,8 @@
 project_id = "mnijromffaalvpadojbj"
 
+[functions.rome-auth]
+verify_jwt = false
+
 [functions.auth-security]
 verify_jwt = true
 

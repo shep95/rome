@@ -201,53 +201,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string, code?: string) => {
+  const signIn = async (username: string, password: string) => {
     try {
-
-      // Validate 4-digit code
-      if (!code || code.length !== 4 || !/^\d{4}$/.test(code)) {
+      // Validate username format
+      if (!username || !/^[a-z0-9_]{6,20}$/.test(username)) {
         toast({
           variant: "destructive",
-          title: "Invalid security code",
-          description: "Please enter your 4-digit security code."
+          title: "Invalid username",
+          description: "Username must be 6-20 characters, lowercase letters, numbers, and underscores only."
         });
-        return { error: { message: "Invalid code" } };
+        return { error: { message: "Invalid username format" } };
       }
 
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      // Call secure signin endpoint
+      const response = await supabase.functions.invoke('rome-auth', {
+        body: {
+          action: 'signin',
+          data: { username, password }
+        }
       });
 
-      if (error) {
-        
-        if (error.message.includes('Invalid login credentials')) {
-          toast({
-            variant: "destructive",
-            title: "Invalid credentials",
-            description: "Please check your email and password."
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Sign in failed",
-            description: error.message
-          });
-        }
-        return { error };
-      }
-
-      // Verify security code against stored value
-      const storedCode = authData.user?.user_metadata?.security_code;
-      if (!storedCode || code !== storedCode) {
-        // Sign out the user since they provided wrong security code
-        await supabase.auth.signOut();
+      if (response.error || !response.data?.success) {
+        const errorMsg = response.data?.error || response.error?.message || 'Sign in failed';
         toast({
           variant: "destructive",
-          title: "Invalid security code",
-          description: "The 4-digit security code you entered is incorrect."
+          title: "Invalid credentials",
+          description: "Please check your username and password."
         });
-        return { error: { message: "Invalid security code" } };
+        return { error: { message: errorMsg } };
+      }
+
+      // Now sign in with Supabase using the email
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: response.data.email,
+        password: password
+      });
+
+      if (authError) {
+        toast({
+          variant: "destructive",
+          title: "Authentication failed",
+          description: "Please try again."
+        });
+        return { error: authError };
       }
 
       // On successful login, initialize crypto keys if they don't exist
@@ -260,10 +256,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.log('Crypto keys already exist or initialization failed:', err);
         }
       }, 1000);
-        
-      // Fresh login, no PIN verification needed
-      setRequiresPinVerification(false);
-      setPinVerified(true);
+
+      toast({
+        title: "Welcome back!",
+        description: `Signed in as ${response.data.username}`
+      });
 
       return { error: null };
     } catch (error: any) {
@@ -275,6 +272,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { error };
     }
   };
+
   const signOut = async () => {
     try {
       // Store critical user data before clearing
