@@ -18,7 +18,8 @@ import {
   EyeOff,
   Lock,
   Key,
-  TrendingUp
+  TrendingUp,
+  Copy
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -37,7 +38,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [screenshotProtection, setScreenshotProtection] = useState(false);
   const [showUsername, setShowUsername] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [profileData, setProfileData] = useState<{username?: string, login_username?: string, display_name?: string} | null>(null);
   const backgroundInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
@@ -619,8 +619,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       {/* Username Section */}
                       <div className="space-y-3">
                         <div>
-                          <Label className="text-muted-foreground text-sm">Display Username (Public)</Label>
-                          <p className="text-foreground font-mono">{profileData?.username || 'Loading...'}</p>
+                          <div className="flex items-center justify-between mb-2">
+                            <Label className="text-muted-foreground text-sm">Display Username (Public)</Label>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (profileData?.username) {
+                                  navigator.clipboard.writeText(profileData.username);
+                                  toast.success('Username copied to clipboard');
+                                }
+                              }}
+                              className="h-8 px-3"
+                            >
+                              <Copy className="w-3 h-3 mr-1" />
+                              Copy
+                            </Button>
+                          </div>
+                          <p className="text-foreground font-mono bg-muted/20 px-3 py-2 rounded border cursor-pointer hover:bg-muted/30 transition-colors"
+                             onClick={() => {
+                               if (profileData?.username) {
+                                 navigator.clipboard.writeText(profileData.username);
+                                 toast.success('Username copied to clipboard');
+                               }
+                             }}>
+                            {profileData?.username || 'Loading...'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            This is your public display name. Click to copy.
+                          </p>
                         </div>
                         
                         <div>
@@ -661,54 +688,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
                             This is the username you use to sign in. Keep it private for security.
-                          </p>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <Label className="text-muted-foreground text-sm">Password (Private)</Label>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="h-8 px-3"
-                            >
-                              {showPassword ? (
-                                <>
-                                  <EyeOff className="w-3 h-3 mr-1" />
-                                  Hide
-                                </>
-                              ) : (
-                                <>
-                                  <Eye className="w-3 h-3 mr-1" />
-                                  Show
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          <div className="relative">
-                            <p className={`text-foreground font-mono transition-all duration-200 ${
-                              showPassword ? '' : 'filter blur-md select-none'
-                            }`}>
-                              ••••••••••••••••
-                            </p>
-                            {!showPassword && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-                                  Click "Show" to reveal
-                                </span>
-                              </div>
-                            )}
-                            {showPassword && (
-                              <div className="absolute inset-0 flex items-center">
-                                <span className="text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/20 px-2 py-1 rounded">
-                                  ⚠ Passwords cannot be retrieved for security reasons
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            For security, passwords are encrypted and cannot be displayed. Use "Change Password" below to update.
                           </p>
                         </div>
                       </div>
