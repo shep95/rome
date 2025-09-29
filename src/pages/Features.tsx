@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, MessageSquare, Users, Lock, Eye, Zap, FileText, Phone, Globe, Smartphone, UserX, ThumbsUp, AlertTriangle, Crown } from 'lucide-react';
+import { Shield, MessageSquare, Users, Lock, Eye, Zap, FileText, Phone, Globe, Smartphone, UserX, ThumbsUp, AlertTriangle, Crown, User, Settings, Inbox, Reply, ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,175 +9,191 @@ const Features = () => {
   const navigate = useNavigate();
 
   const coreFeatures = [
+    // Authentication & Security
     {
       icon: <Shield className="h-8 w-8 text-blue-500" />,
-      title: "AES-256-GCM Encryption",
-      description: "Military-grade AES-256-GCM encryption with authenticated encryption ensuring both confidentiality and authenticity of all data.",
-      category: "Core Encryption",
+      title: "Username-Based Authentication",
+      description: "Secure login with auto-generated usernames and Argon2 password hashing for maximum security.",
+      category: "Authentication & Security",
       isPremium: false
     },
     {
       icon: <Lock className="h-8 w-8 text-blue-600" />,
-      title: "Signal Protocol Implementation",
-      description: "Industry-leading Signal Protocol with Double Ratchet Algorithm providing perfect forward secrecy and post-compromise security.",
-      category: "Core Encryption",
+      title: "App Lock Protection", 
+      description: "Biometric authentication and PIN codes with automatic locking when inactive to secure your conversations.",
+      category: "Authentication & Security",
       isPremium: false
     },
     {
-      icon: <Shield className="h-8 w-8 text-blue-700" />,
-      title: "PBKDF2-SHA-512 Key Derivation",
-      description: "Secure password-based key derivation using PBKDF2 with SHA-512 and 100,000+ iterations for maximum security.",
-      category: "Core Encryption",
+      icon: <Eye className="h-8 w-8 text-amber-500" />,
+      title: "Screenshot Protection",
+      description: "Advanced screenshot and screen recording protection prevents unauthorized capture of sensitive conversations.",
+      category: "Authentication & Security",
       isPremium: false
     },
     {
-      icon: <Lock className="h-8 w-8 text-purple-500" />,
-      title: "ECDH P-256 Key Exchange",
-      description: "Elliptic Curve Diffie-Hellman key exchange using NIST P-256 curve for secure session establishment.",
-      category: "Core Encryption",
+      icon: <AlertTriangle className="h-8 w-8 text-yellow-500" />,
+      title: "Link Security Scanner",
+      description: "Automatic detection of suspicious links in messages with privacy-first scanning that protects your data.",
+      category: "Authentication & Security",
       isPremium: false
     },
-    {
-      icon: <Shield className="h-8 w-8 text-purple-600" />,
-      title: "HMAC-SHA-256 Authentication",
-      description: "Message authentication using HMAC-SHA-256 to ensure message integrity and prevent tampering.",
-      category: "Core Encryption",
-      isPremium: false
-    },
-    {
-      icon: <Lock className="h-8 w-8 text-indigo-500" />,
-      title: "HKDF Key Stretching",
-      description: "HMAC-based Key Derivation Function (HKDF) for secure key expansion and cryptographic key management.",
-      category: "Core Encryption",
-      isPremium: false
-    },
+    
+    // Core Messaging
     {
       icon: <MessageSquare className="h-8 w-8 text-green-500" />,
       title: "Secure Messaging",
-      description: "Send encrypted text messages, files, images, and videos with complete privacy and security.",
-      category: "Communication",
+      description: "Send encrypted text messages with end-to-end encryption ensuring complete privacy and security.",
+      category: "Core Messaging",
       isPremium: false
     },
     {
       icon: <Users className="h-8 w-8 text-purple-500" />,
       title: "Group Conversations",
       description: "Create secure group chats with multiple participants while maintaining end-to-end encryption.",
-      category: "Communication",
+      category: "Core Messaging", 
       isPremium: false
     },
     {
+      icon: <MessageSquare className="h-8 w-8 text-blue-500" />,
+      title: "Direct Messages",
+      description: "Private one-on-one conversations with complete encryption and security between participants.",
+      category: "Core Messaging",
+      isPremium: false
+    },
+    {
+      icon: <Inbox className="h-8 w-8 text-indigo-500" />,
+      title: "Message Requests",
+      description: "Send and receive connection requests to start new conversations securely with privacy controls.",
+      category: "Core Messaging",
+      isPremium: false
+    },
+    
+    // Advanced Features  
+    {
       icon: <UserX className="h-8 w-8 text-orange-500" />,
       title: "Anonymous Group Posting",
-      description: "Post anonymously in group conversations with rotating identifiers (Anon-1, Anon-2) while admins maintain oversight for moderation.",
-      category: "Privacy Features",
+      description: "Post anonymously in group conversations with rotating identifiers (Anon-1, Anon-2) while admins maintain oversight.",
+      category: "Advanced Features",
       isPremium: false,
       isNew: true
     },
     {
       icon: <ThumbsUp className="h-8 w-8 text-indigo-500" />,
-      title: "Contextual Reactions",
-      description: "React to messages with meaningful responses like ✅ Seen, 🔥 Agree, 🤔 Question, 👀 Looking into it, replacing cluttered text responses.",
-      category: "Communication",
-      isPremium: false,
-      isNew: true
-    },
-    {
-      icon: <FileText className="h-8 w-8 text-red-500" />,
-      title: "Secure File Sharing",
-      description: "Share files securely with automatic encryption and secure storage in military-grade infrastructure.",
-      category: "Data Protection",
+      title: "Message Reactions",
+      description: "React to messages with preset responses like ✅ Seen, 🔥 Agree, 🤔 Question, 👀 Looking into it.",
+      category: "Advanced Features", 
       isPremium: false
     },
     {
-      icon: <FileText className="h-8 w-8 text-green-500" />,
-      title: "Database-Level Encryption",
-      description: "All database fields containing sensitive data are encrypted at rest using AES-256 with unique salts per record.",
-      category: "Data Protection",
+      icon: <Reply className="h-8 w-8 text-cyan-500" />,
+      title: "Reply & Edit Messages",
+      description: "Reply to specific messages and edit sent messages with full conversation context and history.",
+      category: "Advanced Features",
       isPremium: false
     },
     {
-      icon: <Shield className="h-8 w-8 text-green-600" />,
-      title: "Secure Key Management",
-      description: "Cryptographic keys are managed using hardware security modules with automatic rotation and secure storage.",
-      category: "Data Protection",
-      isPremium: false
-    },
-    {
-      icon: <Lock className="h-8 w-8 text-green-700" />,
-      title: "Memory Protection",
-      description: "Sensitive data is securely wiped from memory after use with cryptographic memory overwriting patterns.",
-      category: "Data Protection",
-      isPremium: false
-    },
-    {
-      icon: <Eye className="h-8 w-8 text-red-500" />,
-      title: "Device Fingerprinting",
-      description: "Advanced device fingerprinting for secure authentication and anomaly detection using WebGL and Canvas API.",
-      category: "Data Protection",
-      isPremium: false
-    },
-    {
-      icon: <Lock className="h-8 w-8 text-teal-500" />,
-      title: "App Lock & Biometrics",
-      description: "Secure your app with biometric authentication, PIN codes, and automatic locking when inactive.",
-      category: "Privacy Features",
-      isPremium: false
-    },
-    {
-      icon: <Eye className="h-8 w-8 text-amber-500" />,
-      title: "Screenshot Protection",
-      description: "Advanced screenshot and screen recording protection to prevent unauthorized capture of sensitive conversations.",
-      category: "Privacy Features",
+      icon: <Eye className="h-8 w-8 text-green-600" />,
+      title: "Read Receipts & Typing Indicators",
+      description: "See who has read your messages and when someone is typing for better conversation awareness.",
+      category: "Advanced Features",
       isPremium: false
     },
     {
       icon: <Globe className="h-8 w-8 text-cyan-500" />,
-      title: "Multi-Language Support",
-      description: "Automatic message translation and support for multiple languages to communicate globally.",
-      category: "Communication",
+      title: "Real-Time Translation",
+      description: "Automatic message translation supporting multiple languages for seamless global communication.",
+      category: "Advanced Features",
+      isPremium: false
+    },
+    
+    // File & Media
+    {
+      icon: <FileText className="h-8 w-8 text-red-500" />,
+      title: "Secure File Sharing",
+      description: "Share files securely with automatic encryption and secure storage in military-grade infrastructure.",
+      category: "File & Media Sharing",
       isPremium: false
     },
     {
-      icon: <AlertTriangle className="h-8 w-8 text-yellow-500" />,
-      title: "Link Security Scanner",
-      description: "Automatic detection of suspicious links in messages with privacy-first scanning that doesn't send data to external servers.",
-      category: "Privacy Features",
-      isPremium: false,
-      isNew: true
+      icon: <ImageIcon className="h-8 w-8 text-pink-500" />,
+      title: "Media Sharing",
+      description: "Share images and videos with automatic encryption and secure delivery to conversation participants.",
+      category: "File & Media Sharing", 
+      isPremium: false
     },
     {
-      icon: <Globe className="h-8 w-8 text-blue-500" />,
-      title: "No IP Collection",
-      description: "We don't collect or log IP addresses, ensuring your location and network identity remain completely private.",
-      category: "Privacy Features",
+      icon: <FileText className="h-8 w-8 text-purple-600" />,
+      title: "Secure File Vault",
+      description: "Personal encrypted file storage with secure access controls and automatic encryption at rest.",
+      category: "File & Media Sharing",
+      isPremium: false
+    },
+    
+    // Privacy & Data Protection
+    {
+      icon: <Shield className="h-8 w-8 text-green-600" />,
+      title: "Database Encryption", 
+      description: "All sensitive data encrypted at rest with AES-256 encryption and unique salts per record.",
+      category: "Privacy & Data Protection",
+      isPremium: false
+    },
+    {
+      icon: <Lock className="h-8 w-8 text-green-700" />,
+      title: "Row Level Security",
+      description: "Database-level access controls ensuring users can only access their own data with strict policies.",
+      category: "Privacy & Data Protection", 
       isPremium: false
     },
     {
       icon: <UserX className="h-8 w-8 text-green-500" />,
       title: "Minimal Data Collection",
-      description: "Just Email & Password & No Phone Number Collection - we only collect what's absolutely necessary for secure communication.",
-      category: "Privacy Features",
+      description: "Only email and password required - no phone numbers, location data, or unnecessary personal information.",
+      category: "Privacy & Data Protection",
+      isPremium: false
+    },
+    {
+      icon: <Shield className="h-8 w-8 text-blue-700" />,
+      title: "Password Security",
+      description: "Argon2 password hashing with breach detection and secure password requirements for account protection.",
+      category: "Privacy & Data Protection",
+      isPremium: false
+    },
+    
+    // Customization
+    {
+      icon: <User className="h-8 w-8 text-purple-500" />,
+      title: "Profile Customization", 
+      description: "Custom avatars, display names, and wallpapers with secure storage and privacy controls.",
+      category: "Customization & Settings",
+      isPremium: false
+    },
+    {
+      icon: <Settings className="h-8 w-8 text-gray-500" />,
+      title: "Comprehensive Settings",
+      description: "Full control over privacy, security, appearance, and functionality with granular permission controls.",
+      category: "Customization & Settings",
       isPremium: false
     }
   ];
 
   const encryptionFeatures = [
-    "AES-256-GCM: Authenticated encryption for all messages and files",
-    "Signal Protocol: Double Ratchet Algorithm with perfect forward secrecy",
-    "PBKDF2-SHA-512: 100,000+ iterations for password-based key derivation",
-    "ECDH P-256: Elliptic curve key exchange for session establishment", 
-    "HMAC-SHA-256: Message authentication and integrity verification",
-    "HKDF: Secure key expansion and cryptographic key management",
-    "ChaCha20-Poly1305: Alternative stream cipher for high-performance encryption",
-    "Ed25519: Digital signatures for message authenticity",
-    "X25519: High-speed elliptic curve Diffie-Hellman function",
-    "Argon2: Memory-hard password hashing for enhanced security",
-    "Database Encryption: All sensitive fields encrypted at rest with unique salts",
-    "Memory Protection: Secure wiping of cryptographic material from RAM",
-    "Key Rotation: Automatic cryptographic key rotation every 30 days",
-    "Hardware Security: Integration with device secure enclaves when available",
-    "Zero-Knowledge Architecture: Server cannot decrypt user messages",
-    "Quantum-Resistant Algorithms: Post-quantum cryptography readiness"
+    "AES-256 Encryption: Database-level encryption for all sensitive data",
+    "Argon2 Password Hashing: Memory-hard password hashing with salt",
+    "SHA-256 Hashing: Secure email hashing for account recovery", 
+    "HTTPS/TLS: All communications encrypted in transit",
+    "Row Level Security: Database policies restricting data access",
+    "Encrypted File Storage: All files encrypted before storage",
+    "Secure Session Management: JWT tokens with proper expiration",
+    "Password Breach Detection: Check against known compromised passwords",
+    "Device Fingerprinting: Unique device identification for security",
+    "Rate Limiting: Prevent brute force and spam attacks",
+    "Input Validation: Server-side validation of all user inputs",
+    "CORS Protection: Controlled cross-origin resource sharing",
+    "SQL Injection Prevention: Parameterized queries and ORM protection",
+    "Memory Protection: Secure handling of sensitive data in memory",
+    "Automatic Security Updates: Regular security patches and updates",
+    "Zero-Knowledge Architecture: Server cannot access message content"
   ];
 
   const categories = Array.from(new Set(coreFeatures.map(f => f.category)));
@@ -194,12 +210,11 @@ const Features = () => {
             Privacy-First Communication Platform
           </div>
           <h2 className="text-4xl font-bold text-foreground">
-            Secure. Private. Powerful.
+            Our Live Features
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Rome combines military-grade security with modern communication features, 
-            ensuring your conversations remain private while providing all the tools you need 
-            for effective collaboration.
+            Rome is actively deployed with these working features. Every feature listed below 
+            is fully functional and available for you to use right now in our secure messaging platform.
           </p>
         </div>
 
@@ -255,10 +270,10 @@ const Features = () => {
         <div className="space-y-6">
           <div className="text-center">
             <h3 className="text-2xl font-semibold text-foreground mb-4">
-              Complete Encryption Arsenal
+              Active Security Technologies
             </h3>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Every cryptographic algorithm and security protocol implemented in Rome for maximum protection
+              Security protocols and encryption methods currently protecting your data in Rome
             </p>
           </div>
           
@@ -275,11 +290,11 @@ const Features = () => {
         {/* Call to Action */}
         <div className="text-center space-y-6 py-12">
           <h3 className="text-3xl font-bold text-foreground">
-            Ready to Experience Secure Communication?
+            Ready to Try These Features?
           </h3>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Join thousands of users who trust Rome for their private communications. 
-            Start messaging securely today.
+            All features are live and ready to use. Start experiencing secure, 
+            private communication with Rome's comprehensive feature set today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
