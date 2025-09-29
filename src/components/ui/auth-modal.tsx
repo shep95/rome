@@ -3,7 +3,7 @@ import { X, Loader2, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -59,10 +59,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl mx-4 max-w-[90vw]">
         <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-white">
+            {activeTab === 'login' ? 'Welcome Back' : 'Create Account'}
+          </DialogTitle>
           <div className="flex items-center justify-between">
-             <h2 className="text-xl font-semibold text-white">
-               {activeTab === 'login' ? 'Welcome Back' : 'Create Account'}
-            </h2>
+            <div /> {/* Spacer */}
             <Button
               variant="ghost"
               size="icon"

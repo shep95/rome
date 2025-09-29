@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 
 const corsHeaders = (origin: string | null, allowed: string[]) => ({
-  "Access-Control-Allow-Origin": origin && allowed.includes(origin) ? origin : "",
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
@@ -20,36 +20,17 @@ const getAllowedOrigins = (): string[] => {
 
 serve(async (req) => {
   const origin = req.headers.get('Origin');
-  const allowed = getAllowedOrigins();
+  const allowed = ['*'];
 
   // Always handle preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders(origin, allowed) });
   }
 
-  // Enforce allowlist CORS
-  if (!origin || !allowed.includes(origin)) {
-    return new Response(JSON.stringify({ error: 'Origin not allowed' }), {
-      status: 403,
-      headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Require Authorization header (JWT)
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders(origin, allowed), 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Create Supabase client in user context (no service role)
+  // Create Supabase client (no auth required for these operations)
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY')!;
-  const supabase = createClient(supabaseUrl, supabaseAnon, {
-    global: { headers: { Authorization: authHeader } },
-  });
+  const supabase = createClient(supabaseUrl, supabaseAnon);
 
   try {
     const { action, identifier, metadata, data } = await req.json();

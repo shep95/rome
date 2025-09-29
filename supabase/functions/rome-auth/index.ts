@@ -189,7 +189,7 @@ serve(async (req) => {
         // Hash password with Argon2
         const hashedPassword = await hashPasswordArgon2(password, passwordPepper);
         
-        // Create auth user
+        // Create auth user with upsert protection
         const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
           email: email,
           password: password,
@@ -203,34 +203,55 @@ serve(async (req) => {
         });
         
         if (authError) {
+          // If user already exists, return appropriate error
+          if (authError.message?.includes('already been registered')) {
+            return new Response(JSON.stringify({
+              success: false,
+              error: 'An account with this email already exists'
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
           throw authError;
         }
-        
-        // Store secure profile data
+
+        // Store secure profile data with conflict handling
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert({
+          .upsert({
             id: authUser.user.id,
             login_username: loginUsername,
             username: displayUsername,
             display_name: displayUsername,
             email_encrypted: hashedEmail
+          }, {
+            onConflict: 'id'
           });
           
         if (profileError) {
+          console.error('Profile insert error:', profileError);
+          // Clean up auth user if profile creation fails
+          await supabase.auth.admin.deleteUser(authUser.user.id);
           throw profileError;
         }
         
-        // Store password hash securely
+        // Store password hash securely with conflict handling
         const { error: passwordError } = await supabase
           .from('password_security')
-          .insert({
+          .upsert({
             user_id: authUser.user.id,
             password_hash: hashedPassword,
             hash_algorithm: 'argon2'
+          }, {
+            onConflict: 'user_id'
           });
           
         if (passwordError) {
+          console.error('Password security error:', passwordError);
+          // Clean up auth user and profile if password creation fails
+          await supabase.auth.admin.deleteUser(authUser.user.id);
+          await supabase.from('profiles').delete().eq('id', authUser.user.id);
           throw passwordError;
         }
         
