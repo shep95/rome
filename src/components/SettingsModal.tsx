@@ -46,7 +46,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   // Password change states
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
+    signupUsername: '',
     newPassword: '',
     confirmPassword: ''
   });
@@ -232,8 +232,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   // Password change handlers
   const handlePasswordChange = async () => {
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      toast.error('Please fill in all password fields');
+    if (!passwordForm.signupUsername || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      toast.error('Please fill in all fields');
       return;
     }
 
@@ -250,19 +250,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     setIsChangingPassword(true);
     
     try {
-      // Verify current password by attempting to re-authenticate
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user!.email!,
-        password: passwordForm.currentPassword
-      });
-
-      if (signInError) {
-        toast.error('Current password is incorrect');
+      // Verify the signup username matches the current user's login username
+      if (profileData?.login_username !== passwordForm.signupUsername) {
+        toast.error('Signup username does not match your account');
         setIsChangingPassword(false);
         return;
       }
 
-      // Update password
+      // Update password using Supabase auth
       const { error: updateError } = await supabase.auth.updateUser({
         password: passwordForm.newPassword
       });
@@ -272,7 +267,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       } else {
         toast.success('Password updated successfully');
         setShowPasswordForm(false);
-        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setPasswordForm({ signupUsername: '', newPassword: '', confirmPassword: '' });
       }
     } catch (error) {
       toast.error('An error occurred while updating password');
@@ -904,28 +899,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                      </div>
 
                      {showPasswordForm && (
-                       <div className="bg-muted/20 rounded-lg p-4 space-y-4">
-                         <div className="space-y-2">
-                           <Label>Current Password</Label>
-                           <div className="relative">
-                             <Input
-                               type={showPasswords.current ? "text" : "password"}
-                               value={passwordForm.currentPassword}
-                               onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                               placeholder="Enter current password"
-                               autoComplete="current-password"
-                             />
-                             <Button
-                               type="button"
-                               variant="ghost"
-                               size="sm"
-                               className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                               onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
-                             >
-                               {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                             </Button>
-                           </div>
-                         </div>
+                        <div className="bg-muted/20 rounded-lg p-4 space-y-4">
+                          <div className="space-y-2">
+                            <Label>Signup Username</Label>
+                            <Input
+                              type="text"
+                              value={passwordForm.signupUsername}
+                              onChange={(e) => setPasswordForm(prev => ({ ...prev, signupUsername: e.target.value }))}
+                              placeholder="Enter your signup username"
+                            />
+                          </div>
 
                          <div className="space-y-2">
                            <Label>New Password</Label>
@@ -979,16 +962,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                            >
                              {isChangingPassword ? 'Updating...' : 'Update Password'}
                            </Button>
-                           <Button
-                             variant="outline"
-                             onClick={() => {
-                               setShowPasswordForm(false);
-                               setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                             }}
-                             className="flex-1"
-                           >
-                             Cancel
-                           </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setShowPasswordForm(false);
+                                setPasswordForm({ signupUsername: '', newPassword: '', confirmPassword: '' });
+                              }}
+                              className="flex-1"
+                            >
+                              Cancel
+                            </Button>
                          </div>
                        </div>
                      )}
