@@ -18,6 +18,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    loginUsername: '',
     username: ''
   });
   const [loading, setLoading] = useState(false);
@@ -35,18 +36,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     try {
       let result;
       if (activeTab === 'signup') {
-        result = await signUp(formData.email, formData.password);
-        if (!result.error && result.username) {
-          setGeneratedUsername(result.username);
+        result = await signUp(formData.email, formData.password, formData.loginUsername);
+        if (!result.error && result.displayUsername) {
+          setGeneratedUsername(result.displayUsername);
         }
       } else {
-        result = await signIn(formData.username, formData.password);
+        result = await signIn(formData.loginUsername, formData.password);
       }
 
       if (!result.error) {
         onSuccess();
         onClose();
-        setFormData({ email: '', password: '', username: '' });
+        setFormData({ email: '', password: '', loginUsername: '', username: '' });
         setGeneratedUsername('');
       }
     } finally {
@@ -100,42 +101,64 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {activeTab === 'signup' ? (
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-white">
-                Email (Recovery Only)
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50"
-                placeholder="Enter your email for account recovery"
-                required
-              />
-              <p className="text-xs text-white/60">
-                Email is only used for account recovery. Your username will be auto-generated.
-              </p>
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="loginUsername" className="text-sm font-medium text-white">
+                  Login Username
+                </Label>
+                <Input
+                  id="loginUsername"
+                  type="text"
+                  value={formData.loginUsername}
+                  onChange={(e) => handleInputChange('loginUsername', e.target.value.toLowerCase())}
+                  className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50"
+                  placeholder="Choose your login username"
+                  required
+                  pattern="^[a-z0-9_]{6,20}$"
+                  minLength={6}
+                  maxLength={20}
+                />
+                <p className="text-xs text-white/60">
+                  6-20 characters, lowercase letters, numbers, and underscores only
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-white">
+                  Email (Recovery Only)
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50"
+                  placeholder="Enter your email for account recovery"
+                  required
+                />
+                <p className="text-xs text-white/60">
+                  Email is only used for account recovery. Your display name will be auto-generated.
+                </p>
+              </div>
+            </>
           ) : (
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-medium text-white">
-                Username
+              <Label htmlFor="loginUsername" className="text-sm font-medium text-white">
+                Login Username
               </Label>
               <Input
-                id="username"
+                id="loginUsername"
                 type="text"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value.toLowerCase())}
+                value={formData.loginUsername}
+                onChange={(e) => handleInputChange('loginUsername', e.target.value.toLowerCase())}
                 className="bg-white/10 border-white/20 focus:border-white/40 text-white placeholder:text-white/50"
-                placeholder="Enter your username"
+                placeholder="Enter your login username"
                 required
                 pattern="^[a-z0-9_]{6,20}$"
                 minLength={6}
                 maxLength={20}
               />
               <p className="text-xs text-white/60">
-                6-20 characters, lowercase letters, numbers, and underscores only
+                Use the username you created during signup
               </p>
             </div>
           )}
@@ -159,10 +182,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           {generatedUsername && (
             <div className="bg-green-500/10 border border-green-500/20 rounded-md p-3">
               <p className="text-sm text-green-400 font-medium">
-                🎉 Your username: <span className="font-mono">{generatedUsername}</span>
+                🎉 Your display name: <span className="font-mono">{generatedUsername}</span>
               </p>
               <p className="text-xs text-green-300 mt-1">
-                Save this username - you'll need it to log in!
+                This is your display name in the app. Use your login username to sign in.
               </p>
             </div>
           )}
@@ -185,7 +208,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
         <div className="text-center text-sm text-white/70 mt-4">
           {activeTab === 'signup' ? 
-            'Your username will be auto-generated for maximum security' :
+            'Your display name will be auto-generated for maximum security' :
             'Military grade encryption with Argon2 password hashing'
           }
         </div>
