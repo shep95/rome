@@ -209,7 +209,7 @@ serve(async (req) => {
               success: false,
               error: 'An account with this email already exists'
             }), {
-              status: 400,
+              status: 200,
               headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             });
           }
@@ -280,7 +280,7 @@ serve(async (req) => {
             success: false,
             error: 'Invalid credentials'
           }), {
-            status: 401,
+            status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
@@ -297,7 +297,7 @@ serve(async (req) => {
             success: false,
             error: 'Invalid credentials'
           }), {
-            status: 401,
+            status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
@@ -310,7 +310,7 @@ serve(async (req) => {
             success: false,
             error: 'Invalid credentials'
           }), {
-            status: 401,
+            status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
@@ -323,7 +323,7 @@ serve(async (req) => {
             success: false,
             error: 'Authentication failed'
           }), {
-            status: 401,
+            status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
