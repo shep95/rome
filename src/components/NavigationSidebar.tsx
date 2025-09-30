@@ -622,7 +622,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                 <h3 className="text-2xl font-bold text-foreground">Aureum</h3>
                 <div className="space-y-3 text-center">
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    Capital Asset Of Zorak & Rome | Generate Wealth Through Long & Short Trading
+                    The Capital Asset Of Zorak Corp & There Assets
                   </p>
                   <div className="space-y-2">
                     <p className="text-foreground text-sm font-medium">
