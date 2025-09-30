@@ -124,23 +124,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Extract IP address from headers (supports all browsers including Tor)
-  const getClientIP = (req: Request): string => {
-    const xForwardedFor = req.headers.get('x-forwarded-for');
-    if (xForwardedFor) {
-      return xForwardedFor.split(',')[0].trim();
-    }
-    const xRealIP = req.headers.get('x-real-ip');
-    if (xRealIP) return xRealIP;
-    const cfConnectingIP = req.headers.get('cf-connecting-ip');
-    if (cfConnectingIP) return cfConnectingIP;
-    return 'unknown';
-  };
-
-  const clientIP = getClientIP(req);
-  const userAgent = req.headers.get('user-agent') || 'unknown';
-
   try {
+    // Extract IP address from headers (supports all browsers including Tor)
+    const xForwardedFor = req.headers.get('x-forwarded-for');
+    const xRealIP = req.headers.get('x-real-ip');
+    const cfConnectingIP = req.headers.get('cf-connecting-ip');
+    const clientIP = xForwardedFor?.split(',')[0].trim() || xRealIP || cfConnectingIP || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const emailPepper = Deno.env.get('EMAIL_PEPPER') || 'DEFAULT_EMAIL_PEPPER_2024';
@@ -313,14 +304,18 @@ serve(async (req) => {
         }
         
         // Log signup with IP address
-        await supabase.rpc('log_security_event', {
-          p_user_id: authUser.user.id,
-          p_event_type: 'account_created',
-          p_event_description: `New account created for ${loginUsername}`,
-          p_ip_address: clientIP,
-          p_user_agent: userAgent,
-          p_risk_level: 'low'
-        }).catch(err => console.error('Security log error:', err));
+        try {
+          await supabase.rpc('log_security_event', {
+            p_user_id: authUser.user.id,
+            p_event_type: 'account_created',
+            p_event_description: `New account created for ${loginUsername}`,
+            p_ip_address: clientIP,
+            p_user_agent: userAgent,
+            p_risk_level: 'low'
+          });
+        } catch (logError) {
+          console.error('Security log error:', logError);
+        }
         
         return new Response(JSON.stringify({
           success: true,
@@ -405,14 +400,18 @@ serve(async (req) => {
         
         if (!isValid) {
           // Log failed login attempt with IP address
-          await supabase.rpc('log_security_event', {
-            p_user_id: profile.id,
-            p_event_type: 'login_failed',
-            p_event_description: `Failed login attempt for ${loginUsername}`,
-            p_ip_address: clientIP,
-            p_user_agent: userAgent,
-            p_risk_level: 'medium'
-          }).catch(err => console.error('Security log error:', err));
+          try {
+            await supabase.rpc('log_security_event', {
+              p_user_id: profile.id,
+              p_event_type: 'login_failed',
+              p_event_description: `Failed login attempt for ${loginUsername}`,
+              p_ip_address: clientIP,
+              p_user_agent: userAgent,
+              p_risk_level: 'medium'
+            });
+          } catch (logError) {
+            console.error('Security log error:', logError);
+          }
           
           return new Response(JSON.stringify({
             success: false,
@@ -437,14 +436,18 @@ serve(async (req) => {
         }
         
         // Log successful signin with IP address
-        await supabase.rpc('log_security_event', {
-          p_user_id: profile.id,
-          p_event_type: 'user_login',
-          p_event_description: `User ${loginUsername} logged in successfully`,
-          p_ip_address: clientIP,
-          p_user_agent: userAgent,
-          p_risk_level: 'low'
-        }).catch(err => console.error('Security log error:', err));
+        try {
+          await supabase.rpc('log_security_event', {
+            p_user_id: profile.id,
+            p_event_type: 'user_login',
+            p_event_description: `User ${loginUsername} logged in successfully`,
+            p_ip_address: clientIP,
+            p_user_agent: userAgent,
+            p_risk_level: 'low'
+          });
+        } catch (logError) {
+          console.error('Security log error:', logError);
+        }
         
         return new Response(JSON.stringify({
           success: true,
