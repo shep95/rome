@@ -626,6 +626,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                   </p>
                   <div className="space-y-2">
                     <p className="text-foreground text-sm font-medium">
+                      Markcap | $8,856,00
+                    </p>
+                    <p className="text-foreground text-sm font-medium">
                       Market Supply: 36,900,000 Tokens
                     </p>
                     <p className="text-muted-foreground text-xs">
