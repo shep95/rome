@@ -618,13 +618,16 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                 <img src={aureumLogo} alt="Aureum Logo" className="w-16 h-16 object-contain" />
               </div>
               
-              <div className="space-y-4">
+                <div className="space-y-4">
                 <h3 className="text-2xl font-bold text-foreground">Aureum</h3>
                 <div className="space-y-3 text-center">
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     The Capital Asset Of Zorak Corp & There Assets
                   </p>
                   <div className="space-y-2">
+                    <p className="text-foreground text-sm font-medium">
+                      Founded On September 28th, 2025 At 10:41:47 PM PDT
+                    </p>
                     <p className="text-foreground text-sm font-medium">
                       Markcap | $8,856,00
                     </p>

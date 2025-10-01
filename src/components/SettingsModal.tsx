@@ -1135,7 +1135,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     <div className="p-6 bg-primary/10 rounded-lg border border-primary/20">
                       <div className="text-center">
                         <h3 className="text-2xl font-bold text-primary mb-2">
-                          $47 Billion
+                          Valuation At $9.89M
                         </h3>
                         <p className="text-muted-foreground text-sm mb-4">
                           Estimated Current Market Valuation
