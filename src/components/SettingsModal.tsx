@@ -1147,32 +1147,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     </div>
                   </div>
 
-                  {/* Equity Holders */}
-                  <div className="space-y-4">
-                    <h4 className="text-foreground text-lg font-medium">Major Equity Holders</h4>
-                    
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
-                        <span className="text-muted-foreground text-sm">Zorak Corp (Primary Stakeholder)</span>
-                        <span className="text-foreground font-semibold">65%</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
-                        <span className="text-muted-foreground text-sm">Strategic Partners</span>
-                        <span className="text-foreground font-semibold">20%</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
-                        <span className="text-muted-foreground text-sm">Employee Stock Options</span>
-                        <span className="text-foreground font-semibold">10%</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
-                        <span className="text-muted-foreground text-sm">Reserved for Future Funding</span>
-                        <span className="text-foreground font-semibold">5%</span>
-                      </div>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
             )}
