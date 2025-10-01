@@ -1147,45 +1147,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     </div>
                   </div>
 
-                  {/* Valuation Breakdown */}
+                  {/* Equity Holders */}
                   <div className="space-y-4">
-                    <h4 className="text-foreground text-lg font-medium">Valuation Breakdown</h4>
+                    <h4 className="text-foreground text-lg font-medium">Major Equity Holders</h4>
                     
                     <div className="space-y-3">
                       <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
-                        <span className="text-muted-foreground text-sm">Security Technology</span>
-                        <span className="text-foreground font-semibold">$15B</span>
+                        <span className="text-muted-foreground text-sm">Zorak Corp (Primary Stakeholder)</span>
+                        <span className="text-foreground font-semibold">65%</span>
                       </div>
                       
                       <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
-                        <span className="text-muted-foreground text-sm">User Base & Network Effects</span>
-                        <span className="text-foreground font-semibold">$12B</span>
+                        <span className="text-muted-foreground text-sm">Strategic Partners</span>
+                        <span className="text-foreground font-semibold">20%</span>
                       </div>
                       
                       <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
-                        <span className="text-muted-foreground text-sm">Intellectual Property</span>
-                        <span className="text-foreground font-semibold">$8B</span>
+                        <span className="text-muted-foreground text-sm">Employee Stock Options</span>
+                        <span className="text-foreground font-semibold">10%</span>
                       </div>
                       
                       <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
-                        <span className="text-muted-foreground text-sm">Market Position</span>
-                        <span className="text-foreground font-semibold">$7B</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center p-3 bg-muted/20 rounded border border-border">
-                        <span className="text-muted-foreground text-sm">Future Growth Potential</span>
-                        <span className="text-foreground font-semibold">$5B</span>
+                        <span className="text-muted-foreground text-sm">Reserved for Future Funding</span>
+                        <span className="text-foreground font-semibold">5%</span>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Additional Information */}
-                  <div className="text-xs text-muted-foreground">
-                    <p>
-                      This valuation is estimated based on comparable companies in the secure communications sector, 
-                      technological advantages, market opportunity, and projected growth trajectories. Actual valuation 
-                      may vary based on market conditions, revenue performance, and strategic partnerships.
-                    </p>
                   </div>
                 </CardContent>
               </Card>
