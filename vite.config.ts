@@ -28,13 +28,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
     chunkSizeWarningLimit: 1000,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production',
-      },
-    },
+    minify: mode === 'production' ? 'esbuild' : false,
   },
   optimizeDeps: {
     include: ['react', 'react-dom', '@supabase/supabase-js'],
