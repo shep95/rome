@@ -1,22 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfilePersistence } from '@/hooks/useProfilePersistence';
 import { useAppLock } from '@/hooks/useAppLock';
 import { useScreenshotProtection } from '@/hooks/useScreenshotProtection';
-import { Button } from '@/components/ui/button';
 import { NavigationSidebar } from '@/components/NavigationSidebar';
 import { LiveMainContent } from '@/components/LiveMainContent';
-import { SecureFiles } from '@/components/SecureFiles';
 import { AppLock } from '@/components/SecurityLock';
-import { SettingsModal } from "@/components/SettingsModal";
-import { InboxModal } from "@/components/InboxModal";
-import { CallHistory } from "@/components/CallHistory";
-import { AboutUs } from "@/components/AboutUs";
 import { ReconnectModal } from "@/components/ReconnectModal";
-import Features from "@/pages/Features";
-import { LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+
+// Lazy load heavy components
+const SecureFiles = lazy(() => import('@/components/SecureFiles').then(m => ({ default: m.SecureFiles })));
+const Features = lazy(() => import('@/pages/Features'));
 
 const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -59,7 +55,7 @@ const Dashboard = () => {
       // Only count incoming pending requests for the notification badge
       const { data } = await supabase
         .from('message_requests')
-        .select('id')
+        .select('id', { count: 'exact', head: true })
         .eq('to_user_id', user?.id)
         .eq('status', 'pending');
       
@@ -97,21 +93,27 @@ const Dashboard = () => {
       
       {/* Main Content */}
       <div className="flex-1 pt-16 lg:pt-0 lg:ml-60 xl:ml-72 2xl:ml-80 min-h-screen w-full overflow-hidden">
-        {activeSection === 'secure-files' ? (
-          <div className="flex-1 flex items-center justify-center bg-background min-h-screen p-2 sm:p-4 md:p-6">
-            <SecureFiles />
+        <Suspense fallback={
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-foreground">Loading...</div>
           </div>
-        ) : activeSection === 'features' ? (
-          <div className="flex-1 bg-background min-h-screen">
-            <Features />
-          </div>
-        ) : (
-          <LiveMainContent 
-            activeSection={activeSection}
-            messageRequestCount={messageRequestCount}
-            onMessageRequestCountChange={setMessageRequestCount}
-          />
-        )}
+        }>
+          {activeSection === 'secure-files' ? (
+            <div className="flex-1 flex items-center justify-center bg-background min-h-screen p-2 sm:p-4 md:p-6">
+              <SecureFiles />
+            </div>
+          ) : activeSection === 'features' ? (
+            <div className="flex-1 bg-background min-h-screen">
+              <Features />
+            </div>
+          ) : (
+            <LiveMainContent 
+              activeSection={activeSection}
+              messageRequestCount={messageRequestCount}
+              onMessageRequestCountChange={setMessageRequestCount}
+            />
+          )}
+        </Suspense>
       </div>
     </div>
     
