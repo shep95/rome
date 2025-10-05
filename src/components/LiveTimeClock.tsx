@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface LiveTimeClockProps {
   startDate: string;
 }
 
-export const LiveTimeClock = ({ startDate }: LiveTimeClockProps) => {
+export const LiveTimeClock: React.FC<LiveTimeClockProps> = ({ startDate }) => {
   const [elapsed, setElapsed] = useState('');
 
   useEffect(() => {
