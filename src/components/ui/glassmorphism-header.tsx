@@ -42,7 +42,7 @@ export const GlassmorphismHeader: React.FC<GlassmorphismHeaderProps> = ({ onSign
           />
           
           {/* Main header container */}
-          <div className="relative bg-background/80 backdrop-blur-md border border-border/20 rounded-2xl shadow-lg">
+          <div className="relative bg-white/5 dark:bg-black/10 backdrop-blur-xl border border-white/10 dark:border-white/5 rounded-2xl shadow-lg">
             <div className="flex items-center justify-between px-6 py-4">
               {/* Logo */}
               <div className="flex items-center space-x-2">
