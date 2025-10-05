@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MobileSidebar, MobileSidebarTrigger } from '@/components/ui/mobile-sidebar';
-import { 
+import { LiveTimeClock } from '@/components/LiveTimeClock';
+import {
   MessageCircle, 
   Phone, 
   Settings, 
@@ -631,6 +632,12 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                     <p className="text-foreground text-sm font-medium">
                       Market Supply: 36,900,000 Tokens
                     </p>
+                    <div className="mt-4 space-y-1">
+                      <p className="text-muted-foreground text-xs">
+                        September 28, 2025 at 9:41:47 PM PDT
+                      </p>
+                      <LiveTimeClock startDate="2025-09-28T21:41:47-07:00" />
+                    </div>
                   </div>
                 </div>
               </div>
