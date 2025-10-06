@@ -627,9 +627,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                   </p>
                   <div className="space-y-2">
                     <p className="text-foreground text-sm font-medium">
-                      Founded On September 29th, 2025 At 05:41:47 UTC
-                    </p>
-                    <p className="text-foreground text-sm font-medium">
                       Market Supply: 36,900,000 Tokens
                     </p>
                     <div className="mt-4 space-y-1">
