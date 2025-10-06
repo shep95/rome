@@ -178,22 +178,32 @@ const Features = () => {
   ];
 
   const encryptionFeatures = [
-    "AES-256 Encryption: Database-level encryption for all sensitive data",
-    "Argon2 Password Hashing: Memory-hard password hashing with salt",
-    "SHA-256 Hashing: Secure email hashing for account recovery", 
-    "HTTPS/TLS: All communications encrypted in transit",
-    "Row Level Security: Database policies restricting data access",
-    "Encrypted File Storage: All files encrypted before storage",
-    "Secure Session Management: JWT tokens with proper expiration",
-    "Password Breach Detection: Check against known compromised passwords",
-    "Device Fingerprinting: Unique device identification for security",
-    "Rate Limiting: Prevent brute force and spam attacks",
-    "Input Validation: Server-side validation of all user inputs",
-    "CORS Protection: Controlled cross-origin resource sharing",
+    "AES-256-GCM Message Encryption: Authenticated Encryption with Associated Data (AEAD) for end-to-end message security",
+    "PBKDF2 Key Derivation: 250,000 iterations with SHA-512 and 32-byte salt for message encryption keys",
+    "Double-Layered Key Storage: Private keys encrypted with AES-256-GCM using 500,000 PBKDF2 iterations",
+    "Ed25519 Identity Keys: Elliptic curve digital signature algorithm for user identity verification",
+    "X25519 Ephemeral Keys: Curve25519 ECDH for secure key exchange and perfect forward secrecy",
+    "ECDH P-384 Curve: Enhanced key pair generation for additional cryptographic strength",
+    "HKDF-SHA-512: HMAC-based key derivation function for shared secret generation",
+    "HMAC-SHA-512 Authentication: 512-bit message authentication codes for integrity verification",
+    "ECDSA P-384 Digital Signatures: Elliptic curve signatures with SHA-512 for non-repudiation",
+    "Signal Protocol Architecture: Industry-standard E2EE protocol with double ratchet algorithm",
+    "Forward Secrecy & Double Ratchet: HMAC-SHA-512 based chain key ratcheting for message security",
+    "Password Security: PBKDF2 with SHA-512, 250,000 iterations, and 32-byte salt for account passwords",
+    "K-Anonymity Breach Detection: Client-side SHA-1 hashing for privacy-preserving password breach checks",
+    "Cryptographically Secure Sessions: 64-byte random session tokens with timestamp validation",
+    "GCM Authentication Tags: Built-in authentication for all encrypted data",
+    "Zero-Knowledge Architecture: Server cannot access message content or encryption keys",
+    "Perfect Forward Secrecy: Ephemeral keys ensure past communications remain secure if keys are compromised",
+    "Replay Attack Protection: Timestamp and nonce validation prevents message replay attacks",
+    "Buffer Overflow Protection: Secure memory handling prevents exploitation vulnerabilities",
+    "Military-Grade Standards: Meets NSA Suite B cryptographic standards for classified information",
+    "HTTPS/TLS 1.3: All communications encrypted in transit with latest TLS protocol",
+    "Row Level Security: Database policies restricting data access at the database level",
+    "Encrypted File Storage: All files encrypted with AES-256-GCM before storage",
+    "Rate Limiting: Prevent brute force and spam attacks with intelligent throttling",
     "SQL Injection Prevention: Parameterized queries and ORM protection",
-    "Memory Protection: Secure handling of sensitive data in memory",
-    "Automatic Security Updates: Regular security patches and updates",
-    "Zero-Knowledge Architecture: Server cannot access message content"
+    "CORS Protection: Controlled cross-origin resource sharing for API security"
   ];
 
   const categories = Array.from(new Set(coreFeatures.map(f => f.category)));
