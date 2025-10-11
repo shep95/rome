@@ -53,11 +53,12 @@ class MilitaryEncryption {
     const iv = this.generateIV();
     
     // Encrypt the private key
-    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: toUint8Array(iv) },
+      // @ts-ignore - TypeScript has issues with Uint8Array<ArrayBufferLike> vs BufferSource but runtime is correct
+      { name: 'AES-GCM', iv: toUint8Array(iv) as Uint8Array },
       encryptionKey,
-      toUint8Array(privateKey)
+      // @ts-ignore
+      toUint8Array(privateKey) as Uint8Array
     );
     
     // Combine salt + iv + encrypted data
@@ -94,11 +95,12 @@ class MilitaryEncryption {
       const decryptionKey = await this.deriveKeyForPrivateKeyStorage(keySpecificData, salt);
       
       // Decrypt the private key
-      // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
       const decrypted = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: toUint8Array(iv) },
+        // @ts-ignore - TypeScript has issues with Uint8Array<ArrayBufferLike> vs BufferSource but runtime is correct
+        { name: 'AES-GCM', iv: toUint8Array(iv) as Uint8Array },
         decryptionKey,
-        toUint8Array(encryptedData)
+        // @ts-ignore
+        toUint8Array(encryptedData) as Uint8Array
       );
       
       return new Uint8Array(decrypted);
@@ -123,11 +125,11 @@ class MilitaryEncryption {
     );
 
     // Derive encryption key with enhanced parameters
-    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: toUint8Array(salt),
+        // @ts-ignore - TypeScript has issues with Uint8Array<ArrayBufferLike> vs BufferSource but runtime is correct
+        salt: toUint8Array(salt) as Uint8Array,
         iterations: 500000, // Even higher iteration count for private key encryption
         hash: 'SHA-512'
       },
@@ -222,10 +224,10 @@ class MilitaryEncryption {
   ): Promise<CryptoKey> {
     const keyData = await this.decryptPrivateKeyFromStorage(encryptedKey, userPassword, keyType);
     
-    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     return crypto.subtle.importKey(
       'pkcs8',
-      toUint8Array(keyData),
+      // @ts-ignore - TypeScript has issues with Uint8Array<ArrayBufferLike> vs BufferSource but runtime is correct
+      toUint8Array(keyData) as Uint8Array,
       {
         name: 'ECDH',
         namedCurve: 'P-384'
@@ -248,11 +250,11 @@ class MilitaryEncryption {
       ['deriveKey']
     );
 
-    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: toUint8Array(salt),
+        // @ts-ignore - TypeScript has issues with Uint8Array<ArrayBufferLike> vs BufferSource but runtime is correct
+        salt: toUint8Array(salt) as Uint8Array,
         iterations: 250000, // Enhanced iteration count for military-grade security
         hash: 'SHA-512' // Upgraded from SHA-256 to SHA-512
       },
@@ -297,9 +299,9 @@ class MilitaryEncryption {
     const hmacKey = await this.deriveHMACKey(password, salt);
     
     // AES-GCM encryption (AEAD provides integrity and confidentiality)
-    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: toUint8Array(iv) },
+      // @ts-ignore - TypeScript has issues with Uint8Array<ArrayBufferLike> vs BufferSource but runtime is correct
+      { name: 'AES-GCM', iv: toUint8Array(iv) as Uint8Array },
       encryptionKey,
       encoder.encode(data)
     );
@@ -347,12 +349,13 @@ class MilitaryEncryption {
       hmacData.set(iv, salt.length);
       hmacData.set(encryptedData, salt.length + iv.length);
       
-      // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
       const isValid = await crypto.subtle.verify(
         'HMAC',
         hmacKey,
-        toUint8Array(hmac),
-        toUint8Array(hmacData)
+        // @ts-ignore - TypeScript has issues with Uint8Array<ArrayBufferLike> vs BufferSource but runtime is correct
+        toUint8Array(hmac) as Uint8Array,
+        // @ts-ignore
+        toUint8Array(hmacData) as Uint8Array
       );
 
       if (!isValid) {
@@ -360,11 +363,12 @@ class MilitaryEncryption {
       }
 
       // Decrypt after successful authentication
-      // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
       const decrypted = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: toUint8Array(iv) },
+        // @ts-ignore - TypeScript has issues with Uint8Array<ArrayBufferLike> vs BufferSource but runtime is correct
+        { name: 'AES-GCM', iv: toUint8Array(iv) as Uint8Array },
         encryptionKey,
-        toUint8Array(encryptedData)
+        // @ts-ignore
+        toUint8Array(encryptedData) as Uint8Array
       );
 
       const decoder = new TextDecoder();
@@ -390,11 +394,11 @@ class MilitaryEncryption {
       ['deriveKey']
     );
 
-    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: toUint8Array(salt),
+        // @ts-ignore - TypeScript has issues with Uint8Array<ArrayBufferLike> vs BufferSource but runtime is correct
+        salt: toUint8Array(salt) as Uint8Array,
         iterations: 250000,
         hash: 'SHA-512'
       },
@@ -475,11 +479,11 @@ class MilitaryEncryption {
       ['deriveBits']
     );
 
-    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     const hashBits = await crypto.subtle.deriveBits(
       {
         name: 'PBKDF2',
-        salt: toUint8Array(salt),
+        // @ts-ignore - TypeScript has issues with Uint8Array<ArrayBufferLike> vs BufferSource but runtime is correct
+        salt: toUint8Array(salt) as Uint8Array,
         iterations: 250000,
         hash: 'SHA-512'
       },
