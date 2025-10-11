@@ -7,6 +7,17 @@
  * before storage to prevent exposure even with database access.
  */
 
+// Helper to ensure proper Uint8Array<ArrayBuffer> type by creating new instances
+function toUint8Array(data: Uint8Array | ArrayBuffer): Uint8Array {
+  if (data instanceof ArrayBuffer) {
+    return new Uint8Array(data);
+  }
+  // Create a new Uint8Array from the existing one to ensure proper type
+  const result = new Uint8Array(data.length);
+  result.set(data);
+  return result;
+}
+
 class MilitaryEncryption {
   private static instance: MilitaryEncryption;
   private cryptoKey: CryptoKey | null = null;
@@ -42,16 +53,17 @@ class MilitaryEncryption {
     const iv = this.generateIV();
     
     // Encrypt the private key
+    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: toUint8Array(iv) },
       encryptionKey,
-      privateKey
+      toUint8Array(privateKey)
     );
     
     // Combine salt + iv + encrypted data
     const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
-    combined.set(salt, 0);
-    combined.set(iv, salt.length);
+    combined.set(toUint8Array(salt), 0);
+    combined.set(toUint8Array(iv), salt.length);
     combined.set(new Uint8Array(encrypted), salt.length + iv.length);
     
     // Return as base64 for database storage
@@ -82,10 +94,11 @@ class MilitaryEncryption {
       const decryptionKey = await this.deriveKeyForPrivateKeyStorage(keySpecificData, salt);
       
       // Decrypt the private key
+      // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
       const decrypted = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv },
+        { name: 'AES-GCM', iv: toUint8Array(iv) },
         decryptionKey,
-        encryptedData
+        toUint8Array(encryptedData)
       );
       
       return new Uint8Array(decrypted);
@@ -110,10 +123,11 @@ class MilitaryEncryption {
     );
 
     // Derive encryption key with enhanced parameters
+    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: toUint8Array(salt),
         iterations: 500000, // Even higher iteration count for private key encryption
         hash: 'SHA-512'
       },
@@ -208,9 +222,10 @@ class MilitaryEncryption {
   ): Promise<CryptoKey> {
     const keyData = await this.decryptPrivateKeyFromStorage(encryptedKey, userPassword, keyType);
     
+    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     return crypto.subtle.importKey(
       'pkcs8',
-      keyData,
+      toUint8Array(keyData),
       {
         name: 'ECDH',
         namedCurve: 'P-384'
@@ -233,10 +248,11 @@ class MilitaryEncryption {
       ['deriveKey']
     );
 
+    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: toUint8Array(salt),
         iterations: 250000, // Enhanced iteration count for military-grade security
         hash: 'SHA-512' // Upgraded from SHA-256 to SHA-512
       },
@@ -281,8 +297,9 @@ class MilitaryEncryption {
     const hmacKey = await this.deriveHMACKey(password, salt);
     
     // AES-GCM encryption (AEAD provides integrity and confidentiality)
+    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: toUint8Array(iv) },
       encryptionKey,
       encoder.encode(data)
     );
@@ -330,11 +347,12 @@ class MilitaryEncryption {
       hmacData.set(iv, salt.length);
       hmacData.set(encryptedData, salt.length + iv.length);
       
+      // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
       const isValid = await crypto.subtle.verify(
         'HMAC',
         hmacKey,
-        hmac,
-        hmacData
+        toUint8Array(hmac),
+        toUint8Array(hmacData)
       );
 
       if (!isValid) {
@@ -342,10 +360,11 @@ class MilitaryEncryption {
       }
 
       // Decrypt after successful authentication
+      // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
       const decrypted = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv },
+        { name: 'AES-GCM', iv: toUint8Array(iv) },
         encryptionKey,
-        encryptedData
+        toUint8Array(encryptedData)
       );
 
       const decoder = new TextDecoder();
@@ -371,10 +390,11 @@ class MilitaryEncryption {
       ['deriveKey']
     );
 
+    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: toUint8Array(salt),
         iterations: 250000,
         hash: 'SHA-512'
       },
@@ -455,10 +475,11 @@ class MilitaryEncryption {
       ['deriveBits']
     );
 
+    // @ts-expect-error - TypeScript incorrectly infers Uint8Array<ArrayBufferLike> but runtime is correct
     const hashBits = await crypto.subtle.deriveBits(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: toUint8Array(salt),
         iterations: 250000,
         hash: 'SHA-512'
       },

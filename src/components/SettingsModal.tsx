@@ -983,11 +983,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                    {/* PIN Change Section */}
                    <div className="pt-4 border-t border-border">
-                     <div className="flex items-center justify-between mb-4">
-                       <div>
-                         <Label className="text-foreground text-lg font-medium">4-Digit PIN</Label>
-                         <p className="text-muted-foreground text-sm">Change your security PIN used for app access</p>
-                       </div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <Label className="text-foreground text-lg font-medium">4-Digit PIN for Secure Files</Label>
+                          <p className="text-muted-foreground text-sm">Create or change your security PIN used to access and delete secure files</p>
+                        </div>
                        <Button
                          onClick={() => setShowPinForm(!showPinForm)}
                          variant="outline"

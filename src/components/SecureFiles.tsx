@@ -89,11 +89,26 @@ export const SecureFiles: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (800MB limit)
-    const maxSize = 800 * 1024 * 1024; // 800MB in bytes
-    if (file.size > maxSize) {
-      toast.error('File size must be less than 800MB');
-      return;
+    // Check 24-hour unlimited upload window
+    const uploadWindowStart = localStorage.getItem('secure-files-upload-window');
+    if (uploadWindowStart) {
+      const windowStartTime = new Date(uploadWindowStart).getTime();
+      const now = Date.now();
+      const hoursPassed = (now - windowStartTime) / (1000 * 60 * 60);
+      
+      if (hoursPassed >= 24) {
+        // Window expired, remove it
+        localStorage.removeItem('secure-files-upload-window');
+      } else {
+        // Within 24-hour window - unlimited uploads
+        toast.success(`Unlimited uploads active! ${(24 - hoursPassed).toFixed(1)} hours remaining`);
+      }
+    } else {
+      // Start new 24-hour upload window
+      localStorage.setItem('secure-files-upload-window', new Date().toISOString());
+      toast.success('24-hour unlimited upload window started!', {
+        description: 'Upload as many files as you want for the next 24 hours'
+      });
     }
 
     setSelectedFile(file);
