@@ -652,14 +652,16 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
       {/* Right Panel - Chat Area */}
       <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 items-center justify-center bg-background`}>
         {selectedConversation ? (
-          <SecureMessaging 
-            key={selectedConversation} // Force re-render when conversation changes
-            conversationId={selectedConversation} 
-            onBackToMessages={() => {
-              setSelectedConversation(null);
-              setIsLeftPanelOpen(false);
-            }}
-          />
+          <div className="w-full h-full lg:m-4 lg:my-8 lg:rounded-3xl lg:overflow-hidden">
+            <SecureMessaging 
+              key={selectedConversation} // Force re-render when conversation changes
+              conversationId={selectedConversation} 
+              onBackToMessages={() => {
+                setSelectedConversation(null);
+                setIsLeftPanelOpen(false);
+              }}
+            />
+          </div>
         ) : (
           <div 
             className="relative w-full h-full flex items-center justify-center lg:rounded-3xl lg:overflow-hidden lg:m-4 lg:my-8"
