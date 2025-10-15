@@ -662,7 +662,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           />
         ) : (
           <div 
-            className="relative w-full h-full flex items-center justify-center rounded-3xl overflow-hidden m-4"
+            className="relative w-full h-full flex items-center justify-center lg:rounded-3xl lg:overflow-hidden lg:m-4 lg:my-8"
             style={{
               backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
               backgroundSize: 'cover',
