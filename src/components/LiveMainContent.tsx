@@ -662,7 +662,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           />
         ) : (
           <div 
-            className="relative w-full h-full flex items-center justify-center p-4"
+            className="relative w-full h-full flex items-center justify-center rounded-3xl border-2 border-border overflow-hidden m-4"
             style={{
               backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
               backgroundSize: 'cover',
@@ -673,13 +673,11 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
             {backgroundImage && (
               <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
             )}
-            <Card className="relative z-10 p-8 border-2 rounded-3xl">
-              <div className="text-center text-muted-foreground">
-                <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-30" />
-                <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
-                <p className="text-sm">Choose a chat or group to start messaging</p>
-              </div>
-            </Card>
+            <div className="text-center text-muted-foreground relative z-10">
+              <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-30" />
+              <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
+              <p className="text-sm">Choose a chat or group to start messaging</p>
+            </div>
           </div>
         )}
       </div>
