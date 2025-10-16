@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import telegramLeakImage from '@/assets/telegram-leak.png';
 
 interface Post {
@@ -37,6 +38,7 @@ These issues collectively suggest that Telegram has significant challenges in te
 
 export const LeaksSection = () => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   if (selectedPost) {
     return (
@@ -89,6 +91,11 @@ export const LeaksSection = () => {
     );
   }
 
+  // Filter posts based on search query
+  const filteredPosts = posts.filter(post =>
+    post.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
@@ -102,9 +109,25 @@ export const LeaksSection = () => {
           </p>
         </div>
 
-        <ScrollArea className="h-[calc(100vh-16rem)]">
+        <div className="mb-6 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search leaks by title keywords..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-12 bg-card border-border focus:border-primary transition-colors"
+          />
+        </div>
+
+        <ScrollArea className="h-[calc(100vh-20rem)]">
           <div className="grid gap-6">
-            {posts.map((post) => (
+            {filteredPosts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">No posts found matching "{searchQuery}"</p>
+              </div>
+            ) : (
+              filteredPosts.map((post) => (
               <Card
                 key={post.id}
                 className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-primary/50 hover:scale-[1.02] bg-card/80 backdrop-blur-sm"
@@ -136,7 +159,8 @@ export const LeaksSection = () => {
                   </Button>
                 </CardContent>
               </Card>
-            ))}
+              ))
+            )}
           </div>
         </ScrollArea>
       </div>
