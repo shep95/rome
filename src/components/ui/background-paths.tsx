@@ -43,7 +43,7 @@ export function BackgroundPaths({
   onSignUpClick
 }: BackgroundPathsProps) {
   const words = title.split(" ");
-  return <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background">
+  return <div className="relative min-h-screen w-full flex flex-col items-center justify-start overflow-hidden bg-background">
             {/* Film Grain Effect */}
             <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-[1]" 
                  style={{
@@ -67,7 +67,7 @@ export function BackgroundPaths({
                 <FloatingPaths position={-1} />
             </div>
 
-            <div className="relative z-10 container mx-auto px-4 md:px-6 text-center mt-16 sm:mt-20">
+            <div className="relative z-10 container mx-auto px-4 md:px-6 text-center mt-32 sm:mt-36 md:mt-40 lg:mt-48">
                 <motion.div initial={{
         opacity: 0
       }} animate={{
