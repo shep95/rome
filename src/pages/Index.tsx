@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthModal } from "@/components/ui/auth-modal";
 import { GlassmorphismHeader } from "@/components/ui/glassmorphism-header";
 import { useAuth } from '@/hooks/useAuth';
-import landingBg from '@/assets/rome-landing-bg.png';
+import { CosmicHero } from "@/components/CosmicHero";
 
 const Index = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -23,13 +23,8 @@ const Index = () => {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Full-screen background image */}
-      <div 
-        className="fixed inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url(${landingBg})`,
-        }}
-      />
+      {/* Cosmic Hero Background */}
+      <CosmicHero />
       
       {/* Header */}
       <GlassmorphismHeader onSignUpClick={() => setIsAuthModalOpen(true)} />
