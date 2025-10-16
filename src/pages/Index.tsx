@@ -55,7 +55,10 @@ const Index = () => {
       
       <GlassmorphismHeader onSignUpClick={() => setIsAuthModalOpen(true)} />
       <div className="pt-20">
-        <BackgroundPaths title="ROME" />
+        <BackgroundPaths 
+          title="ROME" 
+          onWatermarkClick={() => setIsAuthModalOpen(true)}
+        />
       </div>
       
       {/* 3D Marquee Section */}

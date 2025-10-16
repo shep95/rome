@@ -37,10 +37,12 @@ function FloatingPaths({
 interface BackgroundPathsProps {
   title?: string;
   onSignUpClick?: () => void;
+  onWatermarkClick?: () => void;
 }
 export function BackgroundPaths({
   title = "Background Paths",
-  onSignUpClick
+  onSignUpClick,
+  onWatermarkClick
 }: BackgroundPathsProps) {
   const words = title.split(" ");
   return <div className="relative min-h-screen w-full flex flex-col items-center justify-start overflow-hidden bg-background">
@@ -116,8 +118,15 @@ export function BackgroundPaths({
             </div>
             
             {/* Watermark */}
-            <div className="fixed bottom-4 right-4 z-30">
-                <img src="/lovable-uploads/c0adbdf1-7e12-4f03-bc2c-96a8a62eb425.png" alt="ROME Logo" className="w-16 h-16 rounded-xl opacity-80 hover:opacity-100 transition-opacity" />
+            <div 
+                className="fixed bottom-4 right-4 z-30 cursor-pointer group"
+                onClick={onWatermarkClick}
+            >
+                <img 
+                    src="/lovable-uploads/c0adbdf1-7e12-4f03-bc2c-96a8a62eb425.png" 
+                    alt="ROME Logo" 
+                    className="w-16 h-16 rounded-xl opacity-80 group-hover:opacity-100 transition-opacity group-hover:scale-110 transition-transform" 
+                />
             </div>
         </div>;
 }
