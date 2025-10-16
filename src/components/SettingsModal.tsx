@@ -1147,6 +1147,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     </div>
                   </div>
 
+                  {/* Active Users */}
+                  <div>
+                    <div className="p-6 bg-primary/10 rounded-lg border border-primary/20">
+                      <div className="text-center">
+                        <h3 className="text-2xl font-bold text-primary mb-2">
+                          ~200,000 Active Users
+                        </h3>
+                        <p className="text-muted-foreground text-sm mb-4">
+                          Monthly Active Users
+                        </p>
+                        <div className="text-xs text-muted-foreground">
+                          Growing user base engaged with secure communication features
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                 </CardContent>
               </Card>
             )}
