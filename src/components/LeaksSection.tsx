@@ -3,6 +3,7 @@ import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import telegramLeakImage from '@/assets/telegram-leak.png';
 
 interface Post {
   id: string;
@@ -17,7 +18,7 @@ const posts: Post[] = [
     id: '1',
     title: "Telegram's Hidden Vulnerabilities: From Data Sharing to Crypto Scams",
     excerpt: "Telegram, often praised for its privacy features, has been quietly facing a series of challenges that could erode user trust...",
-    date: "2025-01-15",
+    date: "2025-10-16",
     content: `Telegram, often praised for its privacy features, has been quietly facing a series of challenges that could erode user trust and tarnish its reputation. Recent developments reveal a platform grappling with data sharing, security vulnerabilities, and its role in facilitating large-scale scams.
 
 In a surprising turn, Telegram has seen a surge in sharing user data with authorities, particularly in the United States and the United Kingdom. This increase follows the arrest of CEO Pavel Durov, partly due to the company's resistance to providing user data in a child exploitation investigation. Reports indicate that the messaging app has handed over phone numbers and IP addresses to U.S. authorities on multiple occasions, affecting thousands of users.
@@ -67,6 +68,14 @@ export const LeaksSection = () => {
               </div>
             </div>
 
+            <div className="flex justify-center my-8">
+              <img 
+                src={telegramLeakImage} 
+                alt="Telegram Security Concerns" 
+                className="rounded-lg max-w-md w-full shadow-2xl"
+              />
+            </div>
+
             <div className="prose prose-invert max-w-none mt-6">
               {selectedPost.content.split('\n\n').map((paragraph, index) => (
                 <p key={index} className="text-foreground mb-4 leading-relaxed">
@@ -86,7 +95,7 @@ export const LeaksSection = () => {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <AlertTriangle className="w-8 h-8 text-destructive" />
-            <h1 className="text-4xl font-bold text-foreground">Security Leaks</h1>
+            <h1 className="text-4xl font-bold text-foreground">The Truth That Other Companies Try To Hide From You</h1>
           </div>
           <p className="text-muted-foreground text-lg">
             Latest security vulnerabilities and privacy concerns in popular platforms
