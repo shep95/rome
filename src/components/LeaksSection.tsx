@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import telegramLeakImage from '@/assets/telegram-leak.png';
+import zcashLogoImage from '@/assets/zcash-logo.png';
 
 interface Post {
   id: string;
@@ -12,14 +13,34 @@ interface Post {
   excerpt: string;
   content: string;
   date: string;
+  image?: string;
 }
 
 const posts: Post[] = [
+  {
+    id: '2',
+    title: "Zcash's Hidden Agenda: What the Company Doesn't Want You to Know",
+    excerpt: "Zcash, a privacy-focused cryptocurrency, has been working to maintain its image while dealing with several issues...",
+    date: "2025-10-16",
+    image: zcashLogoImage,
+    content: `Zcash, a privacy-focused cryptocurrency, has been working to maintain its image while dealing with several issues that it may prefer to keep under wraps. One of the most significant concerns is the ongoing debate about its governance and the influence of its investors, particularly those involved in its early development.
+
+The Zcash company has faced criticism for its handling of the Founders Reward, a controversial mechanism that allocated a portion of newly minted Zcash coins to the founders and early developers. This reward was seen as a way to fund the initial development of the project, but it also raised questions about fairness and transparency. The Canopy upgrade, implemented in 2020, aimed to address this by removing the Founders Reward and establishing a development fund. However, the transition was not without controversy, and some investors felt that they were not adequately compensated for their early support.
+
+Additionally, the company has been navigating the complexities of regulatory compliance and investor expectations. As Zcash continues to evolve, it must balance the need for privacy with the demands of investors and regulators. The company has been cautious about disclosing certain aspects of its operations, particularly those that could affect its relationship with key stakeholders.
+
+Investors in Zcash have expressed concerns about the project's long-term sustainability and the potential for further halving events, which could impact the supply and value of the cryptocurrency. The next halving is anticipated to occur around November 2024, and the company is likely to face increased scrutiny as this date approaches.
+
+Furthermore, the origins of Zcash are shrouded in controversy, with allegations that the project received funding from the CIA, DARPA, and Israeli defense entities. These connections raise questions about the true motivations behind the development of Zcash and the extent to which these organizations influence its governance and technology. The involvement of such powerful entities suggests that Zcash may be more than just a privacy-focused cryptocurrency, potentially serving broader strategic interests.
+
+Source: Dark Web Forums And Insider Assets`
+  },
   {
     id: '1',
     title: "Telegram's Hidden Vulnerabilities: From Data Sharing to Crypto Scams",
     excerpt: "Telegram, often praised for its privacy features, has been quietly facing a series of challenges that could erode user trust...",
     date: "2025-10-16",
+    image: telegramLeakImage,
     content: `Telegram, often praised for its privacy features, has been quietly facing a series of challenges that could erode user trust and tarnish its reputation. Recent developments reveal a platform grappling with data sharing, security vulnerabilities, and its role in facilitating large-scale scams.
 
 In a surprising turn, Telegram has seen a surge in sharing user data with authorities, particularly in the United States and the United Kingdom. This increase follows the arrest of CEO Pavel Durov, partly due to the company's resistance to providing user data in a child exploitation investigation. Reports indicate that the messaging app has handed over phone numbers and IP addresses to U.S. authorities on multiple occasions, affecting thousands of users.
@@ -33,23 +54,6 @@ Telegram has also faced criticism for its role in facilitating doxing and harass
 Finally, Telegram's financial and legal history has raised questions about its stability. The company has faced challenges in covering its operating expenses and has had legal disputes, including a case with the Securities and Exchange Commission over a token presale.
 
 These issues collectively suggest that Telegram has significant challenges in terms of user privacy, security, and moderation, which could potentially undermine user trust and the platform's overall reputation. As users and regulators take a closer look, Telegram may need to address these vulnerabilities to maintain its position as a trusted messaging platform.
-
-Source: Dark Web Forums And Insider Assets`
-  },
-  {
-    id: '2',
-    title: "Zcash's Hidden Agenda: What the Company Doesn't Want You to Know",
-    excerpt: "Zcash, a privacy-focused cryptocurrency, has been working to maintain its image while dealing with several issues...",
-    date: "2025-10-16",
-    content: `Zcash, a privacy-focused cryptocurrency, has been working to maintain its image while dealing with several issues that it may prefer to keep under wraps. One of the most significant concerns is the ongoing debate about its governance and the influence of its investors, particularly those involved in its early development.
-
-The Zcash company has faced criticism for its handling of the Founders Reward, a controversial mechanism that allocated a portion of newly minted Zcash coins to the founders and early developers. This reward was seen as a way to fund the initial development of the project, but it also raised questions about fairness and transparency. The Canopy upgrade, implemented in 2020, aimed to address this by removing the Founders Reward and establishing a development fund. However, the transition was not without controversy, and some investors felt that they were not adequately compensated for their early support.
-
-Additionally, the company has been navigating the complexities of regulatory compliance and investor expectations. As Zcash continues to evolve, it must balance the need for privacy with the demands of investors and regulators. The company has been cautious about disclosing certain aspects of its operations, particularly those that could affect its relationship with key stakeholders.
-
-Investors in Zcash have expressed concerns about the project's long-term sustainability and the potential for further halving events, which could impact the supply and value of the cryptocurrency. The next halving is anticipated to occur around November 2024, and the company is likely to face increased scrutiny as this date approaches.
-
-Furthermore, the origins of Zcash are shrouded in controversy, with allegations that the project received funding from the CIA, DARPA, and Israeli defense entities. These connections raise questions about the true motivations behind the development of Zcash and the extent to which these organizations influence its governance and technology. The involvement of such powerful entities suggests that Zcash may be more than just a privacy-focused cryptocurrency, potentially serving broader strategic interests.
 
 Source: Dark Web Forums And Insider Assets`
   }
@@ -89,13 +93,15 @@ export const LeaksSection = () => {
               </div>
             </div>
 
-            <div className="flex justify-center my-8">
-              <img 
-                src={telegramLeakImage} 
-                alt="Telegram Security Concerns" 
-                className="rounded-lg max-w-md w-full shadow-2xl"
-              />
-            </div>
+            {selectedPost.image && (
+              <div className="flex justify-center my-8">
+                <img 
+                  src={selectedPost.image} 
+                  alt={selectedPost.title} 
+                  className="rounded-lg max-w-md w-full shadow-2xl"
+                />
+              </div>
+            )}
 
             <div className="prose prose-invert max-w-none mt-6">
               {selectedPost.content.split('\n\n').map((paragraph, index) => (
