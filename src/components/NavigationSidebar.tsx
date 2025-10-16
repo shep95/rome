@@ -10,7 +10,6 @@ import { MobileSidebar, MobileSidebarTrigger } from '@/components/ui/mobile-side
 import { LiveTimeClock } from '@/components/LiveTimeClock';
 import {
   MessageCircle, 
-  Phone, 
   Settings, 
   Inbox, 
   Info, 
@@ -35,7 +34,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { SettingsModal } from './SettingsModal';
-import { CallHistory } from './CallHistory';
 import { AboutUs } from './AboutUs';
 import { InboxModal } from './InboxModal';
 
@@ -58,7 +56,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const isMobile = useIsMobile();
   const { uploadAvatar, uploadWallpaper, isUploading } = useFileUpload();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isCallHistoryOpen, setIsCallHistoryOpen] = useState(false);
   const [isAboutUsOpen, setIsAboutUsOpen] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -110,10 +107,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   const handleSettingsClick = () => {
     setIsSettingsOpen(true);
-  };
-
-  const handleCallsClick = () => {
-    setIsCallHistoryOpen(true);
   };
 
   const handleAboutUsClick = () => {
@@ -180,19 +173,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
             <span className="text-sm font-medium">Messages</span>
           </Button>
-          
-          <Button
-            onClick={() => {
-              handleCallsClick();
-              setIsMobileSidebarOpen(false);
-            }}
-            variant="ghost"
-            className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
-          >
-            <Phone className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-            <span className="text-sm font-medium">Calls</span>
-          </Button>
-          
           
           <Button
             onClick={() => {
@@ -597,11 +577,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         onClose={() => setIsInboxOpen(false)}
         requestCount={messageRequestCount}
         onRequestCountChange={onMessageRequestCountChange || (() => {})}
-      />
-
-      <CallHistory
-        isOpen={isCallHistoryOpen}
-        onClose={() => setIsCallHistoryOpen(false)}
       />
       
       <AboutUs
