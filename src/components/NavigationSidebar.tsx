@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import aureumLogo from '../assets/aureum-logo.png';
 import romeLogo from '../assets/rome-logo.png';
+import romeFavicon from '../assets/rome-favicon.png';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -271,7 +272,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             variant="ghost"
             className="w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 text-foreground hover:text-primary hover:bg-primary/10"
           >
-            <Download className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <img src={romeFavicon} alt="ROME" className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3 object-contain" />
             <span className="text-sm font-medium">Download</span>
           </Button>
           
