@@ -437,8 +437,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           <div className="relative p-8">
             <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/60 to-background/80 rounded-lg" />
             <div className="relative z-10 text-center space-y-6">
-              <div className="w-16 h-16 mx-auto bg-amber-500 rounded-2xl flex items-center justify-center">
-                <Download className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-primary/30 rounded-2xl flex items-center justify-center p-3">
+                <img src={romeFavicon} alt="ROME" className="w-full h-full object-contain" />
               </div>
               
               <div className="space-y-2">
