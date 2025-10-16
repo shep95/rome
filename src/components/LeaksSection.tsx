@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import telegramLeakImage from '@/assets/telegram-leak.png';
 import zcashLogoImage from '@/assets/zcash-logo.png';
+import palantirLogoImage from '@/assets/palantir-logo.png';
 
 interface Post {
   id: string;
@@ -17,6 +18,30 @@ interface Post {
 }
 
 const posts: Post[] = [
+  {
+    id: '3',
+    title: "Palantir's Dirty Secrets: What the Surveillance Giant Doesn't Want You to Know",
+    excerpt: "Palantir, the data analytics behemoth co-founded by Peter Thiel, has been quietly building what many experts call 'the most comprehensive federal data-sharing platform in U.S. history'...",
+    date: "2025-10-16",
+    image: palantirLogoImage,
+    content: `Palantir, the data analytics behemoth co-founded by Peter Thiel, has been quietly building what many experts call "the most comprehensive federal data-sharing platform in U.S. history" while trying to keep several damaging truths under wraps. The company's work with the Trump administration has revealed several bombshells that could destroy its carefully cultivated image.
+
+First, Palantir is allegedly building what officials describe as a "whole-of-government master database on Americans" under Trump's executive order mandating federal agencies share unclassified data. Despite Palantir's public denials calling such reports "blatantly untrue", the company has received more than $113 million in federal contracts since Trump took office, plus a massive $795 million Department of Defense contract.
+
+Even more alarming, Palantir has been contracted to power ICE's deportation machinery. The company was first awarded an ICE contract under Obama in 2014, which has been renewed multiple times, and recently received an additional $30 million. This work has become so controversial that protestors gathered outside Palantir's New York offices were arrested for demonstrating against the company's role in deportations.
+
+Palantir's CEO Alex Karp recently disclosed receiving a staggering $6.8 billion in "compensation actually paid" in 2024, making him the highest-paid CEO of a publicly traded company in America. This obscene compensation comes while Palantir is working on projects that could enable unprecedented government surveillance of American citizens.
+
+The company's ethics problems extend globally. Palantir's £330 million NHS contract in the UK has been rejected by most English hospitals, with fewer than a quarter of England's 215 hospital trusts actively using its platform by the end of 2024. Medical professionals have picketed outside NHS England headquarters demanding cancellation of the deal, citing Palantir's contracts with the Israeli military.
+
+Perhaps most damning is the fact that Palantir's own former employees are turning against the company. More than a dozen former workers—including software engineers, managers, and privacy specialists—have issued a rare rebuke, stating the company's work with the Trump administration violates its founding principles. In their letter to NPR, they explained that when they joined Palantir, they believed in its code of conduct stating its software should "protect the vulnerable and ensure the responsible development of artificial intelligence".
+
+Despite Palantir's claims that it's merely a "data processor" with no ownership over collected information, Democratic lawmakers including Sen. Wyden and Rep. Ocasio-Cortez have raised concerns that the company's work building an IRS "mega-database" would "blatantly violate the notice, transparency, and procedural requirements of the Privacy Act".
+
+With over 50 current and former Palantir employees calling for "clear boundaries" and public accountability mechanisms around the platform's use, it's clear the company's surveillance capabilities have become a source of growing controversy that Palantir is desperately trying to contain.
+
+Source: Insider Asset`
+  },
   {
     id: '2',
     title: "Zcash's Hidden Agenda: What the Company Doesn't Want You to Know",
