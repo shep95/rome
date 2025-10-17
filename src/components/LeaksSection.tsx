@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import telegramLeakImage from '@/assets/telegram-leak.png';
 import zcashLogoImage from '@/assets/zcash-logo.png';
 import palantirLogoImage from '@/assets/palantir-logo.png';
+import openaiLogoImage from '@/assets/openai-logo.png';
 
 interface Post {
   id: string;
@@ -23,6 +24,7 @@ const posts: Post[] = [
     title: "OpenAI's Dark Truths: What Sam Altman Doesn't Want You to Know",
     excerpt: "OpenAI has carefully crafted an image as a benevolent AI pioneer working 'for the benefit of all humanity,' but behind this facade lies a web of controversies, broken promises, and strategic maneuvers...",
     date: "2025-10-16",
+    image: openaiLogoImage,
     content: `OpenAI has carefully crafted an image as a benevolent AI pioneer working "for the benefit of all humanity," but behind this facade lies a web of controversies, broken promises, and strategic maneuvers that could destroy public trust if fully exposed. Here's what the company is desperately trying to keep under wraps.
 
 The Broken Opt-Out Promise
