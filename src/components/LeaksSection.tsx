@@ -19,6 +19,45 @@ interface Post {
 
 const posts: Post[] = [
   {
+    id: '4',
+    title: "OpenAI's Dark Truths: What Sam Altman Doesn't Want You to Know",
+    excerpt: "OpenAI has carefully crafted an image as a benevolent AI pioneer working 'for the benefit of all humanity,' but behind this facade lies a web of controversies, broken promises, and strategic maneuvers...",
+    date: "2025-10-16",
+    content: `OpenAI has carefully crafted an image as a benevolent AI pioneer working "for the benefit of all humanity," but behind this facade lies a web of controversies, broken promises, and strategic maneuvers that could destroy public trust if fully exposed. Here's what the company is desperately trying to keep under wraps.
+
+The Broken Opt-Out Promise
+
+In May 2024, OpenAI announced "Media Manager," a tool that would supposedly let creators control how their works are included in AI training data, claiming it would use "cutting-edge machine learning research" to identify copyrighted content. The company positioned this as a solution to copyright concerns and a way to "set a standard across the AI industry." But as of January 2025, OpenAI has completely failed to deliver this promised tool. When questioned about the delay, OpenAI spokesperson Cyhan vaguely cited "challenges" related to "the rapidly-evolving and potentially divergent legal landscape across national and local jurisdictions".
+
+Ditching Safety Protocols for Market Dominance
+
+In a stunning reversal, OpenAI has quietly eliminated manipulation and mass disinformation campaigns as risks worth testing for before releasing AI models. Even more alarming, the company now states it would consider releasing AI models it deems "high risk" as long as "appropriate steps" are taken to reduce dangers—and would even release models presenting "critical risk" if competitors have already done so. This represents a complete abandonment of their previous safety-first rhetoric.
+
+The For-Profit Betrayal
+
+OpenAI's transition from nonprofit to for-profit has sparked multiple legal battles and whistleblower scandals. Suchir Balaji, a former OpenAI employee who tragically died, reportedly raised alarms about copyright infringements before his death. His mother has now publicly lashed out at Sam Altman over the company's abandonment of its nonprofit mission. Meanwhile, Elon Musk is pursuing a federal lawsuit accusing OpenAI of "bait-and-switch deception" that violates RICO laws—anti-racketeering statutes originally designed to target organized crime. Musk claims he invested "significant time and millions of dollars in seed capital" based on the understanding that OpenAI would remain a nonprofit prioritizing safety.
+
+Covert Lobbying Against Regulation
+
+OpenAI is working hand-in-hand with Google and Meta to block US states from implementing AI regulations. This coordinated effort aims to prevent any meaningful oversight while the technology rapidly advances. Simultaneously, OpenAI has been pushing for broad interpretations of "fair use" that would allow unrestricted use of copyrighted material for AI training, citing dubious national security concerns about China surpassing US capabilities.
+
+California Exit Strategy
+
+Facing mounting regulatory pressure, OpenAI executives are actively discussing relocating out of California as political resistance threatens their nonprofit-to-for-profit conversion. California's attorney general is investigating whether this restructuring violates state charitable trust law, while a coalition of nonprofits, labor groups, and even rival Meta are pushing back against the conversion. The stakes couldn't be higher—OpenAI has about $19 billion in funding tied to this restructuring, and failure could be catastrophic for the company.
+
+The Copyright War
+
+OpenAI faces mounting legal challenges globally over copyright violations. In India, a government panel is reviewing copyright law specifically because of OpenAI's legal troubles. While OpenAI claims it "uses public data to train its chatbot, which is not a violation of India's copyright law," the company is increasingly on the defensive as courts worldwide grapple with AI's impact on intellectual property.
+
+Manipulated Benchmarks and Questionable Claims
+
+OpenAI's recent math benchmarking results have been called "manipulative and disgraceful" by critics. The company's claims about model capabilities appear increasingly questionable as competitors like DeepSeek demonstrate comparable performance at significantly lower costs.
+
+These revelations collectively paint a picture of a company that has abandoned its founding principles in pursuit of profit and market dominance. While OpenAI continues to present itself as a responsible steward of AI technology, the evidence suggests a different reality—one where safety concerns are secondary to growth, promises are routinely broken, and ethical considerations are sacrificed at the altar of competition. As these truths continue to surface, the question isn't whether OpenAI's reputation will suffer, but how severely the fallout will impact the future of AI development.
+
+Source: Dark Web Forum & Leaks + Insider Info`
+  },
+  {
     id: '3',
     title: "Palantir's Dirty Secrets: What the Surveillance Giant Doesn't Want You to Know",
     excerpt: "Palantir, the data analytics behemoth co-founded by Peter Thiel, has been quietly building what many experts call 'the most comprehensive federal data-sharing platform in U.S. history'...",
