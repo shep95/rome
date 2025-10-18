@@ -72,13 +72,13 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
+    --background: 240 1% 7%;
     --foreground: 210 40% 98%;
 
-    --card: 0 0% 4%;
+    --card: 240 1% 7%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 4%;
+    --popover: 240 1% 7%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 39 35% 54%;
@@ -280,13 +280,13 @@ input, textarea, select {
   }
 
   .dark {
-    --background: 0 0% 4%;
+    --background: 240 1% 7%;
     --foreground: 210 40% 98%;
 
-    --card: 0 0% 4%;
+    --card: 240 1% 7%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 4%;
+    --popover: 240 1% 7%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 39 35% 54%;
