@@ -324,7 +324,9 @@ input, textarea, select {
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: linear-gradient(135deg, #0a0a0a 0%, #0d0d0d 100%);
+    background-attachment: fixed;
     position: relative;
   }
 
