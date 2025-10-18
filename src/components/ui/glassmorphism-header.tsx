@@ -25,22 +25,6 @@ export const GlassmorphismHeader: React.FC<GlassmorphismHeaderProps> = ({ onSign
     <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
       <nav className="max-w-6xl mx-auto">
         <div className="relative">
-          {/* Film grain overlay */}
-          <div 
-            className="absolute inset-0 rounded-2xl opacity-30 pointer-events-none"
-            style={{
-              background: `
-                radial-gradient(circle at 20% 50%, transparent 20%, rgba(255, 255, 255, 0.05) 21%, rgba(255, 255, 255, 0.05) 34%, transparent 35%, transparent),
-                linear-gradient(0deg, rgba(255, 255, 255, 0.05), transparent 50%, rgba(255, 255, 255, 0.05)),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1), transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.05), transparent 50%),
-                radial-gradient(circle at 90% 40%, rgba(255, 255, 255, 0.08), transparent 50%),
-                radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.06), transparent 50%)
-              `,
-              backgroundSize: '200px 200px, 100px 100px, 150px 150px, 180px 180px, 120px 120px, 90px 90px'
-            }}
-          />
-          
           {/* Main header container */}
           <div className="relative bg-background/10 backdrop-blur-xl border border-border/30 rounded-2xl shadow-lg">
             <div className="flex items-center justify-between px-6 py-4">
