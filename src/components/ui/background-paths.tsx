@@ -46,19 +46,6 @@ export function BackgroundPaths({
 }: BackgroundPathsProps) {
   const words = title.split(" ");
   return <div className="relative min-h-screen w-full flex flex-col items-center justify-start overflow-hidden bg-background">
-            {/* Film Grain Effect */}
-            <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-[1]" 
-                 style={{
-                   backgroundImage: `
-                     radial-gradient(circle at 20% 80%, hsl(var(--primary)) 2px, transparent 2px),
-                     radial-gradient(circle at 80% 20%, hsl(var(--accent)) 2px, transparent 2px),
-                     radial-gradient(circle at 40% 40%, hsl(var(--muted-foreground)) 1px, transparent 1px),
-                     radial-gradient(circle at 60% 60%, hsl(var(--primary)) 1px, transparent 1px)
-                   `,
-                   backgroundSize: '100px 100px, 80px 80px, 40px 40px, 60px 60px',
-                   animation: 'grain 8s steps(10) infinite'
-                 }}
-            />
             {/* Social Links */}
             <div className="absolute top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-20 px-4 w-full max-w-sm">
                 
