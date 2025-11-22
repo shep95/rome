@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
@@ -69,6 +69,29 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const { user } = useAuth();
   const { uploadFile } = useFileUpload();
+  
+  // Import download utilities
+  const handleDownloadConversation = async (format: 'txt' | 'json' | 'encrypted') => {
+    if (!user || messages.length === 0) {
+      toast.error('No messages to download');
+      return;
+    }
+    
+    try {
+      const { downloadConversation, downloadEncryptedConversation } = await import('@/lib/conversation-export');
+      
+      if (format === 'encrypted') {
+        await downloadEncryptedConversation(messages, conversationDetails, user.id);
+        toast.success('Encrypted conversation downloaded');
+      } else {
+        downloadConversation(messages, conversationDetails, user.id, format);
+        toast.success(`Conversation downloaded as ${format.toUpperCase()}`);
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download conversation');
+    }
+  };
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversationDetails, setConversationDetails] = useState<any>(null);
@@ -1430,6 +1453,30 @@ if (!append && user && conversationId) {
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">End-to-end encrypted</p>
           </div>
+          {/* Download conversation button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+              >
+                <Download className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => handleDownloadConversation('txt')}>
+                Download as Text
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDownloadConversation('json')}>
+                Download as JSON
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleDownloadConversation('encrypted')}>
+                Download Encrypted
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {/* Settings button */}
           <Button
             onClick={() => setShowSettings(true)}
