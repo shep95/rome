@@ -13,7 +13,6 @@ import { supabase } from '@/integrations/supabase/client';
 // Lazy load heavy components
 const SecureFiles = lazy(() => import('@/components/SecureFiles').then(m => ({ default: m.SecureFiles })));
 const Features = lazy(() => import('@/pages/Features'));
-const LeaksSection = lazy(() => import('@/components/LeaksSection').then(m => ({ default: m.LeaksSection })));
 
 const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -106,10 +105,6 @@ const Dashboard = () => {
           ) : activeSection === 'features' ? (
             <div className="flex-1 bg-background min-h-screen">
               <Features />
-            </div>
-          ) : activeSection === 'leaks' ? (
-            <div className="flex-1 bg-background min-h-screen">
-              <LeaksSection />
             </div>
           ) : (
             <LiveMainContent 
