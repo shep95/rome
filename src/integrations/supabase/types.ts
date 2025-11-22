@@ -126,7 +126,7 @@ export type Database = {
       }
       conversations: {
         Row: {
-          auto_delete_after: unknown | null
+          auto_delete_after: unknown
           avatar_url: string | null
           created_at: string
           created_by: string
@@ -138,7 +138,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          auto_delete_after?: unknown | null
+          auto_delete_after?: unknown
           avatar_url?: string | null
           created_at?: string
           created_by: string
@@ -150,7 +150,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          auto_delete_after?: unknown | null
+          auto_delete_after?: unknown
           avatar_url?: string | null
           created_at?: string
           created_by?: string
@@ -656,7 +656,7 @@ export type Database = {
           event_description: string
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           risk_level: string
           session_id: string | null
           timestamp: string
@@ -669,7 +669,7 @@ export type Database = {
           event_description: string
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           risk_level?: string
           session_id?: string | null
           timestamp?: string
@@ -682,7 +682,7 @@ export type Database = {
           event_description?: string
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           risk_level?: string
           session_id?: string | null
           timestamp?: string
@@ -862,7 +862,7 @@ export type Database = {
           device_fingerprint: string | null
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_active: boolean
           last_activity: string
           refresh_expires_at: string
@@ -878,7 +878,7 @@ export type Database = {
           device_fingerprint?: string | null
           expires_at: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           last_activity?: string
           refresh_expires_at: string
@@ -894,7 +894,7 @@ export type Database = {
           device_fingerprint?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           last_activity?: string
           refresh_expires_at?: string
@@ -968,22 +968,10 @@ export type Database = {
         }
         Returns: boolean
       }
-      cleanup_expired_rate_limits: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_security_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_updates: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_viewed_self_destruct_messages: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_rate_limits: { Args: never; Returns: undefined }
+      cleanup_expired_security_data: { Args: never; Returns: undefined }
+      cleanup_expired_updates: { Args: never; Returns: undefined }
+      cleanup_viewed_self_destruct_messages: { Args: never; Returns: undefined }
       create_direct_conversation: {
         Args: { _name: string; _other_user_id: string }
         Returns: string
@@ -996,18 +984,12 @@ export type Database = {
         Args: { encrypted_data: string }
         Returns: string
       }
-      encrypt_sensitive_data: {
-        Args: { data: string }
-        Returns: string
-      }
+      encrypt_sensitive_data: { Args: { data: string }; Returns: string }
       generate_anonymous_id: {
         Args: { p_conversation_id: string; p_sender_id: string }
         Returns: string
       }
-      generate_entropy_vector: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_entropy_vector: { Args: never; Returns: string }
       get_conversation_participant_profiles: {
         Args: { conversation_uuid: string }
         Returns: {
@@ -1017,10 +999,7 @@ export type Database = {
           username: string
         }[]
       }
-      get_decrypted_email: {
-        Args: { user_id: string }
-        Returns: string
-      }
+      get_decrypted_email: { Args: { user_id: string }; Returns: string }
       get_direct_counterparties: {
         Args: { conversation_ids: string[] }
         Returns: {
@@ -1040,10 +1019,7 @@ export type Database = {
           username: string
         }[]
       }
-      get_private_keys_honeypot: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_private_keys_honeypot: { Args: never; Returns: string }
       get_public_profile_info: {
         Args: { profile_id: string }
         Returns: {
@@ -1053,10 +1029,7 @@ export type Database = {
           username: string
         }[]
       }
-      get_secure_email: {
-        Args: { user_uuid: string }
-        Returns: string
-      }
+      get_secure_email: { Args: { user_uuid: string }; Returns: string }
       get_user_public_keys: {
         Args: { target_user_id: string }
         Returns: {
@@ -1071,14 +1044,8 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
-      is_authenticated_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_service_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_authenticated_user: { Args: never; Returns: boolean }
+      is_service_admin: { Args: never; Returns: boolean }
       log_security_event: {
         Args: {
           p_additional_data?: Json
@@ -1109,14 +1076,8 @@ export type Database = {
         Args: { phone_value: string }
         Returns: string
       }
-      monitor_suspicious_activity: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      process_scheduled_messages: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      monitor_suspicious_activity: { Args: never; Returns: undefined }
+      process_scheduled_messages: { Args: never; Returns: undefined }
       search_profiles: {
         Args: { search_term?: string }
         Returns: {
@@ -1130,18 +1091,12 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: undefined
       }
-      user_can_access_file: {
-        Args: { file_path: string }
-        Returns: boolean
-      }
+      user_can_access_file: { Args: { file_path: string }; Returns: boolean }
       user_is_conversation_participant: {
         Args: { conversation_id: string; user_id: string }
         Returns: boolean
       }
-      validate_all_security_constraints: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      validate_all_security_constraints: { Args: never; Returns: boolean }
       validate_call_history_access: {
         Args: { history_user_id: string }
         Returns: boolean
