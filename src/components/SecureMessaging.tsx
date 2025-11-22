@@ -19,6 +19,7 @@ import { AnonymousMessageLog } from './AnonymousMessageLog';
 import { LinkWarning } from './LinkWarning';
 import { extractDominantColor, extractVideoColor } from '@/lib/color-extraction';
 import { useScreenshotProtection } from '@/hooks/useScreenshotProtection';
+import { useMessageNotifications } from '@/hooks/useMessageNotifications';
 
 interface Message {
   id: string;
@@ -69,6 +70,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const { user } = useAuth();
   const { uploadFile } = useFileUpload();
+  const { showNotification } = useMessageNotifications();
   
   // Import download utilities
   const handleDownloadConversation = async (format: 'txt' | 'json' | 'encrypted') => {
@@ -889,6 +891,13 @@ if (!append && user && conversationId) {
                   if (exists) return prev;
                   
                   return [...prev, newMessage];
+                });
+
+                // Show notification for incoming message (without message content)
+                showNotification({
+                  senderName: newMessage.sender?.display_name || newMessage.sender?.username || 'Someone',
+                  conversationName: conversationDetails?.name || undefined,
+                  isGroup: conversationDetails?.type === 'group'
                 });
 
               } catch (error) {
