@@ -18,6 +18,7 @@ import { UserSearchDropdown } from './UserSearchDropdown';
 import { GroupChatCreation } from './GroupChatCreation';
 import { SecureMessaging } from './SecureMessaging';
 import { GroupChatSettings } from './GroupChatSettings';
+import { useUnreadTitle } from '@/hooks/useUnreadTitle';
 
 interface LiveMainContentProps {
   activeSection: string;
@@ -55,6 +56,10 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
   const [directUnreadTotal, setDirectUnreadTotal] = useState(0);
   const [groupUnreadTotal, setGroupUnreadTotal] = useState(0);
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false);
+
+  // Update browser tab title with total unread count
+  const totalUnreadCount = directUnreadTotal + groupUnreadTotal;
+  useUnreadTitle(totalUnreadCount);
 
   useEffect(() => {
     if (user) {
