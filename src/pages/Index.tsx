@@ -62,20 +62,6 @@ const Index = () => {
         />
       </div>
       
-      {/* 3D Marquee Section */}
-      <section id="marquee-section" className="relative bg-background py-12 sm:py-16 md:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="aspect-video rounded-2xl sm:rounded-3xl border border-primary/20 shadow-[0_0_30px_hsl(var(--primary)/0.2)] sm:shadow-[0_0_50px_hsl(var(--primary)/0.3)] overflow-hidden bg-gradient-to-br from-background/80 to-background backdrop-blur-sm">
-            <ThreeDMarquee images={images} />
-          </div>
-        </div>
-        
-        {/* Scroll Down Button */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <ScrollDownButton targetId="glowing-section" />
-        </div>
-      </section>
-      
       {/* Glowing Effects Section */}
       <div id="glowing-section" className="relative">
         <GlowingSection />
