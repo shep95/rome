@@ -189,6 +189,27 @@ export const InboxModal = ({ isOpen, onClose, requestCount, onRequestCountChange
 
             console.log('✅ Conversation created/found successfully with ID:', conversationId);
             
+            // Add the initial message to the conversation
+            try {
+              const { error: messageError } = await supabase
+                .from('messages')
+                .insert({
+                  conversation_id: conversationId,
+                  sender_id: request.from_user_id,
+                  data_payload: request.message,
+                  message_type: 'text',
+                  sequence_number: 1
+                });
+
+              if (messageError) {
+                console.error('Error adding initial message:', messageError);
+              } else {
+                console.log('✅ Initial message added to conversation');
+              }
+            } catch (msgError) {
+              console.error('Failed to add initial message:', msgError);
+            }
+            
             toast({
               title: "Request accepted!",
               description: "Conversation is ready in your Messages tab.",

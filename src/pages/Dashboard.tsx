@@ -35,6 +35,27 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       loadMessageRequestCount();
+      
+      // Setup realtime subscription for message request changes
+      const channel = supabase
+        .channel('message-request-notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'message_requests',
+            filter: `to_user_id=eq.${user.id}`
+          },
+          () => {
+            loadMessageRequestCount();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
