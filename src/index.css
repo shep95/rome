@@ -438,4 +438,19 @@ input, textarea, select {
       transition-duration: 0.01ms !important;
     }
   }
+  
+  /* Hide Progressier watermark/badge */
+  [data-progressier-badge],
+  #progressier-badge,
+  .progressier-badge,
+  [class*="progressier-watermark"],
+  [id*="progressier-watermark"],
+  div[style*="progressier"],
+  a[href*="progressier.com"],
+  a[href*="progressier.app"][target="_blank"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 }
