@@ -32,9 +32,9 @@ const Index = () => {
       <GlassmorphismHeader onSignUpClick={() => setIsAuthModalOpen(true)} />
       
       {/* Hero Section */}
-      <div className="relative min-h-screen w-full flex flex-col items-center justify-start overflow-hidden">
+      <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
         {/* Content overlay */}
-        <div className="relative z-10 container mx-auto px-4 md:px-6 text-center mt-32 sm:mt-36 md:mt-40 lg:mt-48">
+        <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 sm:mb-8 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[hsl(var(--foreground))] to-[hsl(var(--foreground))]/80">
               ROME
