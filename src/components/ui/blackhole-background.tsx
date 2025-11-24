@@ -5,6 +5,7 @@ export function BlackHoleBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const isInitializedRef = useRef(false);
+  const starsRef = useRef<any[]>([]);
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current || isInitializedRef.current) return;
@@ -15,20 +16,43 @@ export function BlackHoleBackground() {
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    const h = window.innerHeight;
-    const w = window.innerWidth;
-    const cw = w;
-    const ch = h;
-    const maxorbit = 255;
-    const centery = ch / 2;
-    const centerx = cw / 2;
+    let h = window.innerHeight;
+    let w = window.innerWidth;
+    let cw = w;
+    let ch = h;
+    let maxorbit = 255;
+    let centery = ch / 2;
+    let centerx = cw / 2;
 
     const startTime = new Date().getTime();
     let currentTime = 0;
 
-    const stars: Star[] = [];
     let expanse = false;
     let returning = false;
+
+    // Resize handler
+    const handleResize = () => {
+      h = window.innerHeight;
+      w = window.innerWidth;
+      cw = w;
+      ch = h;
+      centery = ch / 2;
+      centerx = cw / 2;
+      
+      canvas.width = cw;
+      canvas.height = ch;
+      setDPI(canvas, 192);
+      
+      // Reinitialize star positions
+      starsRef.current.forEach(star => {
+        star.x = centerx;
+        star.y = centery + star.orbital;
+        star.yOrigin = centery + star.orbital;
+        star.originalY = star.yOrigin;
+        star.hoverPos = centery + (maxorbit / 2) + star.collapseBonus;
+        star.expansePos = centery + (star.id % 100) * -10 + (Math.floor(Math.random() * 20) + 1);
+      });
+    };
 
     canvas.width = cw;
     canvas.height = ch;
@@ -85,7 +109,7 @@ export function BlackHoleBackground() {
         this.speed = (Math.floor(Math.random() * 2.5) + 1.5) * Math.PI / 180;
         this.rotation = 0;
         this.startRotation = (Math.floor(Math.random() * 360) + 1) * Math.PI / 180;
-        this.id = stars.length;
+        this.id = starsRef.current.length;
         this.collapseBonus = this.orbital - (maxorbit * 0.7);
         if (this.collapseBonus < 0) this.collapseBonus = 0;
 
@@ -97,7 +121,7 @@ export function BlackHoleBackground() {
         this.prevY = this.y;
         this.originalY = this.yOrigin;
 
-        stars.push(this);
+        starsRef.current.push(this);
       }
 
       draw() {
@@ -174,9 +198,9 @@ export function BlackHoleBackground() {
       context.fillStyle = 'rgb(10, 10, 10)';
       context.fillRect(0, 0, cw, ch);
 
-      for (let i = 0; i < stars.length; i++) {
-        if (stars[i] !== undefined) {
-          stars[i].draw();
+      for (let i = 0; i < starsRef.current.length; i++) {
+        if (starsRef.current[i] !== undefined) {
+          starsRef.current[i].draw();
         }
       }
 
@@ -199,16 +223,19 @@ export function BlackHoleBackground() {
 
     init();
 
+    window.addEventListener('resize', handleResize);
+
     return () => {
       isInitializedRef.current = false;
       container.removeEventListener('click', handleClick);
+      window.removeEventListener('resize', handleResize);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
       // Clear the canvas
       context.clearRect(0, 0, cw, ch);
       // Clear stars array
-      stars.length = 0;
+      starsRef.current.length = 0;
     };
   }, []);
 
