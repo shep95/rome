@@ -16,10 +16,9 @@ export function BlackHoleBackground() {
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    let h = window.innerHeight;
-    let w = window.innerWidth;
-    let cw = w;
-    let ch = h;
+    // Fixed desktop dimensions - no responsive sizing
+    const cw = 1920;
+    const ch = 1080;
     let maxorbit = 255;
     let centery = ch / 2;
     let centerx = cw / 2;
@@ -241,11 +240,12 @@ export function BlackHoleBackground() {
   return (
     <div 
       ref={containerRef} 
-      className="fixed inset-0 w-full h-full pointer-events-auto cursor-pointer bg-[rgb(10,10,10)] z-0"
+      className="fixed inset-0 w-full h-full pointer-events-auto cursor-pointer bg-[rgb(10,10,10)] z-0 flex items-center justify-center overflow-hidden"
     >
       <canvas 
         ref={canvasRef} 
-        className="w-full h-full"
+        style={{ width: '1920px', height: '1080px' }}
+        className="pointer-events-auto"
       />
     </div>
   );
