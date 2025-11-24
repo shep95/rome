@@ -40,7 +40,7 @@ const Index = () => {
       <GlassmorphismHeader onSignUpClick={() => setIsAuthModalOpen(true)} />
       
       {/* Black Hole Background Section - Replaces wave animation */}
-      <div className="relative min-h-screen w-full flex flex-col items-center justify-start overflow-hidden">
+      <div className="relative min-h-screen w-full flex flex-col items-center justify-start overflow-hidden bg-background">
         <BlackHoleBackground />
         
         {/* Content overlay */}
