@@ -7,6 +7,7 @@ import { GlowingSection } from "@/components/GlowingSection";
 import { ScrollDownButton } from "@/components/ui/scroll-down-button";
 import { GlassmorphismHeader } from "@/components/ui/glassmorphism-header";
 import { GlassmorphismFooter } from "@/components/ui/glassmorphism-footer";
+import { BlackHoleBackground } from "@/components/ui/blackhole-background";
 import { useAuth } from '@/hooks/useAuth';
 import romeFavicon from '@/assets/rome-favicon.png';
 
@@ -36,6 +37,9 @@ const Index = () => {
 
   return (
     <>
+      {/* Black Hole Background Animation */}
+      <BlackHoleBackground />
+      
       {/* Half bubble gradient on right side */}
       <div className="fixed top-1/4 right-0 w-[500px] h-[600px] pointer-events-none z-0">
         <div 
@@ -55,7 +59,7 @@ const Index = () => {
       </div>
       
       <GlassmorphismHeader onSignUpClick={() => setIsAuthModalOpen(true)} />
-      <div className="pt-20">
+      <div className="pt-20 relative z-10">
         <BackgroundPaths 
           title="ROME" 
           onWatermarkClick={() => setIsAuthModalOpen(true)}
