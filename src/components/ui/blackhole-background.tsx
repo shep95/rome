@@ -215,7 +215,7 @@ export function BlackHoleBackground() {
   return (
     <div 
       ref={containerRef} 
-      className="absolute inset-0 w-full h-full pointer-events-auto cursor-pointer bg-[rgb(10,10,10)]"
+      className="fixed inset-0 w-full h-full pointer-events-auto cursor-pointer bg-[rgb(10,10,10)] z-0"
     >
       <canvas 
         ref={canvasRef} 

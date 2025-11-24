@@ -26,12 +26,13 @@ const Index = () => {
 
   return (
     <>
+      {/* Fixed Black Hole Background */}
+      <BlackHoleBackground />
+      
       <GlassmorphismHeader onSignUpClick={() => setIsAuthModalOpen(true)} />
       
-      {/* Black Hole Background Section - Replaces wave animation */}
-      <div className="relative min-h-screen w-full flex flex-col items-center justify-start overflow-hidden bg-background">
-        <BlackHoleBackground />
-        
+      {/* Hero Section */}
+      <div className="relative min-h-screen w-full flex flex-col items-center justify-start overflow-hidden">
         {/* Content overlay */}
         <div className="relative z-10 container mx-auto px-4 md:px-6 text-center mt-32 sm:mt-36 md:mt-40 lg:mt-48">
           <div className="max-w-4xl mx-auto">
