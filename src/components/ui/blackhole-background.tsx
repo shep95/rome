@@ -167,7 +167,8 @@ export function BlackHoleBackground() {
       const now = new Date().getTime();
       currentTime = (now - startTime) / 50;
 
-      context.fillStyle = 'rgba(0,0,0,0.05)';
+      // Use transparent background to show through to CSS background
+      context.fillStyle = 'rgba(0,0,0,0.02)';
       context.fillRect(0, 0, cw, ch);
 
       for (let i = 0; i < stars.length; i++) {
@@ -182,8 +183,8 @@ export function BlackHoleBackground() {
     function init() {
       if (!context) return;
       
-      context.fillStyle = 'rgba(0,0,0,0.05)';
-      context.fillRect(0, 0, cw, ch);
+      // Clear with transparent background
+      context.clearRect(0, 0, cw, ch);
       
       for (let i = 0; i < 2500; i++) {
         new Star();
@@ -202,11 +203,11 @@ export function BlackHoleBackground() {
   return (
     <div 
       ref={containerRef} 
-      className="fixed inset-0 w-full h-full pointer-events-auto cursor-pointer z-0"
+      className="absolute inset-0 w-full h-full pointer-events-auto cursor-pointer"
     >
       <canvas 
         ref={canvasRef} 
-        className="w-full h-full"
+        className="w-full h-full bg-transparent"
       />
     </div>
   );
