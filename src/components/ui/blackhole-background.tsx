@@ -190,7 +190,7 @@ export function BlackHoleBackground() {
       context.fillStyle = 'rgb(10, 10, 10)';
       context.fillRect(0, 0, cw, ch);
       
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 2000; i++) {
         new Star();
       }
       
