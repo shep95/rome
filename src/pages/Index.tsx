@@ -75,7 +75,7 @@ const Index = () => {
       </div>
       
       {/* Footer Section */}
-      <section id="footer-section" className="relative bg-background py-20">
+      <section id="footer-section" className="relative py-20 bg-transparent">
         <GlassmorphismFooter />
       </section>
       
