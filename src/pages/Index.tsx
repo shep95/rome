@@ -37,33 +37,41 @@ const Index = () => {
 
   return (
     <>
-      {/* Black Hole Background Animation */}
-      <BlackHoleBackground />
-      
-      {/* Half bubble gradient on right side */}
-      <div className="fixed top-1/4 right-0 w-[500px] h-[600px] pointer-events-none z-0">
-        <div 
-          className="absolute top-0 right-0 w-full h-full rounded-full opacity-20 blur-3xl"
-          style={{
-            background: `radial-gradient(circle at 100% 50%, #c2a084 0%, #c2a084 50%, transparent 85%)`,
-            transform: 'translateX(50%)'
-          }}
-        />
-        <div 
-          className="absolute top-12 right-0 w-96 h-96 rounded-full opacity-10 blur-2xl"
-          style={{
-            background: `radial-gradient(circle at 100% 50%, #c2a084 0%, #c2a084 60%, transparent 90%)`,
-            transform: 'translateX(40%)'
-          }}
-        />
-      </div>
-      
       <GlassmorphismHeader onSignUpClick={() => setIsAuthModalOpen(true)} />
-      <div className="pt-20 relative z-10">
-        <BackgroundPaths 
-          title="ROME" 
-          onWatermarkClick={() => setIsAuthModalOpen(true)}
-        />
+      
+      {/* Black Hole Background Section - Replaces wave animation */}
+      <div className="relative min-h-screen w-full flex flex-col items-center justify-start overflow-hidden">
+        <BlackHoleBackground />
+        
+        {/* Content overlay */}
+        <div className="relative z-10 container mx-auto px-4 md:px-6 text-center mt-32 sm:mt-36 md:mt-40 lg:mt-48">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 sm:mb-8 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[hsl(var(--foreground))] to-[hsl(var(--foreground))]/80">
+              ROME
+            </h1>
+            
+            <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium text-muted-foreground mb-8 px-4">
+              Advance Secured Messaging App
+            </div>
+          </div>
+        </div>
+        
+        {/* Scroll Down Button */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+          <ScrollDownButton targetId="glowing-section" />
+        </div>
+        
+        {/* Watermark */}
+        <div 
+          className="fixed bottom-4 right-4 z-30 cursor-pointer group"
+          onClick={() => setIsAuthModalOpen(true)}
+        >
+          <img 
+            src="/lovable-uploads/c0adbdf1-7e12-4f03-bc2c-96a8a62eb425.png" 
+            alt="ROME Logo" 
+            className="w-16 h-16 rounded-xl opacity-80 group-hover:opacity-100 transition-opacity group-hover:scale-110 transition-transform" 
+          />
+        </div>
       </div>
       
       {/* Glowing Effects Section */}
