@@ -167,8 +167,8 @@ export function BlackHoleBackground() {
       const now = new Date().getTime();
       currentTime = (now - startTime) / 50;
 
-      // Use transparent background to show through to CSS background
-      context.fillStyle = 'rgba(0,0,0,0.02)';
+      // Use very subtle fade to maintain trails
+      context.fillStyle = 'rgba(0,0,0,0.015)';
       context.fillRect(0, 0, cw, ch);
 
       for (let i = 0; i < stars.length; i++) {
@@ -183,7 +183,7 @@ export function BlackHoleBackground() {
     function init() {
       if (!context) return;
       
-      // Clear with transparent background
+      // Don't fill with any color initially - let CSS background show through
       context.clearRect(0, 0, cw, ch);
       
       for (let i = 0; i < 2500; i++) {
