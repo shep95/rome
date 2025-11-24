@@ -167,8 +167,8 @@ export function BlackHoleBackground() {
       const now = new Date().getTime();
       currentTime = (now - startTime) / 50;
 
-      // Use very subtle fade to maintain trails
-      context.fillStyle = 'rgba(0,0,0,0.015)';
+      // Use the app's dark background color (hsl(0 0% 4%))
+      context.fillStyle = 'rgba(10, 10, 10, 0.02)';
       context.fillRect(0, 0, cw, ch);
 
       for (let i = 0; i < stars.length; i++) {
@@ -183,8 +183,9 @@ export function BlackHoleBackground() {
     function init() {
       if (!context) return;
       
-      // Don't fill with any color initially - let CSS background show through
-      context.clearRect(0, 0, cw, ch);
+      // Fill with app's background color initially
+      context.fillStyle = 'rgb(10, 10, 10)';
+      context.fillRect(0, 0, cw, ch);
       
       for (let i = 0; i < 2500; i++) {
         new Star();
@@ -203,11 +204,11 @@ export function BlackHoleBackground() {
   return (
     <div 
       ref={containerRef} 
-      className="absolute inset-0 w-full h-full pointer-events-auto cursor-pointer"
+      className="absolute inset-0 w-full h-full pointer-events-auto cursor-pointer bg-[rgb(10,10,10)]"
     >
       <canvas 
         ref={canvasRef} 
-        className="w-full h-full bg-transparent"
+        className="w-full h-full"
       />
     </div>
   );
