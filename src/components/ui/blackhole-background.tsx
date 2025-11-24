@@ -3,10 +3,13 @@ import { useEffect, useRef } from 'react';
 export function BlackHoleBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
-    if (!canvasRef.current || !containerRef.current) return;
+    if (!canvasRef.current || !containerRef.current || isInitializedRef.current) return;
 
+    isInitializedRef.current = true;
     const canvas = canvasRef.current;
     const container = containerRef.current;
     const context = canvas.getContext('2d');
@@ -177,7 +180,7 @@ export function BlackHoleBackground() {
         }
       }
 
-      requestAnimationFrame(loop);
+      animationFrameRef.current = requestAnimationFrame(loop);
     }
 
     function init() {
@@ -197,7 +200,15 @@ export function BlackHoleBackground() {
     init();
 
     return () => {
+      isInitializedRef.current = false;
       container.removeEventListener('click', handleClick);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      // Clear the canvas
+      context.clearRect(0, 0, cw, ch);
+      // Clear stars array
+      stars.length = 0;
     };
   }, []);
 
