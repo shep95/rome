@@ -29,6 +29,7 @@ export function BlackHoleBackground() {
 
     let expanse = false;
     let returning = false;
+    let collapse = false;
 
     // Resize handler
     const handleResize = () => {
@@ -129,11 +130,20 @@ export function BlackHoleBackground() {
 
         if (!expanse && !returning) {
           this.rotation = this.startRotation + (currentTime * this.speed);
-          if (this.y > this.yOrigin) {
-            this.y -= 2.5;
-          }
-          if (this.y < this.yOrigin - 4) {
-            this.y += (this.yOrigin - this.y) / 10;
+          if (!collapse) { // not hovered
+            if (this.y > this.yOrigin) {
+              this.y -= 2.5;
+            }
+            if (this.y < this.yOrigin - 4) {
+              this.y += (this.yOrigin - this.y) / 10;
+            }
+          } else { // on hover
+            if (this.y > this.hoverPos) {
+              this.y -= (this.hoverPos - this.y) / -5;
+            }
+            if (this.y < this.hoverPos - 4) {
+              this.y += 2.5;
+            }
           }
         } else if (expanse && !returning) {
           this.rotation = this.startRotation + (currentTime * (this.speed / 2));
@@ -169,10 +179,11 @@ export function BlackHoleBackground() {
       }
     }
 
-    // Single click handler
+    // Click handler for expansion
     const handleClick = () => {
-      if (expanse || returning) return; // Prevent multiple activations
+      if (expanse || returning) return;
       
+      collapse = false;
       expanse = true;
       returning = false;
 
@@ -186,7 +197,22 @@ export function BlackHoleBackground() {
       }, 25000);
     };
 
+    // Hover handlers
+    const handleMouseOver = () => {
+      if (expanse === false) {
+        collapse = true;
+      }
+    };
+
+    const handleMouseOut = () => {
+      if (expanse === false) {
+        collapse = false;
+      }
+    };
+
     container.addEventListener('click', handleClick);
+    container.addEventListener('mouseover', handleMouseOver);
+    container.addEventListener('mouseout', handleMouseOut);
 
     function loop() {
       if (!context) return;
@@ -228,13 +254,13 @@ export function BlackHoleBackground() {
     return () => {
       isInitializedRef.current = false;
       container.removeEventListener('click', handleClick);
+      container.removeEventListener('mouseover', handleMouseOver);
+      container.removeEventListener('mouseout', handleMouseOut);
       window.removeEventListener('resize', handleResize);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      // Clear the canvas
       context.clearRect(0, 0, cw, ch);
-      // Clear stars array
       starsRef.current.length = 0;
     };
   }, []);
