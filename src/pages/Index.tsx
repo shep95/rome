@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BackgroundPaths } from "@/components/ui/background-paths";
 import { AuthModal } from "@/components/ui/auth-modal";
-import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GlowingSection } from "@/components/GlowingSection";
 import { ScrollDownButton } from "@/components/ui/scroll-down-button";
 import { GlassmorphismHeader } from "@/components/ui/glassmorphism-header";
 import { GlassmorphismFooter } from "@/components/ui/glassmorphism-footer";
 import { BlackHoleBackground } from "@/components/ui/blackhole-background";
 import { useAuth } from '@/hooks/useAuth';
-import romeFavicon from '@/assets/rome-favicon.png';
 
 const Index = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -26,14 +23,6 @@ const Index = () => {
   const handleAuthSuccess = () => {
     navigate('/dashboard');
   };
-
-  const baseImages = [
-    "/lovable-uploads/b38fa270-f406-490d-b842-56eed7c7e3e8.png",
-    "/lovable-uploads/90438f60-fc96-4cee-b9ad-04f77fd740a0.png",
-    "/lovable-uploads/0a445d99-d5c0-4f1d-9c79-5b2d8b4073df.png",
-  ];
-  // Create more images to fill the 6-column grid
-  const images = Array.from({ length: 150 }, (_, i) => baseImages[i % baseImages.length]);
 
   return (
     <>
