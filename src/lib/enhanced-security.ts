@@ -5,6 +5,7 @@
 
 import { encryptionService } from './encryption';
 import { supabase } from '@/integrations/supabase/client';
+import { getLoggingIP } from './ip-utils';
 
 export interface SecurityAuditResult {
   level: 'critical' | 'high' | 'medium' | 'low' | 'secure';

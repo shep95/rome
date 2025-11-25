@@ -41,8 +41,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [screenshotProtection, setScreenshotProtection] = useState(false);
   const [showUsername, setShowUsername] = useState(false);
   const [profileData, setProfileData] = useState<{username?: string, login_username?: string, display_name?: string} | null>(null);
-  const [tailscaleIp, setTailscaleIp] = useState<string>('');
-  const [ipType, setIpType] = useState<'ipv4' | 'ipv6' | 'magicdns'>('ipv4');
+  const [tailscaleIPv4, setTailscaleIPv4] = useState<string>('');
+  const [tailscaleIPv6, setTailscaleIPv6] = useState<string>('');
+  const [tailscaleMagicDNS, setTailscaleMagicDNS] = useState<string>('');
   const backgroundInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
 
@@ -152,14 +153,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const savedBackground = localStorage.getItem('rome-background-image');
     const savedProfile = localStorage.getItem('rome-profile-image');
     const savedScreenshotProtection = localStorage.getItem('rome-screenshot-protection');
-    const savedTailscaleIp = localStorage.getItem('rome-tailscale-ip');
-    const savedIpType = localStorage.getItem('rome-tailscale-ip-type');
+    const savedIPv4 = localStorage.getItem('rome-tailscale-ipv4');
+    const savedIPv6 = localStorage.getItem('rome-tailscale-ipv6');
+    const savedMagicDNS = localStorage.getItem('rome-tailscale-magicdns');
     
     if (savedBackground) setBackgroundImage(savedBackground);
     if (savedProfile) setProfileImage(savedProfile);
     if (savedScreenshotProtection) setScreenshotProtection(JSON.parse(savedScreenshotProtection));
-    if (savedTailscaleIp) setTailscaleIp(savedTailscaleIp);
-    if (savedIpType) setIpType(savedIpType as 'ipv4' | 'ipv6' | 'magicdns');
+    if (savedIPv4) setTailscaleIPv4(savedIPv4);
+    if (savedIPv6) setTailscaleIPv6(savedIPv6);
+    if (savedMagicDNS) setTailscaleMagicDNS(savedMagicDNS);
 
     // Load profile data from Supabase
     const loadProfileData = async () => {
@@ -449,25 +452,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   };
 
   const handleIpSave = () => {
-    if (!tailscaleIp) {
-      toast.error('Please enter an IP address or MagicDNS name');
+    // Validate all three are provided
+    if (!tailscaleIPv4.trim() || !tailscaleIPv6.trim() || !tailscaleMagicDNS.trim()) {
+      toast.error('All three Tailscale configurations are required (IPv4, IPv6, and MagicDNS)');
       return;
     }
 
-    if (!validateIp(tailscaleIp, ipType)) {
-      if (ipType === 'ipv4') {
-        toast.error('Invalid Tailscale IPv4. Must be in format: 100.x.x.x');
-      } else if (ipType === 'ipv6') {
-        toast.error('Invalid Tailscale IPv6. Must start with fd7a:');
-      } else {
-        toast.error('Invalid MagicDNS format. Must be: hostname.tail-scale.ts.net');
-      }
+    // Validate each format
+    if (!validateIp(tailscaleIPv4, 'ipv4')) {
+      toast.error('Invalid Tailscale IPv4. Must be in format: 100.x.x.x');
       return;
     }
 
-    localStorage.setItem('rome-tailscale-ip', tailscaleIp);
-    localStorage.setItem('rome-tailscale-ip-type', ipType);
-    toast.success('Tailscale IP configuration saved');
+    if (!validateIp(tailscaleIPv6, 'ipv6')) {
+      toast.error('Invalid Tailscale IPv6. Must start with fd7a:');
+      return;
+    }
+
+    if (!validateIp(tailscaleMagicDNS, 'magicdns')) {
+      toast.error('Invalid MagicDNS format. Must end with .ts.net');
+      return;
+    }
+
+    localStorage.setItem('rome-tailscale-ipv4', tailscaleIPv4);
+    localStorage.setItem('rome-tailscale-ipv6', tailscaleIPv6);
+    localStorage.setItem('rome-tailscale-magicdns', tailscaleMagicDNS);
+    toast.success('All three Tailscale IPs configured successfully');
   };
 
   return (
@@ -1245,121 +1255,55 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       <div className="flex items-start gap-2">
                         <Shield className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
                         <div>
-                          <h4 className="text-amber-500 font-medium mb-1">Important Note:</h4>
+                          <h4 className="text-amber-500 font-medium mb-1">All Three IPs Required:</h4>
                           <p className="text-sm text-muted-foreground">
-                            This feature stores the IP address you configure. It doesn't automatically detect or 
-                            route your traffic through Tailscale. You must have Tailscale running on your device 
-                            for your actual network traffic to use the Tailscale network.
+                            You must configure all three Tailscale IP types (IPv4, IPv6, and MagicDNS) for complete privacy protection.
+                            You must have Tailscale running on your device for your actual network traffic to use the Tailscale network.
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    {/* IP Type Selection */}
-                    <div className="space-y-3 mb-4">
-                      <Label className="text-foreground">Which Tailscale IP should I use?</Label>
-                      <div className="space-y-2">
-                        <div 
-                          onClick={() => setIpType('ipv4')}
-                          className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                            ipType === 'ipv4' 
-                              ? 'border-primary bg-primary/10' 
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className={`w-4 h-4 rounded-full border-2 mt-0.5 flex items-center justify-center ${
-                              ipType === 'ipv4' ? 'border-primary' : 'border-muted-foreground'
-                            }`}>
-                              {ipType === 'ipv4' && <div className="w-2 h-2 rounded-full bg-primary" />}
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-foreground">Tailscale IPv4 (Recommended)</p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Format: <span className="font-mono">100.x.x.x</span>
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Find it: Run <span className="font-mono bg-muted px-1 rounded">tailscale ip -4</span> in terminal
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div 
-                          onClick={() => setIpType('ipv6')}
-                          className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                            ipType === 'ipv6' 
-                              ? 'border-primary bg-primary/10' 
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className={`w-4 h-4 rounded-full border-2 mt-0.5 flex items-center justify-center ${
-                              ipType === 'ipv6' ? 'border-primary' : 'border-muted-foreground'
-                            }`}>
-                              {ipType === 'ipv6' && <div className="w-2 h-2 rounded-full bg-primary" />}
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-foreground">Tailscale IPv6</p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Format: <span className="font-mono">fd7a:115c:a1e0:...</span>
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Find it: Run <span className="font-mono bg-muted px-1 rounded">tailscale ip -6</span> in terminal
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div 
-                          onClick={() => setIpType('magicdns')}
-                          className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                            ipType === 'magicdns' 
-                              ? 'border-primary bg-primary/10' 
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className={`w-4 h-4 rounded-full border-2 mt-0.5 flex items-center justify-center ${
-                              ipType === 'magicdns' ? 'border-primary' : 'border-muted-foreground'
-                            }`}>
-                              {ipType === 'magicdns' && <div className="w-2 h-2 rounded-full bg-primary" />}
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-foreground">MagicDNS Name</p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Format: <span className="font-mono">hostname.tail-scale.ts.net</span>
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Find it: Run <span className="font-mono bg-muted px-1 rounded">tailscale status</span> and look for your device name
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
+                    {/* All Three IP Inputs */}
                     <div className="space-y-4">
                       <div>
-                        <Label className="text-foreground">
-                          {ipType === 'ipv4' && 'Your Tailscale IPv4 Address'}
-                          {ipType === 'ipv6' && 'Your Tailscale IPv6 Address'}
-                          {ipType === 'magicdns' && 'Your Tailscale MagicDNS Name'}
-                        </Label>
+                        <Label className="text-foreground">Tailscale IPv4 Address *</Label>
                         <p className="text-muted-foreground text-xs mb-2">
-                          {ipType === 'ipv4' && 'Enter your Tailscale IPv4 (e.g., 100.64.0.1)'}
-                          {ipType === 'ipv6' && 'Enter your Tailscale IPv6 (e.g., fd7a:115c:a1e0:ab12:4843:cd96:6277:3f57)'}
-                          {ipType === 'magicdns' && 'Enter your MagicDNS name (e.g., my-device.tail-scale.ts.net)'}
+                          Find it: Run <span className="font-mono bg-muted px-1 rounded">tailscale ip -4</span> in terminal
                         </p>
                         <Input
                           type="text"
-                          value={tailscaleIp}
-                          onChange={(e) => setTailscaleIp(e.target.value)}
-                          placeholder={
-                            ipType === 'ipv4' ? '100.64.0.1' :
-                            ipType === 'ipv6' ? 'fd7a:115c:a1e0:...' :
-                            'hostname.tail-scale.ts.net'
-                          }
+                          value={tailscaleIPv4}
+                          onChange={(e) => setTailscaleIPv4(e.target.value)}
+                          placeholder="100.x.x.x"
+                          className="font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-foreground">Tailscale IPv6 Address *</Label>
+                        <p className="text-muted-foreground text-xs mb-2">
+                          Find it: Run <span className="font-mono bg-muted px-1 rounded">tailscale ip -6</span> in terminal
+                        </p>
+                        <Input
+                          type="text"
+                          value={tailscaleIPv6}
+                          onChange={(e) => setTailscaleIPv6(e.target.value)}
+                          placeholder="fd7a:115c:a1e0:..."
+                          className="font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-foreground">MagicDNS Hostname *</Label>
+                        <p className="text-muted-foreground text-xs mb-2">
+                          Find it: Run <span className="font-mono bg-muted px-1 rounded">tailscale status</span> and look for your device name
+                        </p>
+                        <Input
+                          type="text"
+                          value={tailscaleMagicDNS}
+                          onChange={(e) => setTailscaleMagicDNS(e.target.value)}
+                          placeholder="hostname.tail-scale.ts.net"
                           className="font-mono"
                         />
                       </div>
@@ -1367,35 +1311,46 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       <div className="flex gap-2">
                         <Button
                           onClick={handleIpSave}
-                          disabled={!tailscaleIp}
+                          disabled={!tailscaleIPv4 || !tailscaleIPv6 || !tailscaleMagicDNS}
                           className="flex-1"
                         >
                           <Check className="w-4 h-4 mr-2" />
-                          Save Configuration
+                          Save All Tailscale IPs
                         </Button>
                         <Button
                           onClick={() => {
-                            setTailscaleIp('');
-                            localStorage.removeItem('rome-tailscale-ip');
-                            localStorage.removeItem('rome-tailscale-ip-type');
-                            toast.success('Tailscale IP cleared');
+                            setTailscaleIPv4('');
+                            setTailscaleIPv6('');
+                            setTailscaleMagicDNS('');
+                            localStorage.removeItem('rome-tailscale-ipv4');
+                            localStorage.removeItem('rome-tailscale-ipv6');
+                            localStorage.removeItem('rome-tailscale-magicdns');
+                            toast.success('All Tailscale IPs cleared');
                           }}
                           variant="outline"
-                          disabled={!tailscaleIp}
+                          disabled={!tailscaleIPv4 && !tailscaleIPv6 && !tailscaleMagicDNS}
                         >
-                          Clear
+                          Clear All
                         </Button>
                       </div>
 
-                      {tailscaleIp && validateIp(tailscaleIp, ipType) && (
+                      {tailscaleIPv4 && tailscaleIPv6 && tailscaleMagicDNS && 
+                       validateIp(tailscaleIPv4, 'ipv4') && 
+                       validateIp(tailscaleIPv6, 'ipv6') && 
+                       validateIp(tailscaleMagicDNS, 'magicdns') && (
                         <div className="bg-muted/20 rounded-lg p-4 border border-border">
                           <div className="flex items-start gap-2">
                             <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-foreground">Tailscale IP Active</p>
+                              <p className="text-sm font-medium text-foreground">All Tailscale IPs Configured</p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                Configured {ipType === 'ipv4' ? 'IPv4' : ipType === 'ipv6' ? 'IPv6' : 'MagicDNS'}: 
-                                <span className="font-mono text-primary ml-1">{tailscaleIp}</span>
+                                IPv4: <span className="font-mono text-primary">{tailscaleIPv4}</span>
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                IPv6: <span className="font-mono text-primary">{tailscaleIPv6}</span>
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                MagicDNS: <span className="font-mono text-primary">{tailscaleMagicDNS}</span>
                               </p>
                               <p className="text-xs text-muted-foreground mt-2">
                                 ⚠️ <strong>Remember:</strong> This is stored locally in your browser. 
