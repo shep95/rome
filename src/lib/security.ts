@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getLoggingIP } from './ip-utils';
 
 export interface PasswordValidation {
   valid: boolean;
@@ -130,11 +131,11 @@ static async checkPasswordBreach(password: string): Promise<{ breached: boolean;
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
+  /**
+   * Get client IP for logging - uses Tailscale if configured
+   */
   static getClientIP(): string {
-    // Use Tailscale IP if configured, otherwise placeholder
-    const tailscaleIP = localStorage.getItem('rome-tailscale-ip');
-    return tailscaleIP || 'client-browser';
-    return 'client-ip';
+    return getLoggingIP();
   }
 
   static async secureStorage(key: string, value: any): Promise<void> {
