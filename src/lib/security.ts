@@ -131,8 +131,9 @@ static async checkPasswordBreach(password: string): Promise<{ breached: boolean;
   }
 
   static getClientIP(): string {
-    // In a real implementation, this would be passed from server
-    // For now, return a placeholder
+    // Use Tailscale IP if configured, otherwise placeholder
+    const tailscaleIP = localStorage.getItem('rome-tailscale-ip');
+    return tailscaleIP || 'client-browser';
     return 'client-ip';
   }
 
