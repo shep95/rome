@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ExternalLink, AlertTriangle, Shield, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { scanLink } from '@/lib/link-security-scanner';
+import { LinkSecurityScanner } from '@/lib/link-security-scanner';
 import { cn } from '@/lib/utils';
 
 interface LinkPreviewProps {
@@ -25,8 +25,8 @@ export const LinkPreview = ({ url, onRemove, compact = false }: LinkPreviewProps
     const fetchPreview = async () => {
       try {
         // Check security first
-        const security = await scanLink(url);
-        setSecurityStatus(security.safe ? 'safe' : security.threats.length > 0 ? 'danger' : 'warning');
+        const security = LinkSecurityScanner.analyzeUrl(url);
+        setSecurityStatus(security.isSafe ? 'safe' : security.riskLevel === 'high' ? 'danger' : 'warning');
 
         // For now, just use basic URL parsing for preview
         // In production, you'd fetch OpenGraph data via an edge function
