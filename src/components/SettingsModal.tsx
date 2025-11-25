@@ -20,7 +20,8 @@ import {
   Key,
   TrendingUp,
   Copy,
-  Mail
+  Mail,
+  Network
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -34,12 +35,13 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'appearance' | 'profile' | 'security' | 'shortcuts' | 'valuation'>('appearance');
+  const [activeTab, setActiveTab] = useState<'appearance' | 'profile' | 'security' | 'shortcuts' | 'valuation' | 'ip'>('appearance');
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [screenshotProtection, setScreenshotProtection] = useState(false);
   const [showUsername, setShowUsername] = useState(false);
   const [profileData, setProfileData] = useState<{username?: string, login_username?: string, display_name?: string} | null>(null);
+  const [tailscaleIp, setTailscaleIp] = useState<string>('');
   const backgroundInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
 
@@ -149,10 +151,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const savedBackground = localStorage.getItem('rome-background-image');
     const savedProfile = localStorage.getItem('rome-profile-image');
     const savedScreenshotProtection = localStorage.getItem('rome-screenshot-protection');
+    const savedTailscaleIp = localStorage.getItem('rome-tailscale-ip');
     
     if (savedBackground) setBackgroundImage(savedBackground);
     if (savedProfile) setProfileImage(savedProfile);
     if (savedScreenshotProtection) setScreenshotProtection(JSON.parse(savedScreenshotProtection));
+    if (savedTailscaleIp) setTailscaleIp(savedTailscaleIp);
 
     // Load profile data from Supabase
     const loadProfileData = async () => {
@@ -493,6 +497,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 <TrendingUp className="w-4 h-4" />
                 <span className="hidden sm:inline">Valuation</span>
               </button>
+              
+              <button
+                onClick={() => setActiveTab('ip')}
+                className={`flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                  activeTab === 'ip'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <Network className="w-4 h-4" />
+                <span className="hidden sm:inline">IP</span>
+              </button>
             </nav>
           </div>
 
@@ -563,6 +579,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               >
                 <TrendingUp className="w-5 h-5" />
                 <span>Valuation</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('ip')}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all ${
+                  activeTab === 'ip'
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <Network className="w-5 h-5" />
+                <span>IP</span>
               </button>
             </nav>
           </div>
@@ -1148,6 +1176,90 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
             </CardContent>
+              </Card>
+            )}
+
+            {activeTab === 'ip' && (
+              <Card className="bg-card/50 border-border">
+                <CardHeader>
+                  <CardTitle className="text-foreground flex items-center space-x-2">
+                    <Network className="w-5 h-5" />
+                    <span>Tailscale IP Configuration</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label className="text-foreground text-lg font-medium">Tailscale IP Integration</Label>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Integrate your Tailscale IP address into Rome. This IP will be logged by Supabase 
+                      instead of your real IP address, providing an additional layer of privacy for your communications.
+                    </p>
+
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
+                      <div className="flex items-start gap-2">
+                        <Network className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <div>
+                          <h4 className="text-primary font-medium mb-1">How it works:</h4>
+                          <ul className="text-sm text-muted-foreground space-y-1">
+                            <li>• Your Tailscale IP masks your real IP in all Rome operations</li>
+                            <li>• All Supabase logs will show your Tailscale IP instead</li>
+                            <li>• Provides sovereign control over your network identity</li>
+                            <li>• Can be updated or removed at any time</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-foreground">Your Tailscale IP Address</Label>
+                        <p className="text-muted-foreground text-xs mb-2">
+                          Enter your Tailscale IP address (e.g., 100.64.0.1)
+                        </p>
+                        <Input
+                          type="text"
+                          value={tailscaleIp}
+                          onChange={(e) => {
+                            const ip = e.target.value;
+                            setTailscaleIp(ip);
+                            localStorage.setItem('rome-tailscale-ip', ip);
+                          }}
+                          placeholder="100.64.0.1"
+                          className="font-mono"
+                        />
+                      </div>
+
+                      {tailscaleIp && (
+                        <div className="bg-muted/20 rounded-lg p-4 border border-border">
+                          <div className="flex items-start gap-2">
+                            <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium text-foreground">Tailscale IP Active</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Your configured IP: <span className="font-mono text-primary">{tailscaleIp}</span>
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                This IP address will be used for all Supabase logging operations.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <Button
+                        onClick={() => {
+                          setTailscaleIp('');
+                          localStorage.removeItem('rome-tailscale-ip');
+                          toast.success('Tailscale IP cleared');
+                        }}
+                        variant="outline"
+                        disabled={!tailscaleIp}
+                      >
+                        Clear IP Address
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
               </Card>
             )}
             </ScrollArea>
