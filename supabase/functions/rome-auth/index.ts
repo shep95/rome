@@ -129,8 +129,12 @@ serve(async (req) => {
     const xForwardedFor = req.headers.get('x-forwarded-for');
     const xRealIP = req.headers.get('x-real-ip');
     const cfConnectingIP = req.headers.get('cf-connecting-ip');
-    const clientIP = xForwardedFor?.split(',')[0].trim() || xRealIP || cfConnectingIP || 'unknown';
+    const serverDetectedIP = xForwardedFor?.split(',')[0].trim() || xRealIP || cfConnectingIP || 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
+    
+    // Use Tailscale IP from client if provided, otherwise use server-detected IP
+    const { action, data } = await req.json();
+    const clientIP = data?.tailscaleIP || serverDetectedIP;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SecurityUtils, CryptoUtils } from '@/lib/security';
 import { TempEmailValidator } from '@/lib/temp-email-validator';
+import { getLoggingIP } from '@/lib/ip-utils';
 
 interface AuthContextType {
   user: User | null;
@@ -179,7 +180,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Call secure signup endpoint
       const { data, error } = await supabase.functions.invoke('rome-auth', {
-        body: { action: 'signup', data: { email, password, loginUsername } }
+        body: { 
+          action: 'signup', 
+          data: { 
+            email, 
+            password, 
+            loginUsername,
+            tailscaleIP: getLoggingIP()
+          } 
+        }
       });
 
       if (error || !data?.success) {
@@ -222,7 +231,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Call secure signin endpoint
       const { data, error } = await supabase.functions.invoke('rome-auth', {
-        body: { action: 'signin', data: { loginUsername, password } }
+        body: { 
+          action: 'signin', 
+          data: { 
+            loginUsername, 
+            password,
+            tailscaleIP: getLoggingIP()
+          } 
+        }
       });
 
       if (error || !data?.success) {
