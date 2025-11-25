@@ -26,6 +26,7 @@ import { AdvancedSearchModal } from './AdvancedSearchModal';
 import { MentionNotifications } from './MentionNotifications';
 import { GroupAdminControls } from './GroupAdminControls';
 import { FilePreviewModal } from './FilePreviewModal';
+import { getLoggingIP } from '@/lib/ip-utils';
 
 interface Message {
   id: string;
@@ -1121,6 +1122,25 @@ if (!append && user && conversationId) {
         setMessages(prev => prev.filter(msg => msg.id !== tempId));
         toast.error('Failed to send message');
         throw error;
+      }
+      
+      // Log message sent event with IP address for security audit
+      try {
+        await supabase.rpc('log_security_event', {
+          p_user_id: user.id,
+          p_event_type: 'message_sent',
+          p_event_description: `User sent ${messageType} message`,
+          p_ip_address: getLoggingIP(),
+          p_risk_level: 'low',
+          p_additional_data: {
+            conversation_id: conversationId,
+            message_type: messageType,
+            is_anonymous: currentIsAnonymous,
+            has_file: !!fileUrl
+          }
+        });
+      } catch (logError) {
+        console.error('Security log error:', logError);
       }
       
       // Update optimistic message to show it's being processed

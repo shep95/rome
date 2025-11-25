@@ -34,9 +34,23 @@ export function getTailscaleIP(): string | undefined {
 
 /**
  * Get the IP address to use for logging (Tailscale if configured, otherwise default)
- * Returns a JSON string with all Tailscale IPs if all are configured
+ * Returns the primary IP address as a string (for database logging)
  */
 export function getLoggingIP(): string {
+  const config = getTailscaleConfig();
+  
+  // Return the primary Tailscale IP (IPv4 preferred)
+  if (config.ipv4) return config.ipv4;
+  if (config.ipv6) return config.ipv6;
+  if (config.magicdns) return config.magicdns;
+  
+  return 'client-browser';
+}
+
+/**
+ * Get the full Tailscale config as JSON (for detailed logging)
+ */
+export function getLoggingIPDetails(): string {
   const config = getTailscaleConfig();
   
   // If all three are configured, return them as a JSON object
