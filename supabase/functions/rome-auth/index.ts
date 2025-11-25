@@ -137,6 +137,13 @@ serve(async (req) => {
     
     // Use Tailscale IP from client if provided, otherwise use server-detected IP
     const clientIP = data?.tailscaleIP || serverDetectedIP;
+    
+    // Debug logging
+    console.log('=== IP DEBUG ===');
+    console.log('Tailscale IP from client:', data?.tailscaleIP);
+    console.log('Server detected IP:', serverDetectedIP);
+    console.log('Final clientIP:', clientIP);
+    console.log('===============');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -441,7 +448,8 @@ serve(async (req) => {
         
         // Log successful signin with IP address
         try {
-          await supabase.rpc('log_security_event', {
+          console.log('Logging security event with IP:', clientIP);
+          const logResult = await supabase.rpc('log_security_event', {
             p_user_id: profile.id,
             p_event_type: 'user_login',
             p_event_description: `User ${loginUsername} logged in successfully`,
@@ -449,6 +457,7 @@ serve(async (req) => {
             p_user_agent: userAgent,
             p_risk_level: 'low'
           });
+          console.log('Security log result:', logResult);
         } catch (logError) {
           console.error('Security log error:', logError);
         }
