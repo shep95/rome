@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthModal } from "@/components/ui/auth-modal";
 import { GlowingSection } from "@/components/GlowingSection";
+import { TechnologyStack } from "@/components/TechnologyStack";
 import { ScrollDownButton } from "@/components/ui/scroll-down-button";
 import { GlassmorphismHeader } from "@/components/ui/glassmorphism-header";
 import { GlassmorphismFooter } from "@/components/ui/glassmorphism-footer";
@@ -70,8 +71,13 @@ const Index = () => {
         
         {/* Scroll Down Button */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <ScrollDownButton targetId="download-section" />
+          <ScrollDownButton targetId="technology-section" />
         </div>
+      </div>
+      
+      {/* Technology Stack Section */}
+      <div id="technology-section" className="relative">
+        <TechnologyStack />
       </div>
       
       {/* Footer Section */}
