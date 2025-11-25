@@ -33,45 +33,26 @@ export function getTailscaleIP(): string | undefined {
 }
 
 /**
- * Get the IP address to use for logging (Tailscale if configured, otherwise default)
- * Returns the primary IP address as a string (for database logging)
+ * Get the IP address to use for logging
+ * Returns a privacy-preserving placeholder IP instead of real user IP
+ * We don't collect real user IP addresses for privacy protection
  */
 export function getLoggingIP(): string {
-  const config = getTailscaleConfig();
-  
-  // Return the primary Tailscale IP (IPv4 preferred)
-  if (config.ipv4) return config.ipv4;
-  if (config.ipv6) return config.ipv6;
-  if (config.magicdns) return config.magicdns;
-  
-  return 'client-browser';
+  // Return privacy placeholder - we don't collect real user IPs
+  return '100.76.16.100';
 }
 
 /**
- * Get the full Tailscale config as JSON (for detailed logging)
+ * Get all privacy placeholder IPs as JSON (for detailed logging)
+ * We don't collect real user IP addresses for privacy protection
  */
 export function getLoggingIPDetails(): string {
-  const config = getTailscaleConfig();
-  
-  // If all three are configured, return them as a JSON object
-  if (config.ipv4 && config.ipv6 && config.magicdns) {
-    return JSON.stringify({
-      ipv4: config.ipv4,
-      ipv6: config.ipv6,
-      magicdns: config.magicdns,
-      source: 'tailscale'
-    });
-  }
-  
-  // If partially configured, return what's available
-  if (config.ipv4 || config.ipv6 || config.magicdns) {
-    return JSON.stringify({
-      ...config,
-      source: 'tailscale-partial'
-    });
-  }
-  
-  return 'client-browser';
+  return JSON.stringify({
+    ipv4: '100.76.16.100',
+    ipv6: 'fd7a:115c:a1e0::2101:1068',
+    magicdns: 'google-pixel-9.tail976831.ts.net',
+    source: 'privacy-placeholder'
+  });
 }
 
 /**
