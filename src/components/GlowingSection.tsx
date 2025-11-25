@@ -23,7 +23,7 @@ export function GlowingSection() {
               area="md:[grid-area:1/1/2/7] xl:[grid-area:1/1/2/5]"
               icon={<Shield className="h-4 w-4" />}
               title="Military-Grade Encryption"
-              description="Your messages are protected with the strongest encryption available."
+              description="Your messages are protected with the strongest encryption available. All users communicate through Tailscale VPN for maximum privacy and security."
             />
             <GridItem
               area="md:[grid-area:1/7/2/13] xl:[grid-area:2/1/3/5]"
