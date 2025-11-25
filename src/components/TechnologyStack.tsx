@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import tailscaleLogo from "@/assets/tailscale-logo.png";
 import zorakLogo from "@/assets/aureum-logo.png";
-import supabaseLogo from "@/assets/supabase-logo.png";
 
 export function TechnologyStack() {
   const technologies = [
@@ -16,14 +15,14 @@ export function TechnologyStack() {
       description: "Military-grade encryption technology"
     },
     {
-      name: "Supabase",
-      logo: supabaseLogo,
-      description: "Secure backend infrastructure with RLS"
-    },
-    {
       name: "AES-256-GCM",
       logo: null,
-      description: "Military-grade AEAD encryption standard"
+      description: "Military-grade AEAD encryption for all data"
+    },
+    {
+      name: "Argon2",
+      logo: null,
+      description: "Password-level encryption for all files"
     }
   ];
 
@@ -46,6 +45,44 @@ export function TechnologyStack() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          {technologies.map((tech, index) => (
+            <motion.div
+              key={tech.name}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="group relative"
+            >
+              <div className="relative h-full rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
+                {/* Logo Container */}
+                <div className="flex justify-center items-center mb-6 h-32">
+                  {tech.logo ? (
+                    <img 
+                      src={tech.logo} 
+                      alt={`${tech.name} logo`}
+                      className="max-h-full max-w-full object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-300 group-hover:scale-110 transition-transform rounded-2xl"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
+                      <span className="text-3xl font-bold text-primary">🔐</span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Tech Name */}
+                <h3 className="text-xl font-bold text-center text-foreground mb-2">
+                  {tech.name}
+                </h3>
+                
+                {/* Description */}
+                <p className="text-sm text-center text-muted-foreground">
+                  {tech.description}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
           {technologies.map((tech, index) => (
             <motion.div
               key={tech.name}
