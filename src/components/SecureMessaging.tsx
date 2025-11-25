@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download, Search, Users, Bell } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
@@ -20,6 +20,12 @@ import { LinkWarning } from './LinkWarning';
 import { extractDominantColor, extractVideoColor } from '@/lib/color-extraction';
 import { useScreenshotProtection } from '@/hooks/useScreenshotProtection';
 import { useMessageNotifications } from '@/hooks/useMessageNotifications';
+import { MessageInput } from './MessageInput';
+import { VideoCallButton } from './VideoCallButton';
+import { AdvancedSearchModal } from './AdvancedSearchModal';
+import { MentionNotifications } from './MentionNotifications';
+import { GroupAdminControls } from './GroupAdminControls';
+import { FilePreviewModal } from './FilePreviewModal';
 
 interface Message {
   id: string;
@@ -130,6 +136,22 @@ const [showSettings, setShowSettings] = useState(false);
   const [userRole, setUserRole] = useState<'admin' | 'member'>('member');
   const [messageColors, setMessageColors] = useState<Map<string, string>>(new Map());
   const [backgroundThemeColor, setBackgroundThemeColor] = useState<string>('');
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [showAdminControls, setShowAdminControls] = useState(false);
+  const [showMentions, setShowMentions] = useState(false);
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [filePreviewModal, setFilePreviewModal] = useState<{
+    isOpen: boolean;
+    url: string;
+    fileName: string;
+    fileType: string;
+    fileSize?: number;
+  }>({ isOpen: false, url: '', fileName: '', fileType: '' });
+  const [otherUserInfo, setOtherUserInfo] = useState<{
+    display_name: string;
+    username: string;
+    avatar_url?: string;
+  } | null>(null);
 
   // Enforce live anti-screenshot while viewing messages (mobile: true blocking, web: best-effort)
   useScreenshotProtection(true);
@@ -293,7 +315,7 @@ const [showSettings, setShowSettings] = useState(false);
 
       setConversationDetails(conversation);
       
-      // Check user role in conversation
+      // Check user role in conversation and load participants
       if (user) {
         const { data: participant } = await supabase
           .from('conversation_participants')
@@ -304,6 +326,45 @@ const [showSettings, setShowSettings] = useState(false);
           .single();
         
         setUserRole((participant?.role as 'admin' | 'member') || 'member');
+        
+        // Load all participants for group chats
+        if (conversation.type === 'group') {
+          const { data: participantsData } = await supabase
+            .from('conversation_participants')
+            .select(`
+              id,
+              user_id,
+              role,
+              profiles:user_id (
+                username,
+                display_name,
+                avatar_url
+              )
+            `)
+            .eq('conversation_id', conversationId)
+            .is('left_at', null);
+          
+          setParticipants(participantsData || []);
+        } else {
+          // For direct chats, get the other user's info for video calls
+          const { data: otherParticipant } = await supabase
+            .from('conversation_participants')
+            .select(`
+              profiles:user_id (
+                username,
+                display_name,
+                avatar_url
+              )
+            `)
+            .eq('conversation_id', conversationId)
+            .neq('user_id', user.id)
+            .is('left_at', null)
+            .single();
+          
+          if (otherParticipant?.profiles) {
+            setOtherUserInfo(otherParticipant.profiles as any);
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading conversation details:', error);
@@ -1462,6 +1523,47 @@ if (!append && user && conversationId) {
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">End-to-end encrypted</p>
           </div>
+          
+          {/* Mention notifications button */}
+          <Button
+            onClick={() => setShowMentions(true)}
+            variant="ghost"
+            size="sm"
+            className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+          >
+            <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Button>
+          
+          {/* Video call button (only for direct conversations) */}
+          {conversationDetails?.type === 'direct' && conversationId && otherUserInfo && (
+            <VideoCallButton 
+              conversationId={conversationId} 
+              otherUser={otherUserInfo}
+            />
+          )}
+          
+          {/* Search button */}
+          <Button
+            onClick={() => setShowAdvancedSearch(true)}
+            variant="ghost"
+            size="sm"
+            className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+          >
+            <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Button>
+          
+          {/* Group admin controls button (only for group admins) */}
+          {conversationDetails?.type === 'group' && userRole === 'admin' && (
+            <Button
+              onClick={() => setShowAdminControls(true)}
+              variant="ghost"
+              size="sm"
+              className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+            >
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
+          )}
+          
           {/* Download conversation button */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -1486,6 +1588,7 @@ if (!append && user && conversationId) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          
           {/* Settings button */}
           <Button
             onClick={() => setShowSettings(true)}
@@ -2072,6 +2175,59 @@ editingMessageId === message.id ? (
         mediaType={mediaModal.type}
         fileName={mediaModal.fileName}
         fileSize={mediaModal.fileSize}
+      />
+
+      {/* Mention Notifications Modal */}
+      {user && (
+        <MentionNotifications
+          open={showMentions}
+          onClose={() => setShowMentions(false)}
+          onNavigateToMessage={(convId, msgId) => {
+            setShowMentions(false);
+            // Scroll to message if in same conversation
+            if (convId === conversationId) {
+              const messageEl = document.querySelector(`[data-message-id="${msgId}"]`);
+              messageEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }}
+        />
+      )}
+
+      {/* Advanced Search Modal */}
+      <AdvancedSearchModal
+        open={showAdvancedSearch}
+        onClose={() => setShowAdvancedSearch(false)}
+        onSelectMessage={(convId, msgId) => {
+          setShowAdvancedSearch(false);
+          if (convId === conversationId) {
+            const messageEl = document.querySelector(`[data-message-id="${msgId}"]`);
+            messageEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }}
+      />
+
+      {/* Group Admin Controls */}
+      {conversationDetails?.type === 'group' && (
+        <GroupAdminControls
+          open={showAdminControls}
+          onClose={() => setShowAdminControls(false)}
+          conversationId={conversationId}
+          participants={participants}
+          onUpdate={() => {
+            loadConversationDetails();
+            setShowAdminControls(false);
+          }}
+        />
+      )}
+
+      {/* File Preview Modal */}
+      <FilePreviewModal
+        open={filePreviewModal.isOpen}
+        onClose={() => setFilePreviewModal(prev => ({ ...prev, isOpen: false }))}
+        fileUrl={filePreviewModal.url}
+        fileName={filePreviewModal.fileName}
+        fileType={filePreviewModal.fileType}
+        fileSize={filePreviewModal.fileSize}
       />
 
       {/* Typing Indicator */}
