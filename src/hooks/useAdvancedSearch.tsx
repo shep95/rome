@@ -100,18 +100,39 @@ export const useAdvancedSearch = () => {
 
       for (const message of messages || []) {
         try {
-          // Convert data_payload to base64 string for decryption
-          let base64String: string;
-          if (typeof message.data_payload === 'string') {
-            base64String = message.data_payload;
-          } else if (message.data_payload && typeof message.data_payload === 'object' && 'data' in message.data_payload) {
-            const bufferData = new Uint8Array((message.data_payload as any).data);
-            base64String = btoa(String.fromCharCode(...bufferData));
-          } else {
-            continue; // Skip if can't process
-          }
+          const payload = message.data_payload as string | { data: number[] } | null;
+          if (!payload) continue;
 
-          const decrypted = await encryptionService.decryptMessage(base64String, message.conversation_id);
+          let decrypted: string = '';
+
+          // Handle Buffer format
+          if (typeof payload === 'object' && 'data' in payload) {
+            const bufferData = new Uint8Array(payload.data);
+            const base64String = btoa(String.fromCharCode(...bufferData));
+            
+            try {
+              decrypted = await encryptionService.decryptMessage(base64String, message.conversation_id);
+            } catch {
+              // Not encrypted - decode as plain UTF-8 text
+              decrypted = new TextDecoder().decode(bufferData);
+            }
+          } else if (typeof payload === 'string') {
+            // Handle string format
+            try {
+              decrypted = await encryptionService.decryptMessage(payload, message.conversation_id);
+            } catch {
+              // Plain text or hex string
+              if (payload.startsWith('\\x')) {
+                decrypted = payload.replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => 
+                  String.fromCharCode(parseInt(hex, 16))
+                );
+              } else {
+                decrypted = payload;
+              }
+            }
+          } else {
+            continue;
+          }
 
           // Check if content or filename matches search query
           const contentMatch = decrypted.toLowerCase().includes(searchQuery);
