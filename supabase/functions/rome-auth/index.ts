@@ -132,8 +132,10 @@ serve(async (req) => {
     const serverDetectedIP = xForwardedFor?.split(',')[0].trim() || xRealIP || cfConnectingIP || 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
     
-    // Use Tailscale IP from client if provided, otherwise use server-detected IP
+    // Parse request body once
     const { action, data } = await req.json();
+    
+    // Use Tailscale IP from client if provided, otherwise use server-detected IP
     const clientIP = data?.tailscaleIP || serverDetectedIP;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -142,8 +144,6 @@ serve(async (req) => {
     const passwordPepper = Deno.env.get('PASSWORD_PEPPER') || 'ROME_PEPPER_v3';
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    const { action, data } = await req.json();
 
     switch (action) {
       case 'signup': {
