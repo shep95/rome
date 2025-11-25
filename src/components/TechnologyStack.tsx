@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import tailscaleLogo from "@/assets/tailscale-logo.png";
-import aureumLogo from "@/assets/aureum-logo.png";
+import zorakLogo from "@/assets/aureum-logo.png";
+import supabaseLogo from "@/assets/supabase-logo.png";
 
 export function TechnologyStack() {
   const technologies = [
@@ -10,9 +11,19 @@ export function TechnologyStack() {
       description: "Zero-config VPN for secure networking"
     },
     {
-      name: "Aureon",
-      logo: aureumLogo,
+      name: "Zorak",
+      logo: zorakLogo,
       description: "Military-grade encryption technology"
+    },
+    {
+      name: "Supabase",
+      logo: supabaseLogo,
+      description: "Secure backend infrastructure with RLS"
+    },
+    {
+      name: "AES-256-GCM",
+      logo: null,
+      description: "Military-grade AEAD encryption standard"
     }
   ];
 
@@ -34,7 +45,7 @@ export function TechnologyStack() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {technologies.map((tech, index) => (
             <motion.div
               key={tech.name}
@@ -47,11 +58,17 @@ export function TechnologyStack() {
               <div className="relative h-full rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
                 {/* Logo Container */}
                 <div className="flex justify-center items-center mb-6 h-32">
-                  <img 
-                    src={tech.logo} 
-                    alt={`${tech.name} logo`}
-                    className="max-h-full max-w-full object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-300 group-hover:scale-110 transition-transform"
-                  />
+                  {tech.logo ? (
+                    <img 
+                      src={tech.logo} 
+                      alt={`${tech.name} logo`}
+                      className="max-h-full max-w-full object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-300 group-hover:scale-110 transition-transform rounded-2xl"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
+                      <span className="text-3xl font-bold text-primary">🔐</span>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Tech Name */}
