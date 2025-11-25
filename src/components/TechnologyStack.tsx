@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import tailscaleLogo from "@/assets/tailscale-logo.png";
 import aureumLogo from "@/assets/aureum-logo.png";
-import zcashLogo from "@/assets/zcash-logo.png";
 
 export function TechnologyStack() {
   const technologies = [
@@ -11,14 +10,9 @@ export function TechnologyStack() {
       description: "Zero-config VPN for secure networking"
     },
     {
-      name: "Aureum",
+      name: "Aureon",
       logo: aureumLogo,
       description: "Military-grade encryption technology"
-    },
-    {
-      name: "Zcash",
-      logo: zcashLogo,
-      description: "Privacy-focused cryptography"
     }
   ];
 
@@ -40,7 +34,7 @@ export function TechnologyStack() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {technologies.map((tech, index) => (
             <motion.div
               key={tech.name}

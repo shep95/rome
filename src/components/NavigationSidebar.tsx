@@ -592,11 +592,11 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/60 to-background/80 rounded-lg" />
             <div className="relative z-10 text-center space-y-6">
               <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center">
-                <img src={aureumLogo} alt="Aureum Logo" className="w-16 h-16 object-contain" />
+                <img src={aureumLogo} alt="Aureon Logo" className="w-16 h-16 object-contain" />
               </div>
               
                 <div className="space-y-4">
-                <h3 className="text-2xl font-bold text-foreground">Aureum</h3>
+                <h3 className="text-2xl font-bold text-foreground">Aureon</h3>
                 <div className="space-y-3 text-center">
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     The Capital Asset Of Zorak Corp & There Assets
