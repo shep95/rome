@@ -184,6 +184,79 @@ export type Database = {
         }
         Relationships: []
       }
+      file_access_logs: {
+        Row: {
+          access_type: string
+          accessed_at: string | null
+          file_id: string
+          id: string
+          ip_address: unknown
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string | null
+          file_id: string
+          id?: string
+          ip_address?: unknown
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string | null
+          file_id?: string
+          id?: string
+          ip_address?: unknown
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_access_logs_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "secure_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_folders: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          parent_folder_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          parent_folder_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          parent_folder_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_folders_parent_folder_id_fkey"
+            columns: ["parent_folder_id"]
+            isOneToOne: false
+            referencedRelation: "file_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       file_security_scans: {
         Row: {
           created_at: string
@@ -222,6 +295,136 @@ export type Database = {
           threat_detected?: string | null
         }
         Relationships: []
+      }
+      file_shares: {
+        Row: {
+          access_type: string
+          created_at: string | null
+          current_views: number | null
+          expires_at: string | null
+          file_id: string
+          id: string
+          max_views: number | null
+          password_hash: string | null
+          revoked_at: string | null
+          shared_by: string
+          shared_with: string | null
+        }
+        Insert: {
+          access_type: string
+          created_at?: string | null
+          current_views?: number | null
+          expires_at?: string | null
+          file_id: string
+          id?: string
+          max_views?: number | null
+          password_hash?: string | null
+          revoked_at?: string | null
+          shared_by: string
+          shared_with?: string | null
+        }
+        Update: {
+          access_type?: string
+          created_at?: string | null
+          current_views?: number | null
+          expires_at?: string | null
+          file_id?: string
+          id?: string
+          max_views?: number | null
+          password_hash?: string | null
+          revoked_at?: string | null
+          shared_by?: string
+          shared_with?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_shares_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "secure_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentions: {
+        Row: {
+          created_at: string | null
+          id: string
+          mentioned_user_id: string
+          message_id: string
+          read_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mentioned_user_id: string
+          message_id: string
+          read_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mentioned_user_id?: string
+          message_id?: string
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_drafts: {
+        Row: {
+          attachments: Json | null
+          content: string
+          conversation_id: string
+          created_at: string | null
+          id: string
+          replied_to_message_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          replied_to_message_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          replied_to_message_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_drafts_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_drafts_replied_to_message_id_fkey"
+            columns: ["replied_to_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       message_reactions: {
         Row: {
@@ -490,6 +693,44 @@ export type Database = {
         }
         Relationships: []
       }
+      polls: {
+        Row: {
+          closes_at: string | null
+          created_at: string | null
+          id: string
+          message_id: string
+          multiple_choice: boolean | null
+          options: Json
+          question: string
+        }
+        Insert: {
+          closes_at?: string | null
+          created_at?: string | null
+          id?: string
+          message_id: string
+          multiple_choice?: boolean | null
+          options: Json
+          question: string
+        }
+        Update: {
+          closes_at?: string | null
+          created_at?: string | null
+          id?: string
+          message_id?: string
+          multiple_choice?: boolean | null
+          options?: Json
+          question?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "polls_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -619,6 +860,7 @@ export type Database = {
           file_path: string
           file_size: number
           filename: string
+          folder_id: string | null
           id: string
           secure_payload: string
           user_id: string
@@ -631,6 +873,7 @@ export type Database = {
           file_path: string
           file_size: number
           filename: string
+          folder_id?: string | null
           id?: string
           secure_payload: string
           user_id: string
@@ -643,11 +886,20 @@ export type Database = {
           file_path?: string
           file_size?: number
           filename?: string
+          folder_id?: string | null
           id?: string
           secure_payload?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "secure_files_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "file_folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       security_audit_logs: {
         Row: {
@@ -907,6 +1159,41 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_messages: {
+        Row: {
+          created_at: string | null
+          duration_seconds: number
+          id: string
+          message_id: string
+          transcript: string | null
+          waveform_data: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_seconds: number
+          id?: string
+          message_id: string
+          transcript?: string | null
+          waveform_data?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_seconds?: number
+          id?: string
+          message_id?: string
+          transcript?: string | null
+          waveform_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_messages_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webauthn_credentials: {
         Row: {
           backup_eligible: boolean | null
@@ -968,6 +1255,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_expired_file_shares: { Args: never; Returns: undefined }
       cleanup_expired_rate_limits: { Args: never; Returns: undefined }
       cleanup_expired_security_data: { Args: never; Returns: undefined }
       cleanup_expired_updates: { Args: never; Returns: undefined }
@@ -1046,6 +1334,16 @@ export type Database = {
       }
       is_authenticated_user: { Args: never; Returns: boolean }
       is_service_admin: { Args: never; Returns: boolean }
+      log_file_access: {
+        Args: {
+          p_access_type: string
+          p_file_id: string
+          p_ip_address?: string
+          p_user_agent?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       log_security_event: {
         Args: {
           p_additional_data?: Json
@@ -1099,6 +1397,10 @@ export type Database = {
       validate_all_security_constraints: { Args: never; Returns: boolean }
       validate_call_history_access: {
         Args: { history_user_id: string }
+        Returns: boolean
+      }
+      validate_file_share: {
+        Args: { p_password?: string; p_share_id: string }
         Returns: boolean
       }
       validate_profile_access: {
