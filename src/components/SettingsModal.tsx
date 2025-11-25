@@ -1361,6 +1361,166 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         </div>
                       )}
                     </div>
+
+                    {/* Current Configuration Display */}
+                    <div className="border-t border-border pt-6 mt-6">
+                      <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                        <Shield className="w-4 h-4" />
+                        Current Tailscale Configuration
+                      </h4>
+                      
+                      {(tailscaleIPv4 || tailscaleIPv6 || tailscaleMagicDNS) ? (
+                        <div className="space-y-3">
+                          {/* Status Badge */}
+                          <div className="flex items-center gap-2">
+                            {tailscaleIPv4 && tailscaleIPv6 && tailscaleMagicDNS && 
+                             validateIp(tailscaleIPv4, 'ipv4') && 
+                             validateIp(tailscaleIPv6, 'ipv6') && 
+                             validateIp(tailscaleMagicDNS, 'magicdns') ? (
+                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
+                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                                  Fully Active - Complete Privacy Protection
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+                                <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                                <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400">
+                                  Partially Configured - Complete all three for full protection
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* IPv4 */}
+                          {tailscaleIPv4 && (
+                            <div className="bg-muted/50 rounded-lg p-3 border border-border">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-semibold text-muted-foreground">IPv4</span>
+                                    {validateIp(tailscaleIPv4, 'ipv4') ? (
+                                      <Check className="w-3 h-3 text-green-500" />
+                                    ) : (
+                                      <X className="w-3 h-3 text-red-500" />
+                                    )}
+                                  </div>
+                                  <p className="text-sm font-mono text-foreground">{tailscaleIPv4}</p>
+                                  {!validateIp(tailscaleIPv4, 'ipv4') && (
+                                    <p className="text-xs text-red-500 mt-1">Invalid format</p>
+                                  )}
+                                </div>
+                                <Button
+                                  onClick={() => {
+                                    setTailscaleIPv4('');
+                                    localStorage.removeItem('rome-tailscale-ipv4');
+                                    toast.success('IPv4 deleted');
+                                  }}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* IPv6 */}
+                          {tailscaleIPv6 && (
+                            <div className="bg-muted/50 rounded-lg p-3 border border-border">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-semibold text-muted-foreground">IPv6</span>
+                                    {validateIp(tailscaleIPv6, 'ipv6') ? (
+                                      <Check className="w-3 h-3 text-green-500" />
+                                    ) : (
+                                      <X className="w-3 h-3 text-red-500" />
+                                    )}
+                                  </div>
+                                  <p className="text-sm font-mono text-foreground break-all">{tailscaleIPv6}</p>
+                                  {!validateIp(tailscaleIPv6, 'ipv6') && (
+                                    <p className="text-xs text-red-500 mt-1">Invalid format</p>
+                                  )}
+                                </div>
+                                <Button
+                                  onClick={() => {
+                                    setTailscaleIPv6('');
+                                    localStorage.removeItem('rome-tailscale-ipv6');
+                                    toast.success('IPv6 deleted');
+                                  }}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* MagicDNS */}
+                          {tailscaleMagicDNS && (
+                            <div className="bg-muted/50 rounded-lg p-3 border border-border">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-semibold text-muted-foreground">MagicDNS</span>
+                                    {validateIp(tailscaleMagicDNS, 'magicdns') ? (
+                                      <Check className="w-3 h-3 text-green-500" />
+                                    ) : (
+                                      <X className="w-3 h-3 text-red-500" />
+                                    )}
+                                  </div>
+                                  <p className="text-sm font-mono text-foreground break-all">{tailscaleMagicDNS}</p>
+                                  {!validateIp(tailscaleMagicDNS, 'magicdns') && (
+                                    <p className="text-xs text-red-500 mt-1">Invalid format</p>
+                                  )}
+                                </div>
+                                <Button
+                                  onClick={() => {
+                                    setTailscaleMagicDNS('');
+                                    localStorage.removeItem('rome-tailscale-magicdns');
+                                    toast.success('MagicDNS deleted');
+                                  }}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Delete All Button */}
+                          <Button
+                            onClick={() => {
+                              setTailscaleIPv4('');
+                              setTailscaleIPv6('');
+                              setTailscaleMagicDNS('');
+                              localStorage.removeItem('rome-tailscale-ipv4');
+                              localStorage.removeItem('rome-tailscale-ipv6');
+                              localStorage.removeItem('rome-tailscale-magicdns');
+                              toast.success('All Tailscale IPs deleted');
+                            }}
+                            variant="destructive"
+                            className="w-full"
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Delete All Tailscale IPs
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 border border-dashed border-border rounded-lg">
+                          <Network className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">No Tailscale IPs configured yet</p>
+                          <p className="text-xs text-muted-foreground mt-1">Configure all three above to enable privacy protection</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
