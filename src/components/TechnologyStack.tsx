@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import tailscaleLogo from "@/assets/tailscale-logo.png";
 import zorakLogo from "@/assets/aureum-logo.png";
 import aesLogo from "@/assets/aes-military-logo.png";
+import argon2Logo from "@/assets/argon2-military-logo.png";
 
 export function TechnologyStack() {
   const technologies = [
@@ -22,7 +23,7 @@ export function TechnologyStack() {
     },
     {
       name: "Argon2",
-      logo: null,
+      logo: argon2Logo,
       description: "Password-level encryption for all files"
     }
   ];
