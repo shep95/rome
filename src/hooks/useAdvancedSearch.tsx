@@ -52,7 +52,7 @@ export const useAdvancedSearch = () => {
 
       const conversationIds = participantData.map(p => p.conversation_id);
 
-      // Build query
+      // Build query - fetch messages and related data separately
       let query = supabase
         .from('messages')
         .select(`
@@ -62,9 +62,7 @@ export const useAdvancedSearch = () => {
           data_payload,
           created_at,
           file_name,
-          file_url,
-          conversations!inner(name),
-          profiles!sender_id(username, display_name)
+          file_url
         `)
         .in('conversation_id', conversationIds)
         .order('created_at', { ascending: false })
@@ -103,6 +101,23 @@ export const useAdvancedSearch = () => {
       const { data: messages, error: messagesError } = await query;
 
       if (messagesError) throw messagesError;
+
+      // Fetch conversation names
+      const { data: conversations } = await supabase
+        .from('conversations')
+        .select('id, name')
+        .in('id', conversationIds);
+
+      // Fetch sender profiles
+      const senderIds = [...new Set(messages?.map(m => m.sender_id) || [])];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, display_name')
+        .in('id', senderIds);
+
+      // Create lookup maps
+      const conversationMap = new Map(conversations?.map(c => [c.id, c.name]) || []);
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
       // Decrypt and filter messages client-side
       const searchQuery = filters.query.toLowerCase();
@@ -149,8 +164,8 @@ export const useAdvancedSearch = () => {
           const filenameMatch = message.file_name?.toLowerCase().includes(searchQuery);
 
           if (contentMatch || filenameMatch) {
-            const profile = Array.isArray(message.profiles) ? message.profiles[0] : message.profiles;
-            const conversation = Array.isArray(message.conversations) ? message.conversations[0] : message.conversations;
+            const profile = profileMap.get(message.sender_id);
+            const conversationName = conversationMap.get(message.conversation_id);
             
             decryptedResults.push({
               id: message.id,
@@ -161,7 +176,7 @@ export const useAdvancedSearch = () => {
               file_name: message.file_name,
               sender_username: profile?.username,
               sender_display_name: profile?.display_name,
-              conversation_name: conversation?.name
+              conversation_name: conversationName
             });
           }
         } catch (error) {
