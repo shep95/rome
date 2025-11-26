@@ -10,6 +10,7 @@ interface SearchFilters {
   dateTo?: Date;
   hasAttachment?: boolean;
   conversationId?: string;
+  fileType?: string;
 }
 
 interface SearchResult {
@@ -84,6 +85,15 @@ export const useAdvancedSearch = () => {
 
       if (filters.hasAttachment) {
         query = query.not('file_url', 'is', null);
+      }
+
+      if (filters.fileType) {
+        query = query.not('file_url', 'is', null);
+        if (filters.fileType === 'image') {
+          query = query.or('file_name.ilike.%.jpg,file_name.ilike.%.jpeg,file_name.ilike.%.png,file_name.ilike.%.gif,file_name.ilike.%.webp');
+        } else if (filters.fileType === 'video') {
+          query = query.or('file_name.ilike.%.mp4,file_name.ilike.%.webm,file_name.ilike.%.mov');
+        }
       }
 
       if (filters.conversationId) {
