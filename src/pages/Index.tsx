@@ -71,26 +71,41 @@ const Index = () => {
           <h3 className="text-2xl md:text-3xl font-semibold text-foreground/90 mb-8">
             Used by Officials Around The World
           </h3>
-          <div className="flex items-center justify-center gap-8 md:gap-12 flex-wrap">
+          <div className="flex items-center justify-center gap-6 md:gap-8 flex-wrap">
             <img 
               src="https://flagcdn.com/w320/us.png" 
               alt="United States Flag" 
-              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
+              className="h-10 md:h-12 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
             />
             <img 
               src="https://flagcdn.com/w320/in.png" 
               alt="India Flag" 
-              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
+              className="h-10 md:h-12 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
             />
             <img 
               src="https://flagcdn.com/w320/pe.png" 
               alt="Peru Flag" 
-              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
+              className="h-10 md:h-12 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
             />
             <img 
               src="https://flagcdn.com/w320/gb.png" 
               alt="United Kingdom Flag" 
-              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
+              className="h-10 md:h-12 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
+            />
+            <img 
+              src="https://flagcdn.com/w320/au.png" 
+              alt="Australia Flag" 
+              className="h-10 md:h-12 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
+            />
+            <img 
+              src="https://flagcdn.com/w320/ca.png" 
+              alt="Canada Flag" 
+              className="h-10 md:h-12 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
+            />
+            <img 
+              src="https://flagcdn.com/w320/mx.png" 
+              alt="Mexico Flag" 
+              className="h-10 md:h-12 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
             />
           </div>
         </div>
