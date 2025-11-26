@@ -1574,6 +1574,7 @@ if (!append && user && conversationId) {
             variant="ghost"
             size="sm"
             className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+            title="Search messages"
           >
             <Search className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
