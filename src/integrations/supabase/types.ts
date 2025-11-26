@@ -852,6 +852,9 @@ export type Database = {
           id: string
           login_username: string | null
           screenshot_protection_enabled: boolean | null
+          tailscale_ipv4: string | null
+          tailscale_ipv6: string | null
+          tailscale_magicdns: string | null
           updated_at: string
           username: string | null
           wallpaper_url: string | null
@@ -865,6 +868,9 @@ export type Database = {
           id: string
           login_username?: string | null
           screenshot_protection_enabled?: boolean | null
+          tailscale_ipv4?: string | null
+          tailscale_ipv6?: string | null
+          tailscale_magicdns?: string | null
           updated_at?: string
           username?: string | null
           wallpaper_url?: string | null
@@ -878,6 +884,9 @@ export type Database = {
           id?: string
           login_username?: string | null
           screenshot_protection_enabled?: boolean | null
+          tailscale_ipv4?: string | null
+          tailscale_ipv6?: string | null
+          tailscale_magicdns?: string | null
           updated_at?: string
           username?: string | null
           wallpaper_url?: string | null

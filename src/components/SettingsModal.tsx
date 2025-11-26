@@ -451,7 +451,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     return false;
   };
 
-  const handleIpSave = () => {
+  const handleIpSave = async () => {
     // Validate all three are provided
     if (!tailscaleIPv4.trim() || !tailscaleIPv6.trim() || !tailscaleMagicDNS.trim()) {
       toast.error('All three Tailscale configurations are required (IPv4, IPv6, and MagicDNS)');
@@ -474,9 +474,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       return;
     }
 
+    // Save to localStorage
     localStorage.setItem('rome-tailscale-ipv4', tailscaleIPv4);
     localStorage.setItem('rome-tailscale-ipv6', tailscaleIPv6);
     localStorage.setItem('rome-tailscale-magicdns', tailscaleMagicDNS);
+    
+    // Save to database for cross-device sync
+    if (user?.id) {
+      await supabase
+        .from('profiles')
+        .update({
+          tailscale_ipv4: tailscaleIPv4,
+          tailscale_ipv6: tailscaleIPv6,
+          tailscale_magicdns: tailscaleMagicDNS
+        })
+        .eq('id', user.id);
+    }
+    
     toast.success('All three Tailscale IPs configured successfully');
   };
 
