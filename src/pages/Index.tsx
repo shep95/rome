@@ -65,6 +65,29 @@ const Index = () => {
         </div>
       </div>
       
+      {/* Used by Officials Section */}
+      <section className="relative py-12 bg-transparent">
+        <div className="container mx-auto px-4 text-center">
+          <h3 className="text-2xl md:text-3xl font-semibold text-foreground/90 mb-8">
+            Used by Officials Around The World
+          </h3>
+          <div className="flex items-center justify-center gap-8 md:gap-12">
+            <div className="text-6xl md:text-7xl hover:scale-110 transition-transform cursor-default" title="United States">
+              🇺🇸
+            </div>
+            <div className="text-6xl md:text-7xl hover:scale-110 transition-transform cursor-default" title="India">
+              🇮🇳
+            </div>
+            <div className="text-6xl md:text-7xl hover:scale-110 transition-transform cursor-default" title="Peru">
+              🇵🇪
+            </div>
+            <div className="text-6xl md:text-7xl hover:scale-110 transition-transform cursor-default" title="United Kingdom">
+              🇬🇧
+            </div>
+          </div>
+        </div>
+      </section>
+      
       {/* Glowing Effects Section */}
       <div id="glowing-section" className="relative">
         <GlowingSection />
