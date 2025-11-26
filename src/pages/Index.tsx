@@ -42,7 +42,7 @@ const Index = () => {
             </h1>
             
             <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium text-muted-foreground mb-8 px-4">
-              Advance Secured Messaging App
+              Advanced Secure Messaging App
             </div>
           </div>
         </div>
@@ -71,19 +71,27 @@ const Index = () => {
           <h3 className="text-2xl md:text-3xl font-semibold text-foreground/90 mb-8">
             Used by Officials Around The World
           </h3>
-          <div className="flex items-center justify-center gap-8 md:gap-12">
-            <div className="text-6xl md:text-7xl hover:scale-110 transition-transform cursor-default" title="United States">
-              🇺🇸
-            </div>
-            <div className="text-6xl md:text-7xl hover:scale-110 transition-transform cursor-default" title="India">
-              🇮🇳
-            </div>
-            <div className="text-6xl md:text-7xl hover:scale-110 transition-transform cursor-default" title="Peru">
-              🇵🇪
-            </div>
-            <div className="text-6xl md:text-7xl hover:scale-110 transition-transform cursor-default" title="United Kingdom">
-              🇬🇧
-            </div>
+          <div className="flex items-center justify-center gap-8 md:gap-12 flex-wrap">
+            <img 
+              src="https://flagcdn.com/w320/us.png" 
+              alt="United States Flag" 
+              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded"
+            />
+            <img 
+              src="https://flagcdn.com/w320/in.png" 
+              alt="India Flag" 
+              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded"
+            />
+            <img 
+              src="https://flagcdn.com/w320/pe.png" 
+              alt="Peru Flag" 
+              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded"
+            />
+            <img 
+              src="https://flagcdn.com/w320/gb.png" 
+              alt="United Kingdom Flag" 
+              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded"
+            />
           </div>
         </div>
       </section>
