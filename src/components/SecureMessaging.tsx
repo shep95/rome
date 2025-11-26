@@ -22,6 +22,7 @@ import { useScreenshotProtection } from '@/hooks/useScreenshotProtection';
 import { useMessageNotifications } from '@/hooks/useMessageNotifications';
 import { MessageInput } from './MessageInput';
 import { VideoCallButton } from './VideoCallButton';
+import { GroupCallButton } from './GroupCallButton';
 import { AdvancedSearchModal } from './AdvancedSearchModal';
 import { MentionNotifications } from './MentionNotifications';
 import { GroupAdminControls } from './GroupAdminControls';
@@ -1560,6 +1561,11 @@ if (!append && user && conversationId) {
               conversationId={conversationId} 
               otherUser={otherUserInfo}
             />
+          )}
+          
+          {/* Group call button (only for group conversations) */}
+          {conversationDetails?.type === 'group' && conversationId && (
+            <GroupCallButton conversationId={conversationId} />
           )}
           
           {/* Search button */}
