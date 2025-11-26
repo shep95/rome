@@ -1,54 +1,75 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { SecurityLock } from '@/components/SecurityLock';
-import { 
-  Plus, 
-  Upload, 
-  File,
-  Image as ImageIcon,
-  Download,
-  Clock,
-  FileText,
-  Video,
-  Music,
-  Archive,
-  X,
-  Lock,
-  Shield,
-  Eye,
-  Trash2
-} from 'lucide-react';
-import { ThanosSnapEffect } from '@/components/ui/thanos-snap-effect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { 
+  Plus, 
+  Upload, 
+  X,
+  Lock,
+  Shield,
+  Eye,
+  FolderPlus
+} from 'lucide-react';
 
-interface SecureFile {
-  id: string;
-  user_id: string;
-  filename: string;
-  file_path: string;
-  content_type: string;
-  file_size: number;
-  created_at: string;
-  secure_payload: string; // Updated property name
-}
+// New components
+import { SecureFileCard } from './SecureFileCard';
+import { FileContextMenu } from './FileContextMenu';
+import { FileSearchBar, SortOption, FilterType } from './FileSearchBar';
+import { BulkActionsBar } from './BulkActionsBar';
+import { ShareFileDialog } from './ShareFileDialog';
+import { TagManagerDialog } from './TagManagerDialog';
+import { FolderBreadcrumb } from './FolderBreadcrumb';
+
+// New hooks
+import { useSecureFileOperations, SecureFileExtended } from '@/hooks/useSecureFileOperations';
 
 export const SecureFiles: React.FC = () => {
   const { user } = useAuth();
-  const [files, setFiles] = useState<SecureFile[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const {
+    loadFiles,
+    createFolder,
+    moveFiles,
+    bulkDelete,
+    addTags,
+    removeTag,
+    updateAnalytics,
+    loading: operationsLoading
+  } = useSecureFileOperations();
+
+  // State
+  const [files, setFiles] = useState<SecureFileExtended[]>([]);
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
+  const [contextMenuFile, setContextMenuFile] = useState<SecureFileExtended | null>(null);
+
+  // Search & Filter
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('date');
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedFileForAccess, setSelectedFileForAccess] = useState<SecureFile | null>(null);
-  const [selectedFileForDelete, setSelectedFileForDelete] = useState<SecureFile | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+
+  // File creation
+  const [selectedFileForAccess, setSelectedFileForAccess] = useState<SecureFileExtended | null>(null);
+  const [selectedFileForDelete, setSelectedFileForDelete] = useState<SecureFileExtended | null>(null);
+  const [selectedFileForShare, setSelectedFileForShare] = useState<SecureFileExtended | null>(null);
+  const [selectedFileForTag, setSelectedFileForTag] = useState<SecureFileExtended | null>(null);
   const [newFileContent, setNewFileContent] = useState('');
   const [fileName, setFileName] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -58,38 +79,91 @@ export const SecureFiles: React.FC = () => {
   const [accessLoading, setAccessLoading] = useState(false);
   const [deleteCode, setDeleteCode] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [folderName, setFolderName] = useState('');
 
-  // Load files on component mount
+  // Load files on mount and when folder changes
   useEffect(() => {
     if (user) {
-      loadFiles();
+      refreshFiles();
     }
-  }, [user]);
+  }, [user, currentFolderId]);
 
-  const loadFiles = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('secure_files')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+  const refreshFiles = async () => {
+    const loadedFiles = await loadFiles(currentFolderId || undefined);
+    setFiles(loadedFiles);
+  };
 
-      if (error) throw error;
-      setFiles(data || []);
-    } catch (error) {
-      console.error('Error loading secure files:', error);
-      toast.error('Failed to load secure files');
+  // Filter and sort files
+  const filteredFiles = files.filter((file) => {
+    // Search filter
+    if (searchQuery && !file.filename.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+
+    // Type filter
+    if (filterType !== 'all') {
+      const typeMap: Record<string, string[]> = {
+        images: ['image/'],
+        documents: ['application/pdf', 'application/msword', 'application/vnd'],
+        videos: ['video/'],
+        audio: ['audio/'],
+        text: ['text/'],
+        archives: ['zip', 'rar', '7z', 'tar']
+      };
+
+      const types = typeMap[filterType] || [];
+      if (!types.some(t => file.content_type.includes(t))) {
+        return false;
+      }
+    }
+
+    // Tag filter
+    if (selectedTags.length > 0 && file.tags) {
+      const fileTags = file.tags.map(t => t.tag_name);
+      if (!selectedTags.some(tag => fileTags.includes(tag))) {
+        return false;
+      }
+    }
+
+    return true;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case 'name':
+        return a.filename.localeCompare(b.filename);
+      case 'size':
+        return b.file_size - a.file_size;
+      case 'views':
+        return (b.view_count || 0) - (a.view_count || 0);
+      case 'downloads':
+        return (b.download_count || 0) - (a.download_count || 0);
+      case 'date':
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+  });
+
+  // File selection handlers
+  const handleFileSelect = (fileId: string, multiSelect: boolean) => {
+    if (multiSelect) {
+      setSelectedFileIds(prev =>
+        prev.includes(fileId)
+          ? prev.filter(id => id !== fileId)
+          : [...prev, fileId]
+      );
+    } else {
+      setSelectedFileIds([fileId]);
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const clearSelection = () => {
+    setSelectedFileIds([]);
+  };
+
+  // File upload handling
+  const handleFileSelectForUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check 24-hour unlimited upload window
     const uploadWindowStart = localStorage.getItem('secure-files-upload-window');
     if (uploadWindowStart) {
       const windowStartTime = new Date(uploadWindowStart).getTime();
@@ -97,14 +171,11 @@ export const SecureFiles: React.FC = () => {
       const hoursPassed = (now - windowStartTime) / (1000 * 60 * 60);
       
       if (hoursPassed >= 24) {
-        // Window expired, remove it
         localStorage.removeItem('secure-files-upload-window');
       } else {
-        // Within 24-hour window - unlimited uploads
         toast.success(`Unlimited uploads active! ${(24 - hoursPassed).toFixed(1)} hours remaining`);
       }
     } else {
-      // Start new 24-hour upload window
       localStorage.setItem('secure-files-upload-window', new Date().toISOString());
       toast.success('24-hour unlimited upload window started!', {
         description: 'Upload as many files as you want for the next 24 hours'
@@ -112,13 +183,10 @@ export const SecureFiles: React.FC = () => {
     }
 
     setSelectedFile(file);
-    
-    // Auto-set filename if not already set
     if (!fileName) {
-      setFileName(file.name.split('.')[0]); // Remove extension for cleaner name
+      setFileName(file.name.split('.')[0]);
     }
 
-    // Create preview for images
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -130,7 +198,7 @@ export const SecureFiles: React.FC = () => {
     }
   };
 
-  const removeFile = () => {
+  const removeFileUpload = () => {
     setSelectedFile(null);
     setFilePreview(null);
     if (fileInputRef.current) {
@@ -138,6 +206,7 @@ export const SecureFiles: React.FC = () => {
     }
   };
 
+  // File creation
   const createSecureFile = async () => {
     if (!user || (!newFileContent.trim() && !selectedFile)) {
       toast.error('Please add content or upload a file');
@@ -156,7 +225,6 @@ export const SecureFiles: React.FC = () => {
       let fileSize = 0;
       let encryptedContent = '';
 
-      // Handle file upload
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop();
         const uniqueFileName = `${user.id}/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
@@ -170,12 +238,10 @@ export const SecureFiles: React.FC = () => {
         filePath = uniqueFileName;
         contentType = selectedFile.type;
         fileSize = selectedFile.size;
-        encryptedContent = btoa(`file:${selectedFile.name}`); // Mark as file reference
+        encryptedContent = btoa(`file:${selectedFile.name}`);
       } else {
-        // Text content only
         filePath = `text/${user.id}/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
         fileSize = newFileContent.length;
-        // Military-grade encryption using the access code as password
         const { encryptionService } = await import('@/lib/encryption');
         encryptedContent = await encryptionService.encryptMessage(newFileContent.trim(), accessCode);
       }
@@ -188,7 +254,8 @@ export const SecureFiles: React.FC = () => {
           file_path: filePath,
           filename: fileName.trim(),
           file_size: fileSize,
-          secure_payload: encryptedContent // Updated column name
+          secure_payload: encryptedContent,
+          folder_id: currentFolderId
         });
 
       if (error) throw error;
@@ -196,7 +263,7 @@ export const SecureFiles: React.FC = () => {
       toast.success('Secure file created successfully');
       setIsCreateModalOpen(false);
       resetCreateForm();
-      loadFiles();
+      refreshFiles();
     } catch (error) {
       console.error('Error creating secure file:', error);
       toast.error('Failed to create secure file');
@@ -208,18 +275,84 @@ export const SecureFiles: React.FC = () => {
   const resetCreateForm = () => {
     setNewFileContent('');
     setFileName('');
-    removeFile();
+    removeFileUpload();
   };
 
-  const handleFileAccess = (file: SecureFile) => {
+  // File access with analytics
+  const handleFileAccess = (file: SecureFileExtended) => {
     setSelectedFileForAccess(file);
     setIsAccessModalOpen(true);
     setAccessCode('');
   };
 
-  const createTextScreenshot = (content: string, filename: string) => {
-    // Create a styled HTML document for the text content
-    const htmlContent = `
+  const verifyAccessAndDownload = async () => {
+    if (!selectedFileForAccess || !accessCode) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const userSecurityCode = user?.user_metadata?.security_code;
+    
+    if (accessCode !== userSecurityCode) {
+      toast.error('Incorrect security code');
+      return;
+    }
+
+    setAccessLoading(true);
+    
+    try {
+      const file = selectedFileForAccess;
+      
+      // Update analytics
+      await updateAnalytics(file.id, 'download');
+
+      if (file.content_type === 'text/plain') {
+        const { encryptionService } = await import('@/lib/encryption');
+        let content: string;
+        try {
+          content = await encryptionService.decryptMessage(file.secure_payload.toString(), accessCode);
+        } catch {
+          try {
+            content = atob(file.secure_payload.toString());
+          } catch {
+            toast.error('Invalid access code or corrupted file');
+            return;
+          }
+        }
+        
+        const htmlContent = createTextDocument(content, file.filename);
+        downloadFile(htmlContent, `${file.filename}_secure_document.html`, 'text/html');
+        toast.success('Text content downloaded');
+      } else {
+        const { data, error } = await supabase.storage
+          .from('secure-files')
+          .download(file.file_path);
+
+        if (error) throw error;
+
+        const fileExtension = file.file_path.split('.').pop() || '';
+        const downloadName = fileExtension ? `${file.filename}.${fileExtension}` : file.filename;
+        downloadFile(data, downloadName);
+        toast.success('File downloaded successfully');
+      }
+
+      const shouldDelete = confirm('File accessed successfully! Do you want to delete this secure file now?');
+      if (shouldDelete) {
+        await deleteSecureFile(selectedFileForAccess.id);
+      }
+
+      setIsAccessModalOpen(false);
+      setSelectedFileForAccess(null);
+      setAccessCode('');
+      refreshFiles();
+    } catch (error) {
+      console.error('Error accessing file:', error);
+      toast.error('Failed to access file');
+    } finally {
+      setAccessLoading(false);
+    }
+  };
+
+  const createTextDocument = (content: string, filename: string) => {
+    return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -233,7 +366,6 @@ export const SecureFiles: React.FC = () => {
               padding: 40px;
               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
               min-height: 100vh;
-              box-sizing: border-box;
             }
             .container {
               background: white;
@@ -250,170 +382,41 @@ export const SecureFiles: React.FC = () => {
               color: #2d3748;
               font-size: 24px;
               font-weight: 600;
-              margin: 0;
-              display: flex;
-              align-items: center;
-              gap: 12px;
-            }
-            .shield-icon {
-              width: 24px;
-              height: 24px;
-              background: linear-gradient(135deg, #667eea, #764ba2);
-              border-radius: 6px;
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              color: white;
-              font-weight: bold;
-            }
-            .subtitle {
-              color: #718096;
-              font-size: 14px;
-              margin: 8px 0 0 36px;
             }
             .content {
               color: #2d3748;
               font-size: 16px;
               line-height: 1.6;
               white-space: pre-wrap;
-              word-wrap: break-word;
-            }
-            .footer {
-              margin-top: 40px;
-              padding-top: 20px;
-              border-top: 2px solid #f0f0f0;
-              color: #718096;
-              font-size: 14px;
-              text-align: center;
-            }
-            .encrypted-badge {
-              display: inline-flex;
-              align-items: center;
-              gap: 6px;
-              background: #f7fafc;
-              color: #4a5568;
-              padding: 4px 12px;
-              border-radius: 20px;
-              font-size: 12px;
-              font-weight: 500;
-              margin-top: 10px;
             }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1 class="title">
-                <span class="shield-icon">🛡</span>
-                ${filename}
-              </h1>
-              <p class="subtitle">Secure File Content</p>
-              <div class="encrypted-badge">
-                🔒 Encrypted Content
-              </div>
+              <h1 class="title">🛡 ${filename}</h1>
             </div>
             <div class="content">${content}</div>
-            <div class="footer">
-              Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}<br>
-              This is a secure document from your encrypted storage.
-            </div>
           </div>
         </body>
       </html>
     `;
-    
-    return htmlContent;
   };
 
-  const verifyAccessAndDownload = async () => {
-    if (!selectedFileForAccess || !accessCode) return;
-
-    // Get the user's actual security code from Supabase auth
-    const { data: { user } } = await supabase.auth.getUser();
-    const userSecurityCode = user?.user_metadata?.security_code;
-    
-    if (accessCode !== userSecurityCode) {
-      toast.error('Incorrect security code');
-      return;
-    }
-
-    setAccessLoading(true);
-    
-    try {
-      const file = selectedFileForAccess;
-      
-      // Handle text content - create a formatted "screenshot"
-      if (file.content_type === 'text/plain') {
-        // Decrypt the content using the access code as password
-        const { encryptionService } = await import('@/lib/encryption');
-        let content: string;
-        try {
-          content = await encryptionService.decryptMessage(file.secure_payload.toString(), accessCode); // Updated column name
-        } catch (decryptError) {
-          // Fallback for old base64 encoded files
-          try {
-            content = atob(file.secure_payload.toString()); // Updated column name
-          } catch {
-            toast.error('Invalid access code or corrupted file');
-            return;
-          }
-        }
-        
-        // Create formatted HTML document
-        const htmlContent = createTextScreenshot(content, file.filename);
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${file.filename}_secure_document.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        toast.success('Text content downloaded as formatted document');
-      } else {
-        // Handle actual files (images, documents, etc.) - download directly
-        const { data, error } = await supabase.storage
-          .from('secure-files')
-          .download(file.file_path);
-
-        if (error) throw error;
-
-        // Get file extension from the original file path
-        const fileExtension = file.file_path.split('.').pop() || '';
-        const downloadName = fileExtension ? `${file.filename}.${fileExtension}` : file.filename;
-
-        const url = URL.createObjectURL(data);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = downloadName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        toast.success('File downloaded successfully');
-      }
-
-      // Ask user if they want to delete the file after accessing
-      const shouldDelete = confirm('File accessed successfully! Do you want to delete this secure file now?');
-      if (shouldDelete) {
-        await deleteSecureFile(selectedFileForAccess.id);
-      }
-
-      setIsAccessModalOpen(false);
-      setSelectedFileForAccess(null);
-      setAccessCode('');
-    } catch (error) {
-      console.error('Error accessing file:', error);
-      toast.error('Failed to access file');
-    } finally {
-      setAccessLoading(false);
-    }
+  const downloadFile = (data: Blob | string, filename: string, type?: string) => {
+    const blob = typeof data === 'string' ? new Blob([data], { type: type || 'text/html' }) : data;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
-  const handleDeleteRequest = (file: SecureFile) => {
+  // Delete with confirmation
+  const handleDeleteRequest = (file: SecureFileExtended) => {
     setSelectedFileForDelete(file);
     setIsDeleteModalOpen(true);
     setDeleteCode('');
@@ -422,12 +425,11 @@ export const SecureFiles: React.FC = () => {
   const verifyCodeAndDelete = async () => {
     if (!selectedFileForDelete || !deleteCode) return;
 
-    // Get the user's actual security code from Supabase auth
     const { data: { user } } = await supabase.auth.getUser();
     const userSecurityCode = user?.user_metadata?.security_code;
     
     if (deleteCode !== userSecurityCode) {
-      toast.error('Incorrect security code. File deletion cancelled.');
+      toast.error('Incorrect security code');
       return;
     }
 
@@ -439,6 +441,7 @@ export const SecureFiles: React.FC = () => {
       setSelectedFileForDelete(null);
       setDeleteCode('');
       toast.success('Secure file deleted successfully');
+      refreshFiles();
     } catch (error) {
       console.error('Error deleting secure file:', error);
       toast.error('Failed to delete secure file');
@@ -451,7 +454,6 @@ export const SecureFiles: React.FC = () => {
     const fileToDelete = files.find(f => f.id === fileId);
     if (!fileToDelete) return;
 
-    // Delete from storage if it's not a text file
     if (fileToDelete.content_type !== 'text/plain') {
       try {
         await supabase.storage
@@ -462,59 +464,117 @@ export const SecureFiles: React.FC = () => {
       }
     }
 
-    // Delete from database
     const { error } = await supabase
       .from('secure_files')
       .delete()
       .eq('id', fileId)
-      .eq('user_id', user?.id); // Ensure user can only delete their own files
+      .eq('user_id', user?.id);
 
     if (error) throw error;
-
-    // Update local state
-    setFiles(prev => prev.filter(f => f.id !== fileId));
   };
 
-  const getFileIcon = (fileType?: string) => {
-    if (!fileType) return <FileText className="w-5 h-5" />;
-    
-    if (fileType.startsWith('image/')) return <ImageIcon className="w-5 h-5" />;
-    if (fileType.startsWith('video/')) return <Video className="w-5 h-5" />;
-    if (fileType.startsWith('audio/')) return <Music className="w-5 h-5" />;
-    if (fileType.includes('zip') || fileType.includes('rar')) return <Archive className="w-5 h-5" />;
-    if (fileType === 'text/plain') return <FileText className="w-5 h-5" />;
-    
-    return <File className="w-5 h-5" />;
+  // Context menu handlers
+  const handleContextMenu = (e: React.MouseEvent, file: SecureFileExtended) => {
+    e.preventDefault();
+    setContextMenuFile(file);
   };
 
-  const formatFileSize = (bytes?: number) => {
-    if (!bytes) return '';
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (diffDays === 1) {
-      return 'Yesterday';
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    } else {
-      return date.toLocaleDateString();
+  // Folder operations
+  const handleCreateFolder = async () => {
+    if (!folderName.trim()) {
+      toast.error('Please enter a folder name');
+      return;
     }
+
+    const folder = await createFolder(folderName, currentFolderId || undefined);
+    if (folder) {
+      setFolderName('');
+      setIsFolderModalOpen(false);
+      refreshFiles();
+    }
+  };
+
+  // Bulk operations
+  const handleBulkDelete = async () => {
+    if (selectedFileIds.length === 0) return;
+    
+    const confirmed = confirm(`Delete ${selectedFileIds.length} file(s) permanently?`);
+    if (!confirmed) return;
+
+    const success = await bulkDelete(selectedFileIds);
+    if (success) {
+      clearSelection();
+      refreshFiles();
+    }
+  };
+
+  const handleBulkDownload = async () => {
+    toast.info('Bulk download will start shortly...');
+    for (const fileId of selectedFileIds) {
+      const file = files.find(f => f.id === fileId);
+      if (file) {
+        await updateAnalytics(file.id, 'download');
+      }
+    }
+  };
+
+  const handleBulkMove = async () => {
+    const targetFolderId = prompt('Enter folder ID (or leave empty for root):');
+    const success = await moveFiles(selectedFileIds, targetFolderId || null);
+    if (success) {
+      clearSelection();
+      refreshFiles();
+    }
+  };
+
+  const handleBulkTag = () => {
+    if (selectedFileIds.length === 1) {
+      const file = files.find(f => f.id === selectedFileIds[0]);
+      if (file) {
+        setSelectedFileForTag(file);
+        setIsTagManagerOpen(true);
+      }
+    } else {
+      toast.info('Tag management supports single file at a time');
+    }
+  };
+
+  const handleBulkShare = () => {
+    if (selectedFileIds.length === 1) {
+      const file = files.find(f => f.id === selectedFileIds[0]);
+      if (file) {
+        setSelectedFileForShare(file);
+        setIsShareModalOpen(true);
+      }
+    } else {
+      toast.info('Share supports single file at a time');
+    }
+  };
+
+  // Tag operations
+  const handleAddTag = async (tagName: string, tagColor: string) => {
+    if (!selectedFileForTag) return false;
+    const success = await addTags(selectedFileForTag.id, tagName, tagColor);
+    if (success) {
+      toast.success('Tag added successfully');
+      refreshFiles();
+    }
+    return success;
+  };
+
+  const handleRemoveTag = async (tagId: string) => {
+    const success = await removeTag(tagId);
+    if (success) {
+      toast.success('Tag removed successfully');
+      refreshFiles();
+    }
+    return success;
   };
 
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="p-4 border-b border-border flex-shrink-0">
+      <div className="p-4 border-b border-border flex-shrink-0 space-y-3">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -523,160 +583,157 @@ export const SecureFiles: React.FC = () => {
             </h2>
             <p className="text-sm text-muted-foreground">Your encrypted personal storage</p>
           </div>
-          <Button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New File
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => setIsFolderModalOpen(true)}
+              className="gap-2"
+            >
+              <FolderPlus className="w-4 h-4" />
+              New Folder
+            </Button>
+            <Button 
+              onClick={() => setIsCreateModalOpen(true)}
+              className="gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              New File
+            </Button>
+          </div>
         </div>
+
+        {/* Breadcrumb */}
+        <FolderBreadcrumb
+          currentFolderId={currentFolderId}
+          onNavigate={setCurrentFolderId}
+        />
+
+        {/* Search & Filter */}
+        <FileSearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          filterType={filterType}
+          onFilterChange={setFilterType}
+          selectedTags={selectedTags}
+          onRemoveTag={(tag) => setSelectedTags(prev => prev.filter(t => t !== tag))}
+        />
       </div>
 
       {/* Files Grid */}
       <ScrollArea className="flex-1 p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 max-w-none">
-          {files.length === 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+          {filteredFiles.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No secure files yet</h3>
-              <p className="text-muted-foreground mb-4">Create your first secure file to get started</p>
-              <Button 
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create File
-              </Button>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No files found</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchQuery || selectedTags.length > 0 
+                  ? 'Try adjusting your search or filters'
+                  : 'Create your first secure file to get started'}
+              </p>
+              {!searchQuery && selectedTags.length === 0 && (
+                <Button onClick={() => setIsCreateModalOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create File
+                </Button>
+              )}
             </div>
           ) : (
-            files.map((file) => (
-              <Card 
-                key={file.id} 
-                className="bg-card/50 border-border hover:shadow-lg transition-all h-[280px] flex flex-col relative group"
+            filteredFiles.map((file) => (
+              <FileContextMenu
+                key={file.id}
+                onDownload={() => handleFileAccess(file)}
+                onDelete={() => handleDeleteRequest(file)}
+                onShare={() => {
+                  setSelectedFileForShare(file);
+                  setIsShareModalOpen(true);
+                }}
+                onAddTag={() => {
+                  setSelectedFileForTag(file);
+                  setIsTagManagerOpen(true);
+                }}
+                onMove={() => handleBulkMove()}
+                onViewDetails={() => handleFileAccess(file)}
+                onDuplicate={() => toast.info('Duplicate feature coming soon')}
+                onViewVersions={() => toast.info('Version history coming soon')}
               >
-                {/* Delete button with Thanos Snap effect */}
-                <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ThanosSnapEffect onAnimationComplete={() => handleDeleteRequest(file)}>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-full backdrop-blur-sm"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </ThanosSnapEffect>
+                <div>
+                  <SecureFileCard
+                    file={file}
+                    isSelected={selectedFileIds.includes(file.id)}
+                    onSelect={handleFileSelect}
+                    onOpen={handleFileAccess}
+                    onContextMenu={handleContextMenu}
+                  />
                 </div>
-
-                <CardContent 
-                  className="p-6 flex flex-col h-full cursor-pointer"
-                  onClick={() => handleFileAccess(file)}
-                >
-                  <div className="flex flex-col items-center text-center space-y-4 flex-1">
-                    {/* File Icon */}
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-primary-foreground flex-shrink-0">
-                      {getFileIcon(file.content_type)}
-                    </div>
-                    
-                    {/* File Info */}
-                    <div className="space-y-2 w-full flex-1">
-                      <h4 className="text-foreground font-medium text-sm truncate w-full max-w-full">
-                        {file.filename}
-                      </h4>
-                      <p className="text-xs text-muted-foreground">
-                        {formatFileSize(file.file_size)}
-                      </p>
-                    </div>
-                    
-                    {/* Security Badge */}
-                    <Badge variant="secondary" className="text-xs flex items-center gap-1 flex-shrink-0">
-                      <Lock className="w-3 h-3" />
-                      Encrypted
-                    </Badge>
-                    
-                    {/* Date */}
-                    <div className="flex items-center justify-center space-x-1 text-xs text-muted-foreground flex-shrink-0">
-                      <Clock className="w-3 h-3" />
-                      <span className="whitespace-nowrap">{formatDate(file.created_at)}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              </FileContextMenu>
             ))
           )}
         </div>
       </ScrollArea>
 
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedCount={selectedFileIds.length}
+        onClearSelection={clearSelection}
+        onBulkDelete={handleBulkDelete}
+        onBulkMove={handleBulkMove}
+        onBulkDownload={handleBulkDownload}
+        onBulkTag={handleBulkTag}
+        onBulkShare={handleBulkShare}
+      />
+
       {/* Create File Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-lg bg-card/90 backdrop-blur-xl border border-border">
+        <DialogContent className="sm:max-w-lg backdrop-blur-xl bg-card/95">
           <DialogHeader>
-            <DialogTitle className="text-foreground flex items-center space-x-2">
+            <DialogTitle className="flex items-center space-x-2">
               <Shield className="w-5 h-5 text-primary" />
               <span>Create Secure File</span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* File Name */}
             <div className="space-y-2">
-              <Label htmlFor="filename" className="text-foreground">File Name *</Label>
+              <Label htmlFor="filename">File Name *</Label>
               <Input
                 id="filename"
                 value={fileName}
                 onChange={(e) => setFileName(e.target.value)}
                 placeholder="Enter a name for your file..."
-                className="bg-background/50 border-border"
+                className="backdrop-blur-sm bg-card/50"
               />
             </div>
 
-            {/* Content */}
             <div className="space-y-2">
-              <Label htmlFor="content" className="text-foreground">Content (Optional)</Label>
+              <Label htmlFor="content">Content (Optional)</Label>
               <Textarea
                 id="content"
                 value={newFileContent}
                 onChange={(e) => setNewFileContent(e.target.value)}
                 placeholder="Write your secure note..."
-                className="bg-background/50 border-border min-h-[100px]"
+                className="backdrop-blur-sm bg-card/50 min-h-[100px]"
               />
             </div>
             
-            {/* File Upload */}
             <div className="space-y-2">
-              <Label className="text-foreground">File Upload (Optional, Max 800MB)</Label>
-              
+              <Label>File Upload (Optional)</Label>
               {selectedFile ? (
-                <div className="space-y-3">
-                  {/* File preview */}
-                  <div className="p-3 bg-muted/20 rounded-lg border border-border">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground">
-                        {getFileIcon(selectedFile.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-foreground font-medium truncate">{selectedFile.name}</h4>
-                        <p className="text-sm text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={removeFile}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
+                <div className="p-3 bg-muted/20 rounded-lg border border-border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{selectedFile.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
                     </div>
+                    <Button size="sm" variant="ghost" onClick={removeFileUpload}>
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
-                  
-                  {/* Image preview */}
                   {filePreview && (
-                    <div className="rounded-lg overflow-hidden border border-border">
-                      <img 
-                        src={filePreview} 
-                        alt="Preview" 
-                        className="w-full h-32 object-cover"
-                      />
-                    </div>
+                    <img src={filePreview} alt="Preview" className="mt-3 w-full h-32 object-cover rounded" />
                   )}
                 </div>
               ) : (
@@ -684,18 +741,17 @@ export const SecureFiles: React.FC = () => {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    onChange={handleFileSelect}
+                    onChange={handleFileSelectForUpload}
                     className="hidden"
-                    accept="*/*"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full bg-background/50 border-border border-dashed"
+                    className="w-full border-dashed"
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    Choose File (Max 800MB)
+                    Choose File
                   </Button>
                 </div>
               )}
@@ -715,10 +771,10 @@ export const SecureFiles: React.FC = () => {
               </Button>
               <Button 
                 onClick={createSecureFile}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="flex-1"
                 disabled={loading || !fileName.trim() || (!newFileContent.trim() && !selectedFile)}
               >
-                {loading ? 'Creating...' : 'Save Secure File'}
+                {loading ? 'Creating...' : 'Save File'}
               </Button>
             </div>
           </div>
@@ -727,9 +783,9 @@ export const SecureFiles: React.FC = () => {
 
       {/* File Access Modal */}
       <Dialog open={isAccessModalOpen} onOpenChange={setIsAccessModalOpen}>
-        <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-xl border border-border">
+        <DialogContent className="sm:max-w-md backdrop-blur-xl bg-card/95">
           <DialogHeader>
-            <DialogTitle className="text-foreground flex items-center space-x-2">
+            <DialogTitle className="flex items-center space-x-2">
               <Lock className="w-5 h-5 text-primary" />
               <span>Access Secure File</span>
             </DialogTitle>
@@ -737,30 +793,27 @@ export const SecureFiles: React.FC = () => {
           
           {selectedFileForAccess && (
             <div className="space-y-4">
-              {/* File Info */}
               <div className="text-center p-4 bg-muted/20 rounded-lg">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground mx-auto mb-3">
-                  {getFileIcon(selectedFileForAccess.content_type)}
-                </div>
-                <h3 className="font-medium text-foreground">{selectedFileForAccess.filename}</h3>
-                <p className="text-sm text-muted-foreground">{formatFileSize(selectedFileForAccess.file_size)}</p>
+                <h3 className="font-medium">{selectedFileForAccess.filename}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {(selectedFileForAccess.file_size / 1024).toFixed(2)} KB
+                </p>
               </div>
 
-              {/* Security Code Input */}
               <div className="space-y-2">
-                <Label htmlFor="access-code" className="text-foreground">Enter 4-Digit Security Code</Label>
+                <Label htmlFor="access-code">Enter 4-Digit Security Code</Label>
                 <Input
                   id="access-code"
                   type="password"
                   value={accessCode}
                   onChange={(e) => setAccessCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   placeholder="••••"
-                  className="bg-background/50 border-border text-center text-lg font-mono tracking-wider"
+                  className="text-center text-lg font-mono tracking-wider"
                   maxLength={4}
                 />
               </div>
               
-              <div className="flex space-x-2 pt-4">
+              <div className="flex space-x-2">
                 <Button 
                   variant="outline" 
                   onClick={() => {
@@ -775,13 +828,13 @@ export const SecureFiles: React.FC = () => {
                 </Button>
                 <Button 
                   onClick={verifyAccessAndDownload}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="flex-1"
                   disabled={accessLoading || accessCode.length !== 4}
                 >
                   {accessLoading ? 'Verifying...' : (
                     <>
                       <Eye className="w-4 h-4 mr-2" />
-                      Access File
+                      Access
                     </>
                   )}
                 </Button>
@@ -791,11 +844,11 @@ export const SecureFiles: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* File Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-xl border border-border">
+        <DialogContent className="sm:max-w-md backdrop-blur-xl bg-card/95">
           <DialogHeader>
-            <DialogTitle className="text-foreground flex items-center space-x-2">
+            <DialogTitle className="flex items-center space-x-2">
               <Shield className="w-5 h-5 text-destructive" />
               <span>Delete Secure File</span>
             </DialogTitle>
@@ -803,48 +856,30 @@ export const SecureFiles: React.FC = () => {
           
           {selectedFileForDelete && (
             <div className="space-y-4">
-              {/* Warning Message */}
               <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-destructive rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Trash2 className="w-4 h-4 text-destructive-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-destructive mb-1">Permanent Deletion Warning</p>
-                    <p className="text-xs text-muted-foreground">
-                      This action cannot be undone. The file will be permanently deleted from your secure storage.
-                    </p>
-                  </div>
-                </div>
+                <p className="text-sm text-destructive">
+                  This action cannot be undone. The file will be permanently deleted.
+                </p>
               </div>
 
-              {/* File Info */}
               <div className="text-center p-4 bg-muted/20 rounded-lg">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground mx-auto mb-3">
-                  {getFileIcon(selectedFileForDelete.content_type)}
-                </div>
-                <h3 className="font-medium text-foreground">{selectedFileForDelete.filename}</h3>
-                <p className="text-sm text-muted-foreground">{formatFileSize(selectedFileForDelete.file_size)}</p>
+                <h3 className="font-medium">{selectedFileForDelete.filename}</h3>
               </div>
 
-              {/* Security Code Input */}
               <div className="space-y-2">
-                <Label htmlFor="delete-code" className="text-foreground">Enter Your 4-Digit Security Code to Confirm Deletion</Label>
+                <Label htmlFor="delete-code">Enter Security Code to Confirm</Label>
                 <Input
                   id="delete-code"
                   type="password"
                   value={deleteCode}
                   onChange={(e) => setDeleteCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   placeholder="••••"
-                  className="bg-background/50 border-border text-center text-lg font-mono tracking-wider"
+                  className="text-center text-lg font-mono tracking-wider"
                   maxLength={4}
                 />
-                <p className="text-xs text-muted-foreground text-center">
-                  Use the same 4-digit code you created during sign up
-                </p>
               </div>
               
-              <div className="flex space-x-2 pt-4">
+              <div className="flex space-x-2">
                 <Button 
                   variant="outline" 
                   onClick={() => {
@@ -863,18 +898,80 @@ export const SecureFiles: React.FC = () => {
                   className="flex-1"
                   disabled={deleteLoading || deleteCode.length !== 4}
                 >
-                  {deleteLoading ? 'Deleting...' : (
-                    <>
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete Forever
-                    </>
-                  )}
+                  {deleteLoading ? 'Deleting...' : 'Delete Forever'}
                 </Button>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Folder Creation Modal */}
+      <Dialog open={isFolderModalOpen} onOpenChange={setIsFolderModalOpen}>
+        <DialogContent className="sm:max-w-md backdrop-blur-xl bg-card/95">
+          <DialogHeader>
+            <DialogTitle>Create New Folder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="folder-name">Folder Name</Label>
+              <Input
+                id="folder-name"
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+                placeholder="Enter folder name..."
+                className="backdrop-blur-sm bg-card/50"
+              />
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsFolderModalOpen(false);
+                  setFolderName('');
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleCreateFolder}
+                className="flex-1"
+                disabled={!folderName.trim()}
+              >
+                Create
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share File Dialog */}
+      {selectedFileForShare && (
+        <ShareFileDialog
+          open={isShareModalOpen}
+          onClose={() => {
+            setIsShareModalOpen(false);
+            setSelectedFileForShare(null);
+          }}
+          fileId={selectedFileForShare.id}
+          fileName={selectedFileForShare.filename}
+        />
+      )}
+
+      {/* Tag Manager Dialog */}
+      {selectedFileForTag && (
+        <TagManagerDialog
+          open={isTagManagerOpen}
+          onClose={() => {
+            setIsTagManagerOpen(false);
+            setSelectedFileForTag(null);
+          }}
+          onAddTag={handleAddTag}
+          existingTags={selectedFileForTag.tags}
+          onRemoveTag={handleRemoveTag}
+        />
+      )}
     </div>
   );
 };

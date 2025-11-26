@@ -346,6 +346,85 @@ export type Database = {
           },
         ]
       }
+      file_tags: {
+        Row: {
+          created_at: string | null
+          file_id: string
+          id: string
+          tag_color: string | null
+          tag_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_id: string
+          id?: string
+          tag_color?: string | null
+          tag_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_id?: string
+          id?: string
+          tag_color?: string | null
+          tag_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_tags_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "secure_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_versions: {
+        Row: {
+          change_description: string | null
+          created_at: string | null
+          file_id: string
+          file_path: string
+          file_size: number
+          id: string
+          secure_payload: string
+          user_id: string
+          version_number: number
+        }
+        Insert: {
+          change_description?: string | null
+          created_at?: string | null
+          file_id: string
+          file_path: string
+          file_size: number
+          id?: string
+          secure_payload: string
+          user_id: string
+          version_number: number
+        }
+        Update: {
+          change_description?: string | null
+          created_at?: string | null
+          file_id?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          secure_payload?: string
+          user_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_versions_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "secure_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentions: {
         Row: {
           created_at: string | null
@@ -887,6 +966,7 @@ export type Database = {
         Row: {
           content_type: string
           created_at: string
+          download_count: number | null
           encrypted_file_metadata: string | null
           entropy_vector: string | null
           file_path: string
@@ -894,12 +974,15 @@ export type Database = {
           filename: string
           folder_id: string | null
           id: string
+          last_accessed: string | null
           secure_payload: string
           user_id: string
+          view_count: number | null
         }
         Insert: {
           content_type: string
           created_at?: string
+          download_count?: number | null
           encrypted_file_metadata?: string | null
           entropy_vector?: string | null
           file_path: string
@@ -907,12 +990,15 @@ export type Database = {
           filename: string
           folder_id?: string | null
           id?: string
+          last_accessed?: string | null
           secure_payload: string
           user_id: string
+          view_count?: number | null
         }
         Update: {
           content_type?: string
           created_at?: string
+          download_count?: number | null
           encrypted_file_metadata?: string | null
           entropy_vector?: string | null
           file_path?: string
@@ -920,8 +1006,10 @@ export type Database = {
           filename?: string
           folder_id?: string | null
           id?: string
+          last_accessed?: string | null
           secure_payload?: string
           user_id?: string
+          view_count?: number | null
         }
         Relationships: [
           {
