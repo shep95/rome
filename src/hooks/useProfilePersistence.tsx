@@ -15,15 +15,21 @@ export const useProfilePersistence = () => {
         const backgroundImage = localStorage.getItem('rome-background-image');
         const username = localStorage.getItem('rome-username');
         const displayName = localStorage.getItem('rome-display-name');
+        const tailscaleIPv4 = localStorage.getItem('rome-tailscale-ipv4');
+        const tailscaleIPv6 = localStorage.getItem('rome-tailscale-ipv6');
+        const tailscaleMagicDNS = localStorage.getItem('rome-tailscale-magicdns');
 
         // Only update if we have some data to save
-        if (profileImage || backgroundImage || username || displayName) {
+        if (profileImage || backgroundImage || username || displayName || tailscaleIPv4 || tailscaleIPv6 || tailscaleMagicDNS) {
           const updateData: any = {};
           
           if (profileImage) updateData.avatar_url = profileImage;
           if (backgroundImage) updateData.wallpaper_url = backgroundImage;
           if (username) updateData.username = username;
           if (displayName) updateData.display_name = displayName;
+          if (tailscaleIPv4) updateData.tailscale_ipv4 = tailscaleIPv4;
+          if (tailscaleIPv6) updateData.tailscale_ipv6 = tailscaleIPv6;
+          if (tailscaleMagicDNS) updateData.tailscale_magicdns = tailscaleMagicDNS;
 
           await supabase
             .from('profiles')
@@ -41,6 +47,9 @@ export const useProfilePersistence = () => {
             backgroundImage,
             username,
             displayName,
+            tailscaleIPv4,
+            tailscaleIPv6,
+            tailscaleMagicDNS,
             userEmail: user.email
           };
           

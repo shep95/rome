@@ -72,6 +72,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (profile.display_name) {
                   localStorage.setItem('rome-display-name', profile.display_name);
                 }
+                
+                // Set default Tailscale IPs if not already set
+                if (!localStorage.getItem('rome-tailscale-ipv4')) {
+                  const ipv4 = profile.tailscale_ipv4 || '100.76.16.100';
+                  localStorage.setItem('rome-tailscale-ipv4', ipv4);
+                }
+                if (!localStorage.getItem('rome-tailscale-ipv6')) {
+                  const ipv6 = profile.tailscale_ipv6 || 'fd7a:115c:a1e0::2101:1068';
+                  localStorage.setItem('rome-tailscale-ipv6', ipv6);
+                }
+                if (!localStorage.getItem('rome-tailscale-magicdns')) {
+                  const magicdns = profile.tailscale_magicdns || 'google-pixel-9.tail976831.ts.net';
+                  localStorage.setItem('rome-tailscale-magicdns', magicdns);
+                }
+              } else {
+                // Set defaults if no profile exists yet
+                if (!localStorage.getItem('rome-tailscale-ipv4')) {
+                  localStorage.setItem('rome-tailscale-ipv4', '100.76.16.100');
+                }
+                if (!localStorage.getItem('rome-tailscale-ipv6')) {
+                  localStorage.setItem('rome-tailscale-ipv6', 'fd7a:115c:a1e0::2101:1068');
+                }
+                if (!localStorage.getItem('rome-tailscale-magicdns')) {
+                  localStorage.setItem('rome-tailscale-magicdns', 'google-pixel-9.tail976831.ts.net');
+                }
               }
             } catch (error) {
               console.error('Error loading user profile:', error);
@@ -122,6 +147,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
             if (profile.display_name) {
               localStorage.setItem('rome-display-name', profile.display_name);
+            }
+            
+            // Set default Tailscale IPs if not already set
+            if (!localStorage.getItem('rome-tailscale-ipv4')) {
+              const ipv4 = profile.tailscale_ipv4 || '100.76.16.100';
+              localStorage.setItem('rome-tailscale-ipv4', ipv4);
+            }
+            if (!localStorage.getItem('rome-tailscale-ipv6')) {
+              const ipv6 = profile.tailscale_ipv6 || 'fd7a:115c:a1e0::2101:1068';
+              localStorage.setItem('rome-tailscale-ipv6', ipv6);
+            }
+            if (!localStorage.getItem('rome-tailscale-magicdns')) {
+              const magicdns = profile.tailscale_magicdns || 'google-pixel-9.tail976831.ts.net';
+              localStorage.setItem('rome-tailscale-magicdns', magicdns);
+            }
+          } else {
+            // Set defaults if no profile exists yet
+            if (!localStorage.getItem('rome-tailscale-ipv4')) {
+              localStorage.setItem('rome-tailscale-ipv4', '100.76.16.100');
+            }
+            if (!localStorage.getItem('rome-tailscale-ipv6')) {
+              localStorage.setItem('rome-tailscale-ipv6', 'fd7a:115c:a1e0::2101:1068');
+            }
+            if (!localStorage.getItem('rome-tailscale-magicdns')) {
+              localStorage.setItem('rome-tailscale-magicdns', 'google-pixel-9.tail976831.ts.net');
             }
           }
         } catch (error) {
