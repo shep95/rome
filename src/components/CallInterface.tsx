@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, MonitorUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,18 +25,24 @@ export const CallInterface = ({
 }: CallInterfaceProps) => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const screenShareRef = useRef<HTMLVideoElement>(null);
+  const remoteScreenShareRef = useRef<HTMLVideoElement>(null);
   
   const {
     isCallActive,
     isMuted,
     isVideoEnabled,
+    isScreenSharing,
     localStream,
+    screenStream,
     remoteStream,
+    remoteScreenStream,
     callDuration,
     startCall,
     endCall,
     toggleMute,
-    toggleVideo
+    toggleVideo,
+    toggleScreenShare
   } = useWebRTC({ conversationId, isVideo });
 
   // Set up video elements
@@ -51,6 +57,18 @@ export const CallInterface = ({
       remoteVideoRef.current.srcObject = remoteStream;
     }
   }, [remoteStream]);
+
+  useEffect(() => {
+    if (screenShareRef.current && screenStream) {
+      screenShareRef.current.srcObject = screenStream;
+    }
+  }, [screenStream]);
+
+  useEffect(() => {
+    if (remoteScreenShareRef.current && remoteScreenStream) {
+      remoteScreenShareRef.current.srcObject = remoteScreenStream;
+    }
+  }, [remoteScreenStream]);
 
   // Start call on mount
   useEffect(() => {
@@ -75,9 +93,17 @@ export const CallInterface = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col">
-      {/* Remote Video/Audio (Full Screen) */}
+      {/* Remote Video/Audio or Screen Share (Full Screen) */}
       <div className="flex-1 relative bg-black">
-        {isVideo && remoteStream ? (
+        {remoteScreenStream ? (
+          // Show remote screen share in full screen
+          <video
+            ref={remoteScreenShareRef}
+            autoPlay
+            playsInline
+            className="w-full h-full object-contain"
+          />
+        ) : isVideo && remoteStream ? (
           <video
             ref={remoteVideoRef}
             autoPlay
@@ -106,7 +132,7 @@ export const CallInterface = ({
         )}
 
         {/* Local Video (Picture-in-Picture) */}
-        {isVideo && localStream && (
+        {isVideo && localStream && !remoteScreenStream && (
           <Card className={cn(
             "absolute top-4 right-4 w-48 h-36 overflow-hidden",
             !isVideoEnabled && "bg-black"
@@ -124,6 +150,34 @@ export const CallInterface = ({
                 <VideoOff className="h-8 w-8 text-white" />
               </div>
             )}
+          </Card>
+        )}
+
+        {/* Local Screen Share Preview (when sharing) */}
+        {screenStream && (
+          <Card className="absolute bottom-4 left-4 w-48 h-36 overflow-hidden">
+            <video
+              ref={screenShareRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-contain"
+            />
+            <div className="absolute bottom-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded">
+              You're presenting
+            </div>
+          </Card>
+        )}
+
+        {/* Remote Video in PiP when screen is being shared */}
+        {remoteScreenStream && isVideo && remoteStream && (
+          <Card className="absolute top-4 right-4 w-48 h-36 overflow-hidden">
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover"
+            />
           </Card>
         )}
       </div>
@@ -148,6 +202,16 @@ export const CallInterface = ({
               onClick={toggleMute}
             >
               {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+            </Button>
+
+            {/* Screen Share */}
+            <Button
+              variant={isScreenSharing ? "default" : "secondary"}
+              size="lg"
+              className="h-14 w-14 rounded-full"
+              onClick={toggleScreenShare}
+            >
+              <MonitorUp className="h-6 w-6" />
             </Button>
 
             {/* End Call */}
