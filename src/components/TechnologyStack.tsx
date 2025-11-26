@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import tailscaleLogo from "@/assets/tailscale-logo.png";
 import zorakLogo from "@/assets/aureum-logo.png";
+import aesLogo from "@/assets/aes-military-logo.png";
 
 export function TechnologyStack() {
   const technologies = [
@@ -16,7 +17,7 @@ export function TechnologyStack() {
     },
     {
       name: "AES-256-GCM",
-      logo: null,
+      logo: aesLogo,
       description: "Military-grade AEAD encryption for all data"
     },
     {
