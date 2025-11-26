@@ -1496,6 +1496,7 @@ export type Database = {
       }
       monitor_suspicious_activity: { Args: never; Returns: undefined }
       process_scheduled_messages: { Args: never; Returns: undefined }
+      reset_secure_files_and_pin: { Args: { new_pin: string }; Returns: Json }
       search_profiles: {
         Args: { search_term?: string }
         Returns: {

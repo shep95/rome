@@ -16,7 +16,8 @@ import {
   Lock,
   Shield,
   Eye,
-  FolderPlus
+  FolderPlus,
+  RotateCcw
 } from 'lucide-react';
 
 // New components
@@ -27,6 +28,7 @@ import { BulkActionsBar } from './BulkActionsBar';
 import { ShareFileDialog } from './ShareFileDialog';
 import { TagManagerDialog } from './TagManagerDialog';
 import { FolderBreadcrumb } from './FolderBreadcrumb';
+import { SecureFilesResetDialog } from './SecureFilesResetDialog';
 
 // New hooks
 import { useSecureFileOperations, SecureFileExtended } from '@/hooks/useSecureFileOperations';
@@ -64,6 +66,7 @@ export const SecureFiles: React.FC = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   // File creation
   const [selectedFileForAccess, setSelectedFileForAccess] = useState<SecureFileExtended | null>(null);
@@ -586,6 +589,15 @@ export const SecureFiles: React.FC = () => {
           <div className="flex gap-2">
             <Button 
               variant="outline"
+              size="sm"
+              onClick={() => setIsResetModalOpen(true)}
+              className="gap-2 text-destructive hover:text-destructive"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset PIN
+            </Button>
+            <Button 
+              variant="outline"
               onClick={() => setIsFolderModalOpen(true)}
               className="gap-2"
             >
@@ -972,6 +984,13 @@ export const SecureFiles: React.FC = () => {
           onRemoveTag={handleRemoveTag}
         />
       )}
+
+      {/* Reset Dialog */}
+      <SecureFilesResetDialog
+        open={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onResetComplete={refreshFiles}
+      />
     </div>
   );
 };
