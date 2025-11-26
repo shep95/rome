@@ -37,6 +37,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { SettingsModal } from './SettingsModal';
 import { AboutUs } from './AboutUs';
 import { InboxModal } from './InboxModal';
+import { NotificationInbox } from './NotificationInbox';
 
 interface NavigationSidebarProps {
   activeSection: string;
@@ -365,21 +366,24 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               />
               <h1 className="text-foreground font-bold text-lg lg:text-xl">ROME</h1>
             </div>
-            <div 
-              onClick={() => setIsSettingsOpen(true)}
-              className="cursor-pointer"
-            >
-              {profileImage ? (
-                <img 
-                  src={profileImage} 
-                  alt="Profile" 
-                  className="w-8 h-8 lg:w-10 lg:h-10 object-cover rounded-lg border border-border"
-                />
-              ) : (
-                <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-xs lg:text-sm">
-                  {getUserInitial()}
-                </div>
-              )}
+            <div className="flex items-center gap-2">
+              {user?.id && <NotificationInbox subscriberId={user.id} />}
+              <div 
+                onClick={() => setIsSettingsOpen(true)}
+                className="cursor-pointer"
+              >
+                {profileImage ? (
+                  <img 
+                    src={profileImage} 
+                    alt="Profile" 
+                    className="w-8 h-8 lg:w-10 lg:h-10 object-cover rounded-lg border border-border"
+                  />
+                ) : (
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-primary-foreground font-medium text-xs lg:text-sm">
+                    {getUserInitial()}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
