@@ -75,22 +75,22 @@ const Index = () => {
             <img 
               src="https://flagcdn.com/w320/us.png" 
               alt="United States Flag" 
-              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded"
+              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
             />
             <img 
               src="https://flagcdn.com/w320/in.png" 
               alt="India Flag" 
-              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded"
+              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
             />
             <img 
               src="https://flagcdn.com/w320/pe.png" 
               alt="Peru Flag" 
-              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded"
+              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
             />
             <img 
               src="https://flagcdn.com/w320/gb.png" 
               alt="United Kingdom Flag" 
-              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded"
+              className="h-16 md:h-20 w-auto hover:scale-110 transition-transform shadow-lg rounded grayscale hover:grayscale-0"
             />
           </div>
         </div>
