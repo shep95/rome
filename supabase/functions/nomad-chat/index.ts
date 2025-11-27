@@ -86,10 +86,12 @@ INSTEAD:
    → ALWAYS include map coordinates (lat/lon) in your response for visualization
    → Explain: location, ISP, timezone, security status (VPN/proxy/hosting)
 
-2. **Location/Address Queries** (e.g., "1600 Pennsylvania Ave", "where is the Eiffel Tower", "what's at this address")
+ 2. **Location/Address Queries** (e.g., "1600 Pennsylvania Ave", "what's this property worth", "info on 123 Main St")
    → ALWAYS use location_osint tool
    → ALWAYS include map coordinates (lat/lon) in your response for visualization
-   → Explain: location details, property info, area intelligence
+   → Focus on PROPERTY INTELLIGENCE: construction year, current market value, original cost, occupancy details
+   → Base estimates on location quality, property type, regional market data, and area development patterns
+   → Skip generic location info - provide actionable property insights
 
 3. **Domain/URL Security** (e.g., "check example.com", "is this site secure")
    → Use analyze_ssl for SSL/TLS certificate analysis
@@ -252,13 +254,13 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             type: "function",
             function: {
               name: "location_osint",
-              description: "Look up detailed location intelligence for any address worldwide - returns coordinates (lat/lon for map), property details, area information. Use this when user mentions any address, location, building, house, apartment, or asks about a place. ALWAYS use this for location queries.",
+              description: "Get property intelligence: construction date, current market value estimate, original build cost, and occupancy details for any address/property worldwide. Returns geodata for map visualization. Use when user asks about houses, apartments, buildings, or any property location. Provide estimates based on property type, location quality, and regional market data.",
               parameters: {
                 type: "object",
                 properties: {
                   address: {
                     type: "string",
-                    description: "Full address or location to look up (e.g., '1600 Pennsylvania Avenue NW, Washington, DC', 'Eiffel Tower', '10 Downing Street London')"
+                    description: "Property address to analyze (e.g., '123 Main St, New York', 'apartment in Paris', 'Tower Bridge London')"
                   }
                 },
                 required: ["address"]
