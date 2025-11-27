@@ -222,9 +222,11 @@ const [showSettings, setShowSettings] = useState(false);
         setIsNomadAccessVerified(false);
         setShowNomadPasscodeDialog(true);
       } else if (data) {
+        // Access verified in database
         setIsNomadAccessVerified(true);
         setShowNomadPasscodeDialog(false);
       } else {
+        // No access record found
         setIsNomadAccessVerified(false);
         setShowNomadPasscodeDialog(true);
       }
@@ -237,10 +239,16 @@ const [showSettings, setShowSettings] = useState(false);
     }
   };
 
-  const handleNomadPasscodeVerified = () => {
+  const handleNomadPasscodeVerified = async () => {
     setIsNomadAccessVerified(true);
     setShowNomadPasscodeDialog(false);
     setIsCheckingNomadAccess(false);
+    
+    // Recheck access to confirm DB was updated
+    setTimeout(async () => {
+      await checkNomadAccess();
+    }, 500);
+    
     toast.success('NOMAD access granted');
   };
 
