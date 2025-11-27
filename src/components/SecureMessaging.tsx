@@ -30,6 +30,7 @@ import { FilePreviewModal } from './FilePreviewModal';
 import { getLoggingIP } from '@/lib/ip-utils';
 import nomadLogo from '@/assets/nomad-logo.png';
 import { NomadMessageRenderer } from './NomadMessageRenderer';
+import { NomadPasscodeDialog } from './NomadPasscodeDialog';
 
 interface Message {
   id: string;
@@ -192,6 +193,55 @@ const [showSettings, setShowSettings] = useState(false);
   
   // State for copied message tracking
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  
+  // State for NOMAD access verification
+  const [isNomadAccessVerified, setIsNomadAccessVerified] = useState(false);
+  const [showNomadPasscodeDialog, setShowNomadPasscodeDialog] = useState(false);
+  const [isCheckingNomadAccess, setIsCheckingNomadAccess] = useState(true);
+
+  // Check NOMAD access when conversation changes
+  useEffect(() => {
+    if (conversationId === 'nomad-ai-agent') {
+      checkNomadAccess();
+    }
+  }, [conversationId]);
+
+  const checkNomadAccess = async () => {
+    if (!user) return;
+    
+    setIsCheckingNomadAccess(true);
+    try {
+      const { data, error } = await supabase
+        .from('nomad_access')
+        .select('verified_at')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking NOMAD access:', error);
+        setIsNomadAccessVerified(false);
+        setShowNomadPasscodeDialog(true);
+      } else if (data) {
+        setIsNomadAccessVerified(true);
+        setShowNomadPasscodeDialog(false);
+      } else {
+        setIsNomadAccessVerified(false);
+        setShowNomadPasscodeDialog(true);
+      }
+    } catch (error) {
+      console.error('Error checking NOMAD access:', error);
+      setIsNomadAccessVerified(false);
+      setShowNomadPasscodeDialog(true);
+    } finally {
+      setIsCheckingNomadAccess(false);
+    }
+  };
+
+  const handleNomadPasscodeVerified = () => {
+    setIsNomadAccessVerified(true);
+    setShowNomadPasscodeDialog(false);
+    toast.success('NOMAD access granted');
+  };
 
   const copyMessageText = async (messageId: string, content: string) => {
     try {
@@ -1669,6 +1719,27 @@ if (!append && user && conversationId) {
 
   return (
     <div className="flex-1 flex flex-col bg-background overflow-hidden h-full" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
+      {/* NOMAD Passcode Dialog */}
+      {conversationId === 'nomad-ai-agent' && (
+        <NomadPasscodeDialog 
+          isOpen={showNomadPasscodeDialog}
+          onVerified={handleNomadPasscodeVerified}
+        />
+      )}
+      
+      {/* Show loading state while checking NOMAD access */}
+      {conversationId === 'nomad-ai-agent' && isCheckingNomadAccess && (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">Verifying access...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Only show chat if not NOMAD or if access is verified */}
+      {(conversationId !== 'nomad-ai-agent' || (isNomadAccessVerified && !isCheckingNomadAccess)) && (
+        <>
       {/* Chat Header - responsive positioning */}
       <div 
         className="p-3 sm:p-4 border-b border-border md:relative fixed top-0 left-0 right-0 z-50 md:backdrop-blur-none backdrop-blur-xl"
@@ -2466,6 +2537,8 @@ editingMessageId === message.id ? (
 
       {/* Typing Indicator */}
       <TypingIndicator conversationId={conversationId} currentUserId={user?.id} />
+      </>
+      )}
     </div>
   );
 };
