@@ -185,7 +185,29 @@ const [showSettings, setShowSettings] = useState(false);
       const messages = nomadStorage.getMessages(targetConversationId);
       
       if (messages.length > 0) {
-        setMessages(messages);
+        // Fetch user's profile to ensure sender info is up to date
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('username, display_name, avatar_url')
+          .eq('id', user.id)
+          .single();
+          
+        // Update sender info for user messages with current profile data
+        const messagesWithUpdatedSender = messages.map(msg => {
+          if (msg.sender_id === user.id) {
+            return {
+              ...msg,
+              sender: {
+                username: userProfile?.username || msg.sender?.username || 'User',
+                display_name: userProfile?.display_name || userProfile?.username || msg.sender?.display_name || 'User',
+                avatar_url: userProfile?.avatar_url || msg.sender?.avatar_url || null,
+              }
+            };
+          }
+          return msg;
+        });
+        
+        setMessages(messagesWithUpdatedSender);
       } else {
         // Welcome message for first time
         const welcomeMessage: Message = {
@@ -234,6 +256,13 @@ const [showSettings, setShowSettings] = useState(false);
     if (!user || !conversationId) return;
 
     try {
+      // Fetch user's profile for accurate display info
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('username, display_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+
       // Create user message (NOMAD messages stored in localStorage only, not DB)
       const userMessage: Message = {
         id: `nomad-user-${Date.now()}`,
@@ -242,9 +271,9 @@ const [showSettings, setShowSettings] = useState(false);
         created_at: new Date().toISOString(),
         message_type: 'text',
         sender: {
-          username: user.email?.split('@')[0] || 'User',
-          display_name: user.email?.split('@')[0] || 'User',
-          avatar_url: null,
+          username: userProfile?.username || user.email?.split('@')[0] || 'User',
+          display_name: userProfile?.display_name || userProfile?.username || user.email?.split('@')[0] || 'User',
+          avatar_url: userProfile?.avatar_url || null,
         },
       };
 
@@ -2013,7 +2042,7 @@ if (!append && user && conversationId) {
       <div 
         className={cn(
           "flex-1 overflow-y-auto overflow-x-hidden p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 relative custom-scrollbar pb-24 md:pb-4",
-          conversationId === 'nomad-ai-agent' ? "pt-[120px] md:pt-2" : "pt-20 md:pt-2"
+          conversationId === 'nomad-ai-agent' ? "pt-[140px] md:pt-2" : "pt-20 md:pt-2"
         )}
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
