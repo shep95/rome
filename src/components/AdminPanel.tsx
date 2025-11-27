@@ -12,6 +12,7 @@ interface NomadRequest {
   id: string;
   team_id: string;
   requested_at: string;
+  member_count?: number;
   teams: {
     name: string;
     description: string | null;
@@ -85,7 +86,14 @@ export const AdminPanel = () => {
 
       if (error) throw error;
 
-      toast.success(approve ? "NOMAD access approved!" : "NOMAD access denied");
+      if (approve) {
+        toast.success(
+          `NOMAD access approved! All ${selectedRequest.member_count || 0} team members now have access automatically.`
+        );
+      } else {
+        toast.success("NOMAD access denied");
+      }
+      
       setSelectedRequest(null);
       setNotes("");
       loadPendingRequests();
