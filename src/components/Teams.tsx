@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Users, Plus, Settings, Shield, UserPlus, Trash2 } from "lucide-react";
+import { Users, Plus, Settings, Shield, UserPlus, Trash2, CheckCircle } from "lucide-react";
 import { UserSearchInput } from "./UserSearchInput";
+import { useNomadAccess } from "@/hooks/useNomadAccess";
 
 interface Team {
   id: string;
@@ -48,9 +49,65 @@ export const Teams = () => {
   const [newTeamDescription, setNewTeamDescription] = useState("");
   const [loading, setLoading] = useState(true);
   const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
+  const { hasAccess: userHasNomadAccess, loading: nomadLoading } = useNomadAccess();
 
   useEffect(() => {
     loadTeams();
+
+    // Subscribe to real-time changes for teams, team members, and NOMAD access
+    const teamsChannel = supabase
+      .channel('teams-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'teams'
+        },
+        () => {
+          loadTeams();
+        }
+      )
+      .subscribe();
+
+    const teamMembersChannel = supabase
+      .channel('team-members-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'team_members'
+        },
+        () => {
+          loadTeams();
+          if (selectedTeam) {
+            loadTeamMembers(selectedTeam.id);
+          }
+        }
+      )
+      .subscribe();
+
+    const nomadAccessChannel = supabase
+      .channel('nomad-access-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'nomad_team_access'
+        },
+        () => {
+          loadTeams();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(teamsChannel);
+      supabase.removeChannel(teamMembersChannel);
+      supabase.removeChannel(nomadAccessChannel);
+    };
   }, []);
 
   useEffect(() => {
@@ -293,6 +350,16 @@ export const Teams = () => {
 
   return (
     <div className="h-full flex">
+      {/* NOMAD Access Status Banner */}
+      {!nomadLoading && userHasNomadAccess && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50">
+          <Badge variant="default" className="gap-2 px-4 py-2 text-sm shadow-lg">
+            <CheckCircle className="w-4 h-4" />
+            You have NOMAD Access
+          </Badge>
+        </div>
+      )}
+
       {/* Teams List */}
       <div className="w-80 border-r border-border bg-card/30 backdrop-blur-sm flex flex-col">
         <div className="p-4 border-b border-border flex items-center justify-between">
@@ -410,30 +477,48 @@ export const Teams = () => {
                   NOMAD Access
                 </CardTitle>
                 <CardDescription>
-                  Request access to the advanced AI agent for your team
+                  When approved, ALL team members automatically get NOMAD access
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {selectedTeam.nomad_access ? (
                   <div className="space-y-2">
                     {selectedTeam.nomad_access.approved ? (
-                      <Badge variant="default" className="gap-1">
-                        <Shield className="w-3 h-3" />
-                        Access Approved
-                      </Badge>
+                      <>
+                        <Badge variant="default" className="gap-1">
+                          <Shield className="w-3 h-3" />
+                          Access Approved - All Members Have Access
+                        </Badge>
+                        <p className="text-sm text-muted-foreground">
+                          Approved on {new Date(selectedTeam.nomad_access.requested_at).toLocaleDateString()}
+                        </p>
+                        <p className="text-sm text-green-600 font-medium">
+                          ✓ All {teamMembers.length} team members now have NOMAD access
+                        </p>
+                      </>
                     ) : (
-                      <Badge variant="secondary">Pending Approval</Badge>
+                      <>
+                        <Badge variant="secondary">Pending Approval</Badge>
+                        <p className="text-sm text-muted-foreground">
+                          Requested on {new Date(selectedTeam.nomad_access.requested_at).toLocaleDateString()}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Once approved, all team members will gain access automatically
+                        </p>
+                      </>
                     )}
-                    <p className="text-sm text-muted-foreground">
-                      Requested on {new Date(selectedTeam.nomad_access.requested_at).toLocaleDateString()}
-                    </p>
                   </div>
                 ) : (
                   <div>
                     {(selectedTeam.user_role === "admin" || selectedTeam.user_role === "owner") ? (
-                      <Button onClick={() => requestNomadAccess(selectedTeam.id)}>
-                        Request NOMAD Access
-                      </Button>
+                      <>
+                        <Button onClick={() => requestNomadAccess(selectedTeam.id)}>
+                          Request NOMAD Access
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Once approved, all team members will automatically receive access
+                        </p>
+                      </>
                     ) : (
                       <p className="text-sm text-muted-foreground">
                         Only team admins can request NOMAD access

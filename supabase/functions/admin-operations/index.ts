@@ -83,7 +83,7 @@ serve(async (req) => {
         );
       }
 
-      // Get pending requests
+      // Get pending requests with member count
       const { data: requests, error: requestsError } = await supabase
         .from('nomad_team_access')
         .select(`
@@ -93,16 +93,37 @@ serve(async (req) => {
           requested_at,
           requested_by,
           notes,
-          teams:team_id (name, description),
-          profiles:requested_by (username, display_name)
+          teams:team_id (name, description)
         `)
         .eq('approved', false)
         .order('requested_at', { ascending: false });
 
       if (requestsError) throw requestsError;
 
+      // Get profiles and member counts for each request
+      const enrichedRequests = await Promise.all(
+        (requests || []).map(async (request: any) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username, display_name')
+            .eq('id', request.requested_by)
+            .single();
+
+          const { count } = await supabase
+            .from('team_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('team_id', request.team_id);
+
+          return {
+            ...request,
+            profiles: profile || { username: 'Unknown', display_name: 'Unknown' },
+            member_count: count || 0
+          };
+        })
+      );
+
       return new Response(
-        JSON.stringify({ requests }),
+        JSON.stringify({ requests: enrichedRequests }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
