@@ -17,27 +17,25 @@ export const AdminSetup = () => {
       return;
     }
 
+    // Check if user is ashernewtonx@gmail.com
+    if (user.email !== 'ashernewtonx@gmail.com') {
+      toast.error("Only ashernewtonx@gmail.com can grant admin access");
+      return;
+    }
+
     setProcessing(true);
     try {
-      // Insert admin role
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: user.id,
-          role: 'admin'
-        });
+      const { data, error } = await supabase.functions.invoke('grant-admin', {
+        body: { user_id: user.id }
+      });
 
-      if (error) {
-        // Check if already admin
-        if (error.code === '23505') { // Unique constraint violation
-          setIsAdmin(true);
-          toast.success("You already have admin access!");
-        } else {
-          throw error;
-        }
-      } else {
+      if (error) throw error;
+
+      if (data.success) {
         setIsAdmin(true);
-        toast.success("Admin access granted successfully!");
+        toast.success(data.message || "Admin access granted successfully!");
+      } else {
+        toast.error(data.message || "Failed to grant admin access");
       }
     } catch (error: any) {
       console.error('Error granting admin access:', error);
