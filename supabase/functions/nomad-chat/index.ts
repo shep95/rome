@@ -124,6 +124,74 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
                 required: ["category"]
               }
             }
+          },
+          {
+            type: "function",
+            function: {
+              name: "check_breach",
+              description: "Check if an email has been involved in known data breaches using HaveIBeenPwned API",
+              parameters: {
+                type: "object",
+                properties: {
+                  email: {
+                    type: "string",
+                    description: "Email address to check"
+                  }
+                },
+                required: ["email"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "analyze_ssl",
+              description: "Analyze SSL/TLS configuration of a domain using SSL Labs",
+              parameters: {
+                type: "object",
+                properties: {
+                  domain: {
+                    type: "string",
+                    description: "Domain to analyze (without https://)"
+                  }
+                },
+                required: ["domain"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "lookup_certificate",
+              description: "Search certificate transparency logs for a domain",
+              parameters: {
+                type: "object",
+                properties: {
+                  domain: {
+                    type: "string",
+                    description: "Domain to search certificates for"
+                  }
+                },
+                required: ["domain"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "lookup_cve",
+              description: "Look up CVE details from NIST NVD database",
+              parameters: {
+                type: "object",
+                properties: {
+                  cve_id: {
+                    type: "string",
+                    description: "CVE ID (e.g., CVE-2021-44228)"
+                  }
+                },
+                required: ["cve_id"]
+              }
+            }
           }
         ],
       }),
@@ -184,6 +252,34 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             role: "tool",
             tool_call_id: toolCall.id,
             content: JSON.stringify(securityFeatures),
+          });
+        } else if (toolCall.function.name === "check_breach") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await checkBreach(args.email)),
+          });
+        } else if (toolCall.function.name === "analyze_ssl") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await analyzeSSL(args.domain)),
+          });
+        } else if (toolCall.function.name === "lookup_certificate") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await lookupCertificate(args.domain)),
+          });
+        } else if (toolCall.function.name === "lookup_cve") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await lookupCVE(args.cve_id)),
           });
         }
       }
@@ -328,17 +424,11 @@ function getSecurityFeatures(category: string) {
 
 async function lookupIP(ip: string) {
   try {
-    // Primary source: ip-api.com
     const response = await fetch(`http://ip-api.com/json/${ip}`);
-    if (!response.ok) {
-      throw new Error("Primary lookup failed");
-    }
+    if (!response.ok) throw new Error("Primary lookup failed");
     
     const data = await response.json();
-    
-    if (data.status === "fail") {
-      throw new Error(data.message || "IP lookup failed");
-    }
+    if (data.status === "fail") throw new Error(data.message || "IP lookup failed");
     
     return {
       success: true,
@@ -360,12 +450,9 @@ async function lookupIP(ip: string) {
       hosting: data.hosting,
     };
   } catch (error) {
-    // Fallback source: ipapi.co
     try {
       const fallbackResponse = await fetch(`https://ipapi.co/${ip}/json/`);
-      if (!fallbackResponse.ok) {
-        throw new Error("Fallback lookup failed");
-      }
+      if (!fallbackResponse.ok) throw new Error("Fallback lookup failed");
       
       const fallbackData = await fallbackResponse.json();
       
@@ -386,10 +473,126 @@ async function lookupIP(ip: string) {
         as: fallbackData.asn,
       };
     } catch (fallbackError) {
+      return { success: false, error: "Unable to lookup IP address" };
+    }
+  }
+}
+
+async function checkBreach(email: string) {
+  try {
+    const response = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(email)}?truncateResponse=false`, {
+      headers: { 'User-Agent': 'NOMAD-OSINT' }
+    });
+    
+    if (response.status === 404) {
+      return { success: true, email, breached: false, message: "No breaches found" };
+    }
+    
+    if (response.ok) {
+      const breaches = await response.json();
       return {
-        success: false,
-        error: "Unable to lookup IP address from any source",
+        success: true,
+        email,
+        breached: true,
+        breachCount: breaches.length,
+        breaches: breaches.slice(0, 5).map((b: any) => ({
+          name: b.Name,
+          domain: b.Domain,
+          breachDate: b.BreachDate,
+          pwnCount: b.PwnCount,
+          dataClasses: b.DataClasses
+        }))
       };
     }
+    
+    return { success: false, error: `API returned ${response.status}` };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+  }
+}
+
+async function analyzeSSL(domain: string) {
+  try {
+    const response = await fetch(`https://api.ssllabs.com/api/v3/analyze?host=${encodeURIComponent(domain)}&all=done`);
+    if (!response.ok) return { success: false, error: "SSL analysis failed" };
+    
+    const data = await response.json();
+    
+    if (data.status === "READY") {
+      return {
+        success: true,
+        domain,
+        grade: data.endpoints?.[0]?.grade || "Unknown",
+        hasWarnings: data.endpoints?.[0]?.hasWarnings || false,
+        ipAddress: data.endpoints?.[0]?.ipAddress
+      };
+    }
+    
+    return {
+      success: true,
+      domain,
+      status: data.status,
+      message: "Analysis in progress. Check https://www.ssllabs.com/ssltest/ for results"
+    };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+  }
+}
+
+async function lookupCertificate(domain: string) {
+  try {
+    const response = await fetch(`https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`);
+    if (!response.ok) return { success: false, error: "Certificate lookup failed" };
+    
+    const certs = await response.json();
+    
+    if (!Array.isArray(certs) || certs.length === 0) {
+      return { success: true, domain, certificateCount: 0, message: "No certificates found" };
+    }
+    
+    return {
+      success: true,
+      domain,
+      certificateCount: certs.length,
+      certificates: certs.slice(0, 10).map((cert: any) => ({
+        id: cert.id,
+        issuer: cert.issuer_name,
+        commonName: cert.common_name,
+        notBefore: cert.not_before,
+        notAfter: cert.not_after
+      }))
+    };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+  }
+}
+
+async function lookupCVE(cveId: string) {
+  try {
+    const response = await fetch(`https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${encodeURIComponent(cveId)}`);
+    if (!response.ok) return { success: false, error: "CVE lookup failed" };
+    
+    const data = await response.json();
+    
+    if (!data.vulnerabilities || data.vulnerabilities.length === 0) {
+      return { success: false, error: "CVE not found" };
+    }
+    
+    const vuln = data.vulnerabilities[0].cve;
+    
+    return {
+      success: true,
+      cveId: vuln.id,
+      description: vuln.descriptions?.[0]?.value || "No description",
+      published: vuln.published,
+      lastModified: vuln.lastModified,
+      cvssV3: vuln.metrics?.cvssMetricV31?.[0]?.cvssData,
+      references: vuln.references?.slice(0, 5).map((ref: any) => ({
+        url: ref.url,
+        source: ref.source
+      }))
+    };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 }
