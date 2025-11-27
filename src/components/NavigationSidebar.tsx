@@ -69,6 +69,28 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const wallpaperInputRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('admin-operations', {
+          body: { action: 'check_admin' }
+        });
+        
+        if (!error && data?.isAdmin) {
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+    
+    checkAdmin();
+  }, [user]);
 
   // Load profile data from localStorage and update when user changes
   useEffect(() => {
