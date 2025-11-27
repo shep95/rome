@@ -17,8 +17,8 @@ export const NomadPasscodeDialog = ({ isOpen, onVerified }: NomadPasscodeDialogP
   const [isVerifying, setIsVerifying] = useState(false);
 
   const handleVerify = async () => {
-    if (passcode.length !== 8) {
-      toast.error('Passcode must be 8 digits');
+    if (passcode.length !== 5) {
+      toast.error('Passcode must be 5 digits');
       return;
     }
 
@@ -69,7 +69,7 @@ export const NomadPasscodeDialog = ({ isOpen, onVerified }: NomadPasscodeDialogP
           </div>
           <DialogTitle className="text-center text-xl">NOMAD Access Required</DialogTitle>
           <DialogDescription className="text-center">
-            Enter the 8-digit passcode to access NOMAD
+            Enter the 5-digit passcode to access NOMAD
           </DialogDescription>
         </DialogHeader>
         
@@ -80,17 +80,17 @@ export const NomadPasscodeDialog = ({ isOpen, onVerified }: NomadPasscodeDialogP
               type="password"
               placeholder="Enter passcode"
               value={passcode}
-              onChange={(e) => setPasscode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+              onChange={(e) => setPasscode(e.target.value.replace(/\D/g, '').slice(0, 5))}
               onKeyPress={handleKeyPress}
               className="pl-10 text-center tracking-widest text-lg"
-              maxLength={8}
+              maxLength={5}
               autoFocus
             />
           </div>
           
           <Button 
             onClick={handleVerify} 
-            disabled={isVerifying || passcode.length !== 8}
+            disabled={isVerifying || passcode.length !== 5}
             className="w-full"
           >
             {isVerifying ? 'Verifying...' : 'Verify Access'}
