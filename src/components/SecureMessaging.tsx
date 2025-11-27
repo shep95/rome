@@ -1958,7 +1958,7 @@ if (!append && user && conversationId) {
       {/* NOMAD Mobile Sub-Header - Feature Icons */}
       {conversationId === 'nomad-ai-agent' && (
         <div className="md:hidden fixed top-[72px] left-0 right-0 z-40 border-b border-border/50 backdrop-blur-xl shrink-0 bg-background/80">
-          <div className="flex items-center justify-around px-2 py-2 gap-1">
+          <div className="flex items-center justify-end px-4 py-2 gap-3">
             {/* History Icon */}
             <NomadConversationPopover
               key={nomadPopoverKey}
