@@ -32,6 +32,7 @@ import nomadLogo from '@/assets/nomad-logo.png';
 import { NomadMessageRenderer } from './NomadMessageRenderer';
 import { NomadConversationPopover } from './NomadConversationPopover';
 import { nomadStorage } from '@/lib/nomad-storage';
+import { cn } from '@/lib/utils';
 
 interface Message {
   id: string;
@@ -1925,9 +1926,95 @@ if (!append && user && conversationId) {
         </div>
       </div>
 
+      {/* NOMAD Mobile Sub-Header - Feature Icons */}
+      {conversationId === 'nomad-ai-agent' && (
+        <div className="md:hidden fixed top-[72px] left-0 right-0 z-40 border-b border-border/50 backdrop-blur-xl shrink-0 bg-background/80">
+          <div className="flex items-center justify-around px-2 py-2 gap-1">
+            {/* History Icon */}
+            <NomadConversationPopover
+              key={nomadPopoverKey}
+              currentConversationId={nomadConversationId}
+              onSelectConversation={(id) => {
+                setNomadConversationId(id);
+                nomadStorage.setCurrentConversationId(id);
+                loadNomadMessages(id);
+              }}
+              onNewConversation={() => {
+                const newId = nomadStorage.createConversation();
+                setNomadConversationId(newId);
+                setMessages([{
+                  id: 'nomad-welcome',
+                  content: 'Hello! I am NOMAD, your AI assistant. How can I help you today?\n\n💡 Tip: Click the history icon (🕐) to view your conversation history or start a new chat.',
+                  sender_id: 'nomad-ai',
+                  created_at: new Date().toISOString(),
+                  message_type: 'text',
+                  sender: {
+                    username: 'NOMAD',
+                    display_name: 'NOMAD',
+                    avatar_url: nomadLogo,
+                  },
+                }]);
+              }}
+              onConversationsChange={() => setNomadPopoverKey(prev => prev + 1)}
+            />
+            
+            {/* Download Conversation */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+                  title="Download conversation"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-48 bg-background z-[60]">
+                <DropdownMenuItem onClick={() => handleDownloadConversation('txt')}>
+                  Download as Text
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownloadConversation('json')}>
+                  Download as JSON
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleDownloadConversation('encrypted')}>
+                  Download Encrypted
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {/* Search */}
+            <Button
+              onClick={() => setShowAdvancedSearch(true)}
+              variant="ghost"
+              size="sm"
+              className="p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+              title="Search messages"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+            
+            {/* Mentions */}
+            <Button
+              onClick={() => setShowMentions(true)}
+              variant="ghost"
+              size="sm"
+              className="p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+              title="Mentions"
+            >
+              <Bell className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto overflow-x-hidden p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 relative custom-scrollbar pt-20 md:pt-2 pb-24 md:pb-4"
+        className={cn(
+          "flex-1 overflow-y-auto overflow-x-hidden p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 relative custom-scrollbar pb-24 md:pb-4",
+          conversationId === 'nomad-ai-agent' ? "pt-[120px] md:pt-2" : "pt-20 md:pt-2"
+        )}
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',

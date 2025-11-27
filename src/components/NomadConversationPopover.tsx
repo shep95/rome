@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, MessageSquare, Trash2, History } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, History, Edit2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -28,6 +29,8 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
 }) => {
   const [conversations, setConversations] = useState<NomadConversation[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
 
   useEffect(() => {
     loadConversations();
@@ -89,6 +92,37 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
     }
   };
 
+  const startEditing = (id: string, currentTitle: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(id);
+    setEditTitle(currentTitle);
+  };
+
+  const saveEdit = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (editTitle.trim()) {
+      try {
+        const updated = conversations.map(c => 
+          c.id === id ? { ...c, title: editTitle.trim() } : c
+        );
+        localStorage.setItem('nomad-conversations', JSON.stringify(updated));
+        setConversations(updated);
+        toast.success('Title updated');
+        onConversationsChange?.();
+      } catch (error) {
+        console.error('Error updating title:', error);
+        toast.error('Failed to update title');
+      }
+    }
+    setEditingId(null);
+  };
+
+  const cancelEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(null);
+    setEditTitle('');
+  };
+
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -102,6 +136,10 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
+  };
+
+  const truncateTitle = (title: string) => {
+    return title.length > 25 ? title.slice(0, 25) + '...' : title;
   };
 
   return (
@@ -166,18 +204,58 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
                   <div
                     key={conv.id}
                     onClick={() => {
-                      onSelectConversation(conv.id);
-                      setIsOpen(false);
+                      if (editingId !== conv.id) {
+                        onSelectConversation(conv.id);
+                        setIsOpen(false);
+                      }
                     }}
                     className={cn(
                       "group relative p-3 rounded-lg cursor-pointer transition-all",
                       "hover:bg-accent/50 animate-fade-in",
-                      currentConversationId === conv.id && "bg-accent ring-1 ring-primary/20"
+                      currentConversationId === conv.id && "bg-accent ring-1 ring-primary/20",
+                      editingId === conv.id && "bg-accent"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium truncate">{conv.title}</h4>
+                        {editingId === conv.id ? (
+                          <div className="flex items-center gap-1 mb-1" onClick={(e) => e.stopPropagation()}>
+                            <Input
+                              value={editTitle}
+                              onChange={(e) => setEditTitle(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') saveEdit(conv.id);
+                                if (e.key === 'Escape') {
+                                  setEditingId(null);
+                                  setEditTitle('');
+                                }
+                              }}
+                              className="h-7 text-sm"
+                              maxLength={50}
+                              autoFocus
+                            />
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 shrink-0 hover:bg-primary/10 hover:text-primary"
+                              onClick={(e) => saveEdit(conv.id, e)}
+                            >
+                              <Check className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 shrink-0 hover:bg-destructive/10 hover:text-destructive"
+                              onClick={cancelEdit}
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <h4 className="text-sm font-medium truncate" title={conv.title}>
+                            {truncateTitle(conv.title)}
+                          </h4>
+                        )}
                         <p className="text-xs text-muted-foreground truncate mt-1">
                           {conv.lastMessage}
                         </p>
@@ -185,14 +263,26 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
                           {formatTimestamp(conv.timestamp)}
                         </p>
                       </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 shrink-0 hover:bg-destructive/10 hover:text-destructive"
-                        onClick={(e) => deleteConversation(conv.id, e)}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                      {editingId !== conv.id && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6 hover:bg-primary/10 hover:text-primary"
+                            onClick={(e) => startEditing(conv.id, conv.title, e)}
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+                            onClick={(e) => deleteConversation(conv.id, e)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
