@@ -25,7 +25,7 @@ interface LocationMapProps {
   zoom?: number;
 }
 
-export const LocationMap = ({ 
+const MapContent = ({ 
   latitude, 
   longitude, 
   city, 
@@ -33,6 +33,33 @@ export const LocationMap = ({
   ipAddress,
   zoom = 10 
 }: LocationMapProps) => {
+  return (
+    <MapContainer 
+      center={[latitude, longitude]} 
+      zoom={zoom} 
+      style={{ height: '100%', width: '100%' }}
+      scrollWheelZoom={false}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <Marker position={[latitude, longitude]}>
+        <Popup>
+          <div className="text-sm">
+            {ipAddress && <div className="font-mono font-semibold">{ipAddress}</div>}
+            {city && country && <div>{city}, {country}</div>}
+            <div className="text-xs text-muted-foreground mt-1">
+              {latitude.toFixed(4)}, {longitude.toFixed(4)}
+            </div>
+          </div>
+        </Popup>
+      </Marker>
+    </MapContainer>
+  );
+};
+
+export const LocationMap = (props: LocationMapProps) => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -49,29 +76,7 @@ export const LocationMap = ({
 
   return (
     <div className="w-full h-[300px] rounded-lg overflow-hidden border border-border">
-      <MapContainer 
-        key={`${latitude}-${longitude}`}
-        center={[latitude, longitude]} 
-        zoom={zoom} 
-        style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={[latitude, longitude]}>
-          <Popup>
-            <div className="text-sm">
-              {ipAddress && <div className="font-mono font-semibold">{ipAddress}</div>}
-              {city && country && <div>{city}, {country}</div>}
-              <div className="text-xs text-muted-foreground mt-1">
-                {latitude.toFixed(4)}, {longitude.toFixed(4)}
-              </div>
-            </div>
-          </Popup>
-        </Marker>
-      </MapContainer>
+      <MapContent {...props} />
     </div>
   );
 };
