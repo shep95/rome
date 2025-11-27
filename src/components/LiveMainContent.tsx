@@ -272,6 +272,15 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           // Separate direct and group conversation IDs
           const directConvs = allConvs.filter((c: any) => c.type === 'direct');
           const groupConvs = allConvs.filter((c: any) => c.type === 'group');
+          
+          // Add NOMAD AI Agent as a special conversation
+          const nomadConversation: Conversation = {
+            id: 'nomad-ai-agent',
+            type: 'direct',
+            name: 'NOMAD',
+            avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=nomad&backgroundColor=6366f1',
+            updated_at: new Date().toISOString(),
+          };
 
           const directConvIds = directConvs.map((c: any) => c.id);
 
@@ -317,10 +326,12 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 } as Conversation;
               });
 
-              setConversations(directChats);
+              // Add NOMAD AI Agent at the top of direct messages
+              setConversations([nomadConversation, ...directChats]);
             }
           } else {
-            setConversations([]);
+            // Only NOMAD if no other conversations
+            setConversations([nomadConversation]);
           }
 
           // Build groups without extra queries

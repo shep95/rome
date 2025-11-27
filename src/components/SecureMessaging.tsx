@@ -158,6 +158,80 @@ const [showSettings, setShowSettings] = useState(false);
   // Enforce live anti-screenshot while viewing messages (mobile: true blocking, web: best-effort)
   useScreenshotProtection(true);
 
+  // NOMAD AI Agent functions
+  const loadNomadMessages = () => {
+    const cachedMessages = localStorage.getItem('nomad-messages');
+    if (cachedMessages) {
+      try {
+        setMessages(JSON.parse(cachedMessages));
+      } catch {
+        setMessages([]);
+      }
+    } else {
+      // Welcome message
+      const welcomeMessage: Message = {
+        id: 'nomad-welcome',
+        content: 'Hello! I am NOMAD, your AI assistant. How can I help you today?',
+        sender_id: 'nomad-ai',
+        created_at: new Date().toISOString(),
+        message_type: 'text',
+        sender: {
+          username: 'NOMAD',
+          display_name: 'NOMAD',
+          avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=nomad&backgroundColor=6366f1',
+        },
+      };
+      setMessages([welcomeMessage]);
+    }
+  };
+
+  const sendNomadMessage = async (content: string) => {
+    if (!user) return;
+
+    // Add user message
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      content,
+      sender_id: user.id,
+      created_at: new Date().toISOString(),
+      message_type: 'text',
+      sender: {
+        username: user.email?.split('@')[0] || 'User',
+        display_name: user.email?.split('@')[0] || 'User',
+        avatar_url: null,
+      },
+    };
+
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    setNewMessage('');
+
+    // Simulate AI response (you can integrate with actual AI API here)
+    setTimeout(() => {
+      const aiResponse: Message = {
+        id: `nomad-${Date.now()}`,
+        content: `I received your message: "${content}". This is a placeholder response. Connect me to an AI service for real responses!`,
+        sender_id: 'nomad-ai',
+        created_at: new Date().toISOString(),
+        message_type: 'text',
+        sender: {
+          username: 'NOMAD',
+          display_name: 'NOMAD',
+          avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=nomad&backgroundColor=6366f1',
+        },
+      };
+
+      const finalMessages = [...updatedMessages, aiResponse];
+      setMessages(finalMessages);
+      
+      // Cache messages
+      localStorage.setItem('nomad-messages', JSON.stringify(finalMessages));
+    }, 1000);
+
+    // Cache user message immediately
+    localStorage.setItem('nomad-messages', JSON.stringify(updatedMessages));
+  };
+
   // Extract color from media and store it
   const extractMediaColor = async (messageId: string, element: HTMLImageElement | HTMLVideoElement) => {
     try {
@@ -206,6 +280,13 @@ const [showSettings, setShowSettings] = useState(false);
       // Reset state for new conversation
       setMessages([]);
       setHasLoadedMessages(false);
+
+      // Handle NOMAD AI Agent conversation
+      if (conversationId === 'nomad-ai-agent') {
+        loadNomadMessages();
+        setHasLoadedMessages(true);
+        return;
+      }
 
       // Try to hydrate from cache
       const cacheKey = `convMsg:${conversationId}`;
@@ -281,6 +362,17 @@ const [showSettings, setShowSettings] = useState(false);
 
   const loadConversationDetails = async () => {
     if (!conversationId) return;
+    
+    // Handle NOMAD AI Agent
+    if (conversationId === 'nomad-ai-agent') {
+      setConversationDetails({
+        id: 'nomad-ai-agent',
+        name: 'NOMAD',
+        type: 'direct',
+        avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=nomad&backgroundColor=6366f1',
+      });
+      return;
+    }
     
     try {
       const { data: conversation, error } = await supabase
@@ -375,6 +467,9 @@ const [showSettings, setShowSettings] = useState(false);
 
   const loadMessages = async (append = false) => {
     if (!conversationId || !user?.id) return;
+    
+    // Skip database loading for NOMAD AI Agent
+    if (conversationId === 'nomad-ai-agent') return;
     
     try {
       // Get user's join date and cleared_at for this conversation to filter messages
@@ -737,6 +832,9 @@ if (!append && user && conversationId) {
   const setupRealtimeSubscription = () => {
     if (!conversationId) return;
     
+    // Skip realtime subscription for NOMAD AI Agent
+    if (conversationId === 'nomad-ai-agent') return;
+    
     console.log('Setting up realtime subscription for conversation:', conversationId);
     
     const channel = supabase
@@ -998,6 +1096,12 @@ if (!append && user && conversationId) {
 
    const sendMessage = async () => {
     if ((!newMessage.trim() && selectedFiles.length === 0) || !conversationId || !user) return;
+
+    // Handle NOMAD AI Agent conversation
+    if (conversationId === 'nomad-ai-agent') {
+      await sendNomadMessage(newMessage.trim());
+      return;
+    }
 
     // Store values before clearing form
     const messageContent = newMessage;
