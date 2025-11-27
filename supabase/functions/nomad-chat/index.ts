@@ -5,6 +5,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Sanitize response to remove any leaked tool call syntax
+function sanitizeResponse(content: string): string {
+  if (!content) return content;
+  
+  // Remove <think> tags and their content
+  content = content.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  
+  // Remove tool call JSON syntax
+  content = content.replace(/\{"name":\s*"[^"]+",\s*"arguments":\s*\{[^}]+\}\}/g, '');
+  
+  // Remove <tool_call> tags
+  content = content.replace(/<\/?tool_call>/gi, '');
+  
+  // Remove any remaining XML-like tags related to tools
+  content = content.replace(/<\/?(?:function_calls?|tool|invoke)>/gi, '');
+  
+  // Clean up multiple newlines
+  content = content.replace(/\n{3,}/g, '\n\n');
+  
+  return content.trim();
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -414,16 +436,27 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
       }
       
       const followUpData = await followUpResponse.json();
+      const sanitizedContent = sanitizeResponse(followUpData.choices[0].message.content);
+      console.log('Response sanitized:', { 
+        original: followUpData.choices[0].message.content.substring(0, 200),
+        sanitized: sanitizedContent.substring(0, 200)
+      });
       return new Response(
-        JSON.stringify({ content: followUpData.choices[0].message.content }),
+        JSON.stringify({ content: sanitizedContent }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
+    const responseContent = data.choices[0].message.content;
+    const sanitizedContent = sanitizeResponse(responseContent);
+    console.log('Direct response sanitized:', {
+      original: responseContent?.substring(0, 200),
+      sanitized: sanitizedContent?.substring(0, 200)
+    });
     return new Response(
-      JSON.stringify({ content: data.choices[0].message.content }),
+      JSON.stringify({ content: sanitizedContent }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
