@@ -1,21 +1,3 @@
-import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-// Fix for default marker icon
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-let DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41]
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
-
 interface LocationMapProps {
   latitude: number;
   longitude: number;
@@ -25,58 +7,52 @@ interface LocationMapProps {
   zoom?: number;
 }
 
-const MapContent = ({ 
+export const LocationMap = ({ 
   latitude, 
   longitude, 
   city, 
   country, 
-  ipAddress,
-  zoom = 10 
+  ipAddress 
 }: LocationMapProps) => {
+  // OpenStreetMap static image URL
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude-0.1},${latitude-0.1},${longitude+0.1},${latitude+0.1}&layer=mapnik&marker=${latitude},${longitude}`;
+  
   return (
-    <MapContainer 
-      center={[latitude, longitude]} 
-      zoom={zoom} 
-      style={{ height: '100%', width: '100%' }}
-      scrollWheelZoom={false}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    <div className="w-full rounded-lg overflow-hidden border border-border bg-muted/30">
+      {/* Map iframe */}
+      <iframe
+        width="100%"
+        height="300"
+        frameBorder="0"
+        scrolling="no"
+        src={mapUrl}
+        className="w-full"
+        title="Location Map"
       />
-      <Marker position={[latitude, longitude]}>
-        <Popup>
-          <div className="text-sm">
-            {ipAddress && <div className="font-mono font-semibold">{ipAddress}</div>}
-            {city && country && <div>{city}, {country}</div>}
-            <div className="text-xs text-muted-foreground mt-1">
-              {latitude.toFixed(4)}, {longitude.toFixed(4)}
+      
+      {/* Location details overlay */}
+      <div className="p-3 bg-card/95 backdrop-blur-sm border-t border-border">
+        <div className="space-y-1 text-sm">
+          {ipAddress && (
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">IP:</span>
+              <span className="font-mono font-semibold text-foreground">{ipAddress}</span>
             </div>
+          )}
+          {city && country && (
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Location:</span>
+              <span className="text-foreground">{city}, {country}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Coordinates:</span>
+            <span className="font-mono text-xs text-foreground">
+              {latitude.toFixed(4)}, {longitude.toFixed(4)}
+            </span>
           </div>
-        </Popup>
-      </Marker>
-    </MapContainer>
-  );
-};
-
-export const LocationMap = (props: LocationMapProps) => {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return (
-      <div className="w-full h-[300px] rounded-lg overflow-hidden border border-border flex items-center justify-center bg-muted">
-        <div className="text-sm text-muted-foreground">Loading map...</div>
+        </div>
       </div>
-    );
-  }
-
-  return (
-    <div className="w-full h-[300px] rounded-lg overflow-hidden border border-border">
-      <MapContent {...props} />
     </div>
   );
 };
