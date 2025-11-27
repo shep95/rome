@@ -28,6 +28,7 @@ import { MentionNotifications } from './MentionNotifications';
 import { GroupAdminControls } from './GroupAdminControls';
 import { FilePreviewModal } from './FilePreviewModal';
 import { getLoggingIP } from '@/lib/ip-utils';
+import nomadLogo from '@/assets/nomad-logo.png';
 
 interface Message {
   id: string;
@@ -178,7 +179,7 @@ const [showSettings, setShowSettings] = useState(false);
         sender: {
           username: 'NOMAD',
           display_name: 'NOMAD',
-          avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=nomad&backgroundColor=6366f1',
+          avatar_url: nomadLogo,
         },
       };
       setMessages([welcomeMessage]);
@@ -217,7 +218,7 @@ const [showSettings, setShowSettings] = useState(false);
         sender: {
           username: 'NOMAD',
           display_name: 'NOMAD',
-          avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=nomad&backgroundColor=6366f1',
+          avatar_url: nomadLogo,
         },
       };
 
@@ -369,7 +370,7 @@ const [showSettings, setShowSettings] = useState(false);
         id: 'nomad-ai-agent',
         name: 'NOMAD',
         type: 'direct',
-        avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=nomad&backgroundColor=6366f1',
+        avatar_url: nomadLogo,
       });
       return;
     }

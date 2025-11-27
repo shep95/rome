@@ -19,6 +19,7 @@ import { GroupChatCreation } from './GroupChatCreation';
 import { SecureMessaging } from './SecureMessaging';
 import { GroupChatSettings } from './GroupChatSettings';
 import { useUnreadTitle } from '@/hooks/useUnreadTitle';
+import nomadLogo from '@/assets/nomad-logo.png';
 
 interface LiveMainContentProps {
   activeSection: string;
@@ -278,7 +279,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
             id: 'nomad-ai-agent',
             type: 'direct',
             name: 'NOMAD',
-            avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=nomad&backgroundColor=6366f1',
+            avatar_url: nomadLogo,
             updated_at: new Date().toISOString(),
           };
 
