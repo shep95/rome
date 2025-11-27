@@ -11,8 +11,81 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const body = await req.json();
+    const { messages, action, passcode } = body;
+    
     const VENICE_API_KEY = Deno.env.get("VENICE_API_KEY");
+    const NOMAD_PASSCODE = Deno.env.get("NOMAD_PASSCODE");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    // Handle passcode verification
+    if (action === 'verify_passcode') {
+      if (!NOMAD_PASSCODE || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+        return new Response(
+          JSON.stringify({ error: "Server configuration error" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Verify passcode
+      if (passcode !== NOMAD_PASSCODE) {
+        return new Response(
+          JSON.stringify({ verified: false, error: "Invalid passcode" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Get user ID from auth header
+      const authHeader = req.headers.get('authorization');
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ error: "Not authenticated" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Extract JWT token and verify
+      const token = authHeader.replace('Bearer ', '');
+      
+      // Create Supabase client with service role
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.55.0');
+      const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+      // Verify token and get user
+      const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+      
+      if (userError || !user) {
+        return new Response(
+          JSON.stringify({ error: "Invalid authentication" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Store verification in database
+      const { error: insertError } = await supabaseAdmin
+        .from('nomad_access')
+        .upsert({
+          user_id: user.id,
+          verified_at: new Date().toISOString(),
+          last_accessed: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (insertError) {
+        console.error('Error storing verification:', insertError);
+        return new Response(
+          JSON.stringify({ error: "Failed to store verification" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ verified: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     if (!VENICE_API_KEY) {
       throw new Error("VENICE_API_KEY is not configured");

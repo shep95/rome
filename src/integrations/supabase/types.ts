@@ -685,6 +685,27 @@ export type Database = {
           },
         ]
       }
+      nomad_access: {
+        Row: {
+          id: string
+          last_accessed: string
+          user_id: string
+          verified_at: string
+        }
+        Insert: {
+          id?: string
+          last_accessed?: string
+          user_id: string
+          verified_at?: string
+        }
+        Update: {
+          id?: string
+          last_accessed?: string
+          user_id?: string
+          verified_at?: string
+        }
+        Relationships: []
+      }
       one_time_prekeys: {
         Row: {
           created_at: string
