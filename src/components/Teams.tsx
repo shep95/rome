@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,7 @@ export const Teams = () => {
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDescription, setNewTeamDescription] = useState("");
   const [loading, setLoading] = useState(true);
+  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
 
   useEffect(() => {
     loadTeams();
@@ -152,7 +154,19 @@ export const Teams = () => {
 
   const createTeam = async () => {
     if (!newTeamName.trim()) {
-      toast.error("Team name is required");
+      toast.error("Team username is required");
+      return;
+    }
+
+    // Validate no spaces in username
+    if (/\s/.test(newTeamName)) {
+      toast.error("Team username cannot contain spaces");
+      return;
+    }
+
+    // Validate username format (alphanumeric, underscores, hyphens)
+    if (!/^[a-zA-Z0-9_-]+$/.test(newTeamName)) {
+      toast.error("Team username can only contain letters, numbers, underscores, and hyphens");
       return;
     }
 
@@ -255,6 +269,24 @@ export const Teams = () => {
     }
   };
 
+  const deleteTeam = async (teamId: string) => {
+    try {
+      const { error } = await supabase
+        .from("teams")
+        .delete()
+        .eq("id", teamId);
+
+      if (error) throw error;
+
+      toast.success("Team deleted successfully");
+      setTeamToDelete(null);
+      setSelectedTeam(null);
+      loadTeams();
+    } catch (error: any) {
+      toast.error("Failed to delete team: " + error.message);
+    }
+  };
+
   if (loading) {
     return <div className="p-6">Loading teams...</div>;
   }
@@ -284,12 +316,15 @@ export const Teams = () => {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Team Name</Label>
+                  <Label>Team Username</Label>
                   <Input
                     value={newTeamName}
-                    onChange={(e) => setNewTeamName(e.target.value)}
-                    placeholder="Engineering Team"
+                    onChange={(e) => setNewTeamName(e.target.value.toLowerCase())}
+                    placeholder="engineering_team"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    No spaces allowed. Use letters, numbers, underscores, or hyphens.
+                  </p>
                 </div>
                 <div>
                   <Label>Description (Optional)</Label>
@@ -347,10 +382,23 @@ export const Teams = () => {
       <div className="flex-1 overflow-y-auto">
         {selectedTeam ? (
           <div className="p-6 space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold">{selectedTeam.name}</h1>
-              {selectedTeam.description && (
-                <p className="text-muted-foreground mt-2">{selectedTeam.description}</p>
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-3xl font-bold">{selectedTeam.name}</h1>
+                {selectedTeam.description && (
+                  <p className="text-muted-foreground mt-2">{selectedTeam.description}</p>
+                )}
+              </div>
+              {selectedTeam.user_role === "owner" && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setTeamToDelete(selectedTeam)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Team
+                </Button>
               )}
             </div>
 
@@ -485,6 +533,28 @@ export const Teams = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!teamToDelete} onOpenChange={() => setTeamToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Team?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <span className="font-semibold">{teamToDelete?.name}</span>? 
+              This action cannot be undone. All team members will be removed and any pending NOMAD access requests will be cancelled.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => teamToDelete && deleteTeam(teamToDelete.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Team
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
