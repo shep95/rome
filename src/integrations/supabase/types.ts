@@ -706,6 +706,47 @@ export type Database = {
         }
         Relationships: []
       }
+      nomad_team_access: {
+        Row: {
+          approved: boolean
+          approved_at: string | null
+          approved_by: string | null
+          id: string
+          notes: string | null
+          requested_at: string
+          requested_by: string
+          team_id: string
+        }
+        Insert: {
+          approved?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          requested_by: string
+          team_id: string
+        }
+        Update: {
+          approved?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          requested_by?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nomad_team_access_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       one_time_prekeys: {
         Row: {
           created_at: string
@@ -1114,6 +1155,65 @@ export type Database = {
         }
         Relationships: []
       }
+      team_members: {
+        Row: {
+          id: string
+          joined_at: string
+          role: Database["public"]["Enums"]["team_role"]
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       typing_indicators: {
         Row: {
           conversation_id: string
@@ -1484,6 +1584,14 @@ export type Database = {
       }
       is_authenticated_user: { Args: never; Returns: boolean }
       is_service_admin: { Args: never; Returns: boolean }
+      is_team_admin: {
+        Args: { team_uuid: string; user_uuid: string }
+        Returns: boolean
+      }
+      is_team_member: {
+        Args: { team_uuid: string; user_uuid: string }
+        Returns: boolean
+      }
       log_file_access: {
         Args: {
           p_access_type: string
@@ -1541,6 +1649,7 @@ export type Database = {
         Returns: undefined
       }
       user_can_access_file: { Args: { file_path: string }; Returns: boolean }
+      user_has_nomad_access: { Args: { user_uuid: string }; Returns: boolean }
       user_is_conversation_participant: {
         Args: { conversation_id: string; user_id: string }
         Returns: boolean
@@ -1572,7 +1681,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      team_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1699,6 +1808,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      team_role: ["owner", "admin", "member"],
+    },
   },
 } as const

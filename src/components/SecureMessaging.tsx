@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download, Search, Users, Bell, Copy, Check } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download, Search, Users, Bell, Copy, Check, Shield } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
@@ -156,6 +156,8 @@ const [showSettings, setShowSettings] = useState(false);
     username: string;
     avatar_url?: string;
   } | null>(null);
+  const [hasNomadAccess, setHasNomadAccess] = useState<boolean>(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
   // Enforce live anti-screenshot while viewing messages (mobile: true blocking, web: best-effort)
   useScreenshotProtection(true);
@@ -412,6 +414,37 @@ const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (conversationId && user) {
+      // Check NOMAD access for NOMAD AI conversations
+      if (conversationId === 'nomad-ai-agent') {
+        const checkNomadAccess = async () => {
+          try {
+            const { data, error } = await supabase.rpc('user_has_nomad_access', {
+              user_uuid: user.id
+            });
+
+            if (error) throw error;
+            setHasNomadAccess(data || false);
+            setCheckingAccess(false);
+
+            // If user has access, load messages
+            if (data) {
+              await loadNomadMessages();
+              setHasLoadedMessages(true);
+            }
+          } catch (error) {
+            console.error('Error checking NOMAD access:', error);
+            setHasNomadAccess(false);
+            setCheckingAccess(false);
+          }
+        };
+
+        checkNomadAccess();
+        return;
+      } else {
+        // Not a NOMAD conversation, set access check as complete
+        setCheckingAccess(false);
+      }
+
       // Immediately load wallpaper from cache to avoid flash
       const cachedWallpaper = localStorage.getItem('rome-background-image');
       if (cachedWallpaper) {
@@ -426,14 +459,6 @@ const [showSettings, setShowSettings] = useState(false);
       // Reset state for new conversation
       setMessages([]);
       setHasLoadedMessages(false);
-
-      // Handle NOMAD AI Agent conversation
-      if (conversationId === 'nomad-ai-agent') {
-        loadNomadMessages().then(() => {
-          setHasLoadedMessages(true);
-        });
-        return;
-      }
 
       // Try to hydrate from cache
       const cacheKey = `convMsg:${conversationId}`;
@@ -1769,6 +1794,53 @@ if (!append && user && conversationId) {
           </div>
       </div>
     );
+  }
+
+  // Check NOMAD access for NOMAD AI conversations
+  if (conversationId === 'nomad-ai-agent') {
+    if (checkingAccess) {
+      return (
+        <div className="h-full flex items-center justify-center">
+          <div className="text-muted-foreground">Checking NOMAD access...</div>
+        </div>
+      );
+    }
+
+    if (!hasNomadAccess) {
+      return (
+        <div className="h-full flex items-center justify-center p-6">
+          <div className="max-w-md space-y-4">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <img src={nomadLogo} alt="NOMAD" className="w-10 h-10" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">NOMAD Access Required</h2>
+              <p className="text-muted-foreground mb-6">
+                NOMAD is a restricted AI agent available only to approved teams.
+              </p>
+            </div>
+            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-4 space-y-3">
+              <p className="text-sm font-medium">To access NOMAD:</p>
+              <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                <li>Join or create a team in the Teams tab</li>
+                <li>Have a team admin request NOMAD access</li>
+                <li>Wait for approval from administrators</li>
+              </ol>
+            </div>
+            <Button 
+              className="w-full" 
+              onClick={() => {
+                if (onBackToMessages) {
+                  onBackToMessages();
+                }
+              }}
+            >
+              Go Back
+            </Button>
+          </div>
+        </div>
+      );
+    }
   }
 
   return (

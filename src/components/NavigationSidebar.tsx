@@ -26,7 +26,8 @@ import {
   Smartphone,
   Monitor,
   Globe,
-  Coins
+  Coins,
+  Users
 } from 'lucide-react';
 import aureumLogo from '../assets/aureum-logo.png';
 import romeLogo from '../assets/rome-logo.png';
@@ -238,6 +239,22 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           >
             <FileText className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
             <span className="text-sm font-medium">Secure Files</span>
+          </Button>
+
+          <Button
+            onClick={() => {
+              onSectionChange('teams');
+              setIsMobileSidebarOpen(false);
+            }}
+            variant="ghost"
+            className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
+              activeSection === 'teams'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'text-foreground hover:text-primary hover:bg-primary/10'
+            }`}
+          >
+            <Users className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+            <span className="text-sm font-medium">Teams</span>
           </Button>
           
           <Button
