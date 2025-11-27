@@ -169,7 +169,6 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
           <div className="p-3 border-b border-border/50 bg-background/50">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-primary" />
                 <h3 className="font-semibold text-sm">Chat History</h3>
               </div>
               <Button
