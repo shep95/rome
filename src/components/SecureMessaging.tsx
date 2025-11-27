@@ -259,124 +259,129 @@ const [showSettings, setShowSettings] = useState(false);
   const sendNomadMessage = async (content: string) => {
     if (!user || !conversationId) return;
 
-    // Get sequence number for user message
-    const { count: userMsgCount } = await supabase
-      .from('messages')
-      .select('*', { count: 'exact', head: true })
-      .eq('conversation_id', conversationId);
-
-    const userSequence = (userMsgCount || 0) + 1;
-
-    // Encode content as bytea for database storage
-    const encoder = new TextEncoder();
-    const encodedUserContent = encoder.encode(content);
-    
-    const { data: userMsgData, error: userError } = await supabase
-      .from('messages')
-      .insert([{
-        conversation_id: conversationId,
-        sender_id: user.id,
-        data_payload: Array.from(encodedUserContent) as any,
-        sequence_number: userSequence,
-        message_type: 'text'
-      }])
-      .select()
-      .single();
-
-    if (userError) {
-      console.error('Failed to save user message:', userError);
-      toast.error('Failed to send message');
-      return;
-    }
-
-    // Add user message to UI
-    const userMessage: Message = {
-      id: userMsgData.id,
-      content,
-      sender_id: user.id,
-      created_at: userMsgData.created_at,
-      message_type: 'text',
-      sender: {
-        username: user.email?.split('@')[0] || 'User',
-        display_name: user.email?.split('@')[0] || 'User',
-        avatar_url: null,
-      },
-    };
-
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setNewMessage('');
-    setIsNomadTyping(true);
-
     try {
-      // Call NOMAD chat API
-      const { data, error } = await supabase.functions.invoke('nomad-chat', {
-        body: { 
-          messages: updatedMessages.map(msg => ({
-            role: msg.sender_id === user.id ? 'user' : 'assistant',
-            content: msg.content
-          }))
-        }
-      });
-
-      if (error) {
-        console.error('NOMAD error:', error);
-        toast.error('Failed to get response from NOMAD');
-        setIsNomadTyping(false);
-        return;
-      }
-
-      const aiContent = data.content || 'I apologize, I encountered an error. Please try again.';
-
-      // Get sequence number for AI response
-      const { count: aiMsgCount } = await supabase
+      // Get sequence number for user message
+      const { count: userMsgCount } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('conversation_id', conversationId);
 
-      const aiSequence = (aiMsgCount || 0) + 1;
+      const userSequence = (userMsgCount || 0) + 1;
 
-      // Encode AI response as bytea for database storage
-      const encodedAiContent = encoder.encode(aiContent);
+      // Encode content as bytea for database storage
+      const encoder = new TextEncoder();
+      const encodedUserContent = encoder.encode(content);
       
-      const { data: aiMsgData, error: aiError } = await supabase
+      const { data: userMsgData, error: userError } = await supabase
         .from('messages')
         .insert([{
           conversation_id: conversationId,
-          sender_id: 'nomad-ai',
-          data_payload: Array.from(encodedAiContent) as any,
-          sequence_number: aiSequence,
+          sender_id: user.id,
+          data_payload: Array.from(encodedUserContent) as any,
+          sequence_number: userSequence,
           message_type: 'text'
         }])
         .select()
         .single();
 
-      if (aiError) {
-        console.error('Failed to save AI response:', aiError);
-        toast.error('Failed to save AI response');
-        setIsNomadTyping(false);
+      if (userError) {
+        console.error('Failed to save user message:', userError);
+        toast.error('Failed to send message');
         return;
       }
 
-      const aiResponse: Message = {
-        id: aiMsgData.id,
-        content: aiContent,
-        sender_id: 'nomad-ai',
-        created_at: aiMsgData.created_at,
+      // Add user message to UI
+      const userMessage: Message = {
+        id: userMsgData.id,
+        content,
+        sender_id: user.id,
+        created_at: userMsgData.created_at,
         message_type: 'text',
         sender: {
-          username: 'NOMAD',
-          display_name: 'NOMAD',
-          avatar_url: nomadLogo,
+          username: user.email?.split('@')[0] || 'User',
+          display_name: user.email?.split('@')[0] || 'User',
+          avatar_url: null,
         },
       };
 
-      setMessages([...updatedMessages, aiResponse]);
+      const updatedMessages = [...messages, userMessage];
+      setMessages(updatedMessages);
+      setNewMessage('');
+      setIsNomadTyping(true);
+
+      try {
+        // Call NOMAD chat API
+        const { data, error } = await supabase.functions.invoke('nomad-chat', {
+          body: { 
+            messages: updatedMessages.map(msg => ({
+              role: msg.sender_id === user.id ? 'user' : 'assistant',
+              content: msg.content
+            }))
+          }
+        });
+
+        if (error) {
+          console.error('NOMAD error:', error);
+          toast.error('Failed to get response from NOMAD');
+          setIsNomadTyping(false);
+          return;
+        }
+
+        const aiContent = data.content || 'I apologize, I encountered an error. Please try again.';
+
+        // Get sequence number for AI response
+        const { count: aiMsgCount } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('conversation_id', conversationId);
+
+        const aiSequence = (aiMsgCount || 0) + 1;
+
+        // Encode AI response as bytea for database storage
+        const encodedAiContent = encoder.encode(aiContent);
+        
+        const { data: aiMsgData, error: aiError } = await supabase
+          .from('messages')
+          .insert([{
+            conversation_id: conversationId,
+            sender_id: 'nomad-ai',
+            data_payload: Array.from(encodedAiContent) as any,
+            sequence_number: aiSequence,
+            message_type: 'text'
+          }])
+          .select()
+          .single();
+
+        if (aiError) {
+          console.error('Failed to save AI response:', aiError);
+          toast.error('Failed to save AI response');
+          setIsNomadTyping(false);
+          return;
+        }
+
+        const aiResponse: Message = {
+          id: aiMsgData.id,
+          content: aiContent,
+          sender_id: 'nomad-ai',
+          created_at: aiMsgData.created_at,
+          message_type: 'text',
+          sender: {
+            username: 'NOMAD',
+            display_name: 'NOMAD',
+            avatar_url: nomadLogo,
+          },
+        };
+
+        setMessages([...updatedMessages, aiResponse]);
+      } catch (error) {
+        console.error('NOMAD error:', error);
+        toast.error('Failed to get response from NOMAD');
+      } finally {
+        setIsNomadTyping(false);
+      }
     } catch (error) {
-      console.error('NOMAD error:', error);
-      toast.error('Failed to get response from NOMAD');
-    } finally {
-      setIsNomadTyping(false);
+      console.error('Error sending message to NOMAD:', error);
+      toast.error('Failed to send message');
     }
   };
 
