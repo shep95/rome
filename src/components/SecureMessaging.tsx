@@ -161,29 +161,74 @@ const [showSettings, setShowSettings] = useState(false);
   useScreenshotProtection(true);
 
   // NOMAD AI Agent functions
-  const loadNomadMessages = () => {
-    const cachedMessages = localStorage.getItem('nomad-messages');
-    if (cachedMessages) {
-      try {
-        setMessages(JSON.parse(cachedMessages));
-      } catch {
-        setMessages([]);
+  const loadNomadMessages = async () => {
+    if (!user?.id) return;
+    
+    try {
+      // Load messages from database
+      const { data: messagesData, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:profiles!messages_sender_id_fkey(username, display_name, avatar_url)
+        `)
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (messagesData && messagesData.length > 0) {
+        const decodedMessages = messagesData.map((msg) => {
+          try {
+            // Decode the data_payload (bytea) back to text
+            const decoder = new TextDecoder();
+            // data_payload comes as bytea from database, handle as Uint8Array
+            const payloadArray = typeof msg.data_payload === 'string' 
+              ? new Uint8Array(Buffer.from(msg.data_payload, 'base64'))
+              : new Uint8Array(msg.data_payload as any);
+            const content = decoder.decode(payloadArray);
+            
+            return {
+              id: msg.id,
+              content,
+              sender_id: msg.sender_id,
+              created_at: msg.created_at,
+              message_type: msg.message_type || 'text',
+              sender: msg.sender_id === 'nomad-ai' ? {
+                username: 'NOMAD',
+                display_name: 'NOMAD',
+                avatar_url: nomadLogo,
+              } : msg.sender,
+              file_url: msg.file_url,
+              file_name: msg.file_name,
+              file_size: msg.file_size,
+            };
+          } catch (decodeError) {
+            console.error('Failed to decode NOMAD message:', decodeError);
+            return null;
+          }
+        }).filter(Boolean) as Message[];
+        
+        setMessages(decodedMessages);
+      } else {
+        // Welcome message for first time
+        const welcomeMessage: Message = {
+          id: 'nomad-welcome',
+          content: 'Hello! I am NOMAD, your AI assistant. How can I help you today?',
+          sender_id: 'nomad-ai',
+          created_at: new Date().toISOString(),
+          message_type: 'text',
+          sender: {
+            username: 'NOMAD',
+            display_name: 'NOMAD',
+            avatar_url: nomadLogo,
+          },
+        };
+        setMessages([welcomeMessage]);
       }
-    } else {
-      // Welcome message
-      const welcomeMessage: Message = {
-        id: 'nomad-welcome',
-        content: 'Hello! I am NOMAD, your AI assistant. How can I help you today?',
-        sender_id: 'nomad-ai',
-        created_at: new Date().toISOString(),
-        message_type: 'text',
-        sender: {
-          username: 'NOMAD',
-          display_name: 'NOMAD',
-          avatar_url: nomadLogo,
-        },
-      };
-      setMessages([welcomeMessage]);
+    } catch (error) {
+      console.error('Error loading NOMAD messages:', error);
+      setMessages([]);
     }
   };
 
@@ -210,14 +255,44 @@ const [showSettings, setShowSettings] = useState(false);
   };
 
   const sendNomadMessage = async (content: string) => {
-    if (!user) return;
+    if (!user || !conversationId) return;
 
-    // Add user message
+    // Get sequence number for user message
+    const { count: userMsgCount } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('conversation_id', conversationId);
+
+    const userSequence = (userMsgCount || 0) + 1;
+
+    // Encode content as bytea for database storage
+    const encoder = new TextEncoder();
+    const encodedUserContent = encoder.encode(content);
+    
+    const { data: userMsgData, error: userError } = await supabase
+      .from('messages')
+      .insert([{
+        conversation_id: conversationId,
+        sender_id: user.id,
+        data_payload: Array.from(encodedUserContent) as any,
+        sequence_number: userSequence,
+        message_type: 'text'
+      }])
+      .select()
+      .single();
+
+    if (userError) {
+      console.error('Failed to save user message:', userError);
+      toast.error('Failed to send message');
+      return;
+    }
+
+    // Add user message to UI
     const userMessage: Message = {
-      id: `user-${Date.now()}`,
+      id: userMsgData.id,
       content,
       sender_id: user.id,
-      created_at: new Date().toISOString(),
+      created_at: userMsgData.created_at,
       message_type: 'text',
       sender: {
         username: user.email?.split('@')[0] || 'User',
@@ -249,11 +324,43 @@ const [showSettings, setShowSettings] = useState(false);
         return;
       }
 
+      const aiContent = data.content || 'I apologize, I encountered an error. Please try again.';
+
+      // Get sequence number for AI response
+      const { count: aiMsgCount } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('conversation_id', conversationId);
+
+      const aiSequence = (aiMsgCount || 0) + 1;
+
+      // Encode AI response as bytea for database storage
+      const encodedAiContent = encoder.encode(aiContent);
+      
+      const { data: aiMsgData, error: aiError } = await supabase
+        .from('messages')
+        .insert([{
+          conversation_id: conversationId,
+          sender_id: 'nomad-ai',
+          data_payload: Array.from(encodedAiContent) as any,
+          sequence_number: aiSequence,
+          message_type: 'text'
+        }])
+        .select()
+        .single();
+
+      if (aiError) {
+        console.error('Failed to save AI response:', aiError);
+        toast.error('Failed to save AI response');
+        setIsNomadTyping(false);
+        return;
+      }
+
       const aiResponse: Message = {
-        id: `nomad-${Date.now()}`,
-        content: data.content || 'I apologize, I encountered an error. Please try again.',
+        id: aiMsgData.id,
+        content: aiContent,
         sender_id: 'nomad-ai',
-        created_at: new Date().toISOString(),
+        created_at: aiMsgData.created_at,
         message_type: 'text',
         sender: {
           username: 'NOMAD',
@@ -262,11 +369,7 @@ const [showSettings, setShowSettings] = useState(false);
         },
       };
 
-      const finalMessages = [...updatedMessages, aiResponse];
-      setMessages(finalMessages);
-      
-      // Cache messages
-      localStorage.setItem('nomad-messages', JSON.stringify(finalMessages));
+      setMessages([...updatedMessages, aiResponse]);
     } catch (error) {
       console.error('NOMAD error:', error);
       toast.error('Failed to get response from NOMAD');
@@ -326,8 +429,9 @@ const [showSettings, setShowSettings] = useState(false);
 
       // Handle NOMAD AI Agent conversation
       if (conversationId === 'nomad-ai-agent') {
-        loadNomadMessages();
-        setHasLoadedMessages(true);
+        loadNomadMessages().then(() => {
+          setHasLoadedMessages(true);
+        });
         return;
       }
 
