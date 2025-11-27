@@ -16,17 +16,31 @@ interface NomadConversationListProps {
   currentConversationId: string;
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
+  onConversationsChange?: () => void;
 }
 
 export const NomadConversationList: React.FC<NomadConversationListProps> = ({
   currentConversationId,
   onSelectConversation,
   onNewConversation,
+  onConversationsChange,
 }) => {
   const [conversations, setConversations] = useState<NomadConversation[]>([]);
 
   useEffect(() => {
     loadConversations();
+  }, []);
+  
+  // Reload when external changes occur
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'nomad-conversations') {
+        loadConversations();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const loadConversations = () => {
@@ -55,6 +69,9 @@ export const NomadConversationList: React.FC<NomadConversationListProps> = ({
       
       setConversations(updated);
       toast.success('Conversation deleted');
+      
+      // Notify parent of change
+      onConversationsChange?.();
       
       // If deleting current conversation, switch to newest or create new
       if (id === currentConversationId) {
