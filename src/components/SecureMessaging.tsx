@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download, Search, Users, Bell } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download, Search, Users, Bell, Copy, Check } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
@@ -189,6 +189,25 @@ const [showSettings, setShowSettings] = useState(false);
 
   // State for NOMAD typing indicator
   const [isNomadTyping, setIsNomadTyping] = useState(false);
+  
+  // State for copied message tracking
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+
+  const copyMessageText = async (messageId: string, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageId(messageId);
+      toast.success('Message copied to clipboard');
+      
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedMessageId(null);
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to copy message:', error);
+      toast.error('Failed to copy message');
+    }
+  };
 
   const sendNomadMessage = async (content: string) => {
     if (!user) return;
@@ -2052,15 +2071,35 @@ editingMessageId === message.id ? (
 )
                       )}
                       
-                      <div className="flex items-center justify-between mt-2">
-                        <p className={`text-xs ${
-                          message.sender_id === user?.id 
-                            ? 'text-white/70' 
-                            : 'text-muted-foreground'
-                        }`}>
-                          {new Date(message.created_at).toLocaleTimeString()}
-                          {message.edited_at ? ' • edited' : ''}
-                        </p>
+                      <div className="flex items-center justify-between mt-2 gap-2">
+                        <div className="flex items-center gap-2">
+                          <p className={`text-xs ${
+                            message.sender_id === user?.id 
+                              ? 'text-white/70' 
+                              : 'text-muted-foreground'
+                          }`}>
+                            {new Date(message.created_at).toLocaleTimeString()}
+                            {message.edited_at ? ' • edited' : ''}
+                          </p>
+                          
+                          {/* Copy button - bottom */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyMessageText(message.id, message.content)}
+                            className={`h-5 w-5 p-0 rounded-full opacity-60 hover:opacity-100 transition-opacity ${
+                              message.sender_id === user?.id
+                                ? 'hover:bg-white/10'
+                                : 'hover:bg-background/40'
+                            }`}
+                          >
+                            {copiedMessageId === message.id ? (
+                              <Check className="h-3 w-3 text-green-500" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
                         
                         {/* Read receipts for sent messages */}
                         {message.sender_id === user?.id && message.read_receipts && message.read_receipts.length > 0 && (
@@ -2083,19 +2122,35 @@ editingMessageId === message.id ? (
                       </div>
                     </div>
                     
-                    {/* Delete message dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={`absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-6 w-6 p-0 rounded-full backdrop-blur-sm border border-border/30 hover:bg-background/40 ${
-                            message.sender_id === user?.id ? 'right-1' : 'left-1'
-                          }`}
-                        >
-                          <MoreVertical className="h-3 w-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
+                     {/* Action buttons - top of bubble */}
+                     <div className={`absolute top-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${
+                       message.sender_id === user?.id ? 'right-1' : 'left-1'
+                     }`}>
+                       {/* Copy button - top */}
+                       <Button
+                         variant="ghost"
+                         size="sm"
+                         onClick={() => copyMessageText(message.id, message.content)}
+                         className="h-6 w-6 p-0 rounded-full backdrop-blur-sm border border-border/30 hover:bg-background/40"
+                       >
+                         {copiedMessageId === message.id ? (
+                           <Check className="h-3 w-3 text-green-500" />
+                         ) : (
+                           <Copy className="h-3 w-3" />
+                         )}
+                       </Button>
+                       
+                       {/* More options dropdown */}
+                       <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             className="h-6 w-6 p-0 rounded-full backdrop-blur-sm border border-border/30 hover:bg-background/40"
+                           >
+                             <MoreVertical className="h-3 w-3" />
+                           </Button>
+                         </DropdownMenuTrigger>
 <DropdownMenuContent align="end" className="backdrop-blur-xl bg-card/80 border-border/30">
   <DropdownMenuItem
     onClick={() => setReplyingTo(message)}
@@ -2133,9 +2188,10 @@ editingMessageId === message.id ? (
       </DropdownMenuItem>
     </ThanosSnapEffect>
   )}
-</DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+ </DropdownMenuContent>
+                       </DropdownMenu>
+                     </div>
+                   </div>
                 </div>
                 
                 {/* Avatar for current user */}
