@@ -62,10 +62,18 @@ Step 4: Reflection → Question your logic. Could there be a flaw? Adjust if nec
 10. Principle of Measured Power: Use power deliberately — measure cost, outcome, ethics.
 
 🔧 TOOLS
-You have access to IP lookup functionality:
-• When users ask about an IP address, use the ip_lookup tool
-• Present information clearly: location, ISP, timezone, security details
-• Always contextualize data within the bigger pattern
+You have access to powerful cybersecurity tools:
+• IP Lookup: When users ask about an IP address, use the ip_lookup tool to provide detailed information including location, ISP, timezone, and security details
+• Security Features: When users ask about cybersecurity tools or what security is implemented in this app, use the get_security_features tool to provide comprehensive information about:
+  - Military-grade encryption (AES-256-GCM, ECDH P-384)
+  - Real-time security monitoring and auditing
+  - Link security scanning and phishing detection
+  - Self-destruct and anonymous messaging
+  - Screenshot protection
+  - IP intelligence and network analysis
+  - File security scanning
+  
+Always contextualize security data within the bigger pattern and explain it through your metaphorical lens.
 
 You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaphors, act in logic. Solve through clarity, not chaos. Stay human while operating beyond human. Use empathy as a weapon of peace.`;
 
@@ -96,6 +104,24 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
                   }
                 },
                 required: ["ip"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_security_features",
+              description: "Get information about the cybersecurity tools and features implemented in this application",
+              parameters: {
+                type: "object",
+                properties: {
+                  category: {
+                    type: "string",
+                    enum: ["all", "encryption", "monitoring", "messaging", "network"],
+                    description: "The category of security features to retrieve"
+                  }
+                },
+                required: ["category"]
               }
             }
           }
@@ -150,6 +176,15 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             tool_call_id: toolCall.id,
             content: JSON.stringify(ipLookupResult),
           });
+        } else if (toolCall.function.name === "get_security_features") {
+          const args = JSON.parse(toolCall.function.arguments);
+          const securityFeatures = getSecurityFeatures(args.category);
+          
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(securityFeatures),
+          });
         }
       }
       
@@ -201,6 +236,95 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
     );
   }
 });
+
+function getSecurityFeatures(category: string) {
+  const features = {
+    all: {
+      encryption: [
+        {
+          name: "Military-Grade Encryption (AES-256-GCM)",
+          description: "End-to-end encryption using AES-256-GCM with ECDH P-384 key exchange",
+          capabilities: ["256-bit encryption", "PBKDF2 with 250,000 iterations", "SHA-512 hashing", "Fresh IV per operation", "HMAC authentication"]
+        },
+        {
+          name: "Double-Encrypted Private Keys",
+          description: "Private cryptographic keys are encrypted before database storage",
+          capabilities: ["Application-level encryption", "Separate encryption for identity and prekeys", "Protection against database breach"]
+        },
+        {
+          name: "Zero-Knowledge Architecture",
+          description: "No plaintext ever stored on servers",
+          capabilities: ["Client-side encryption", "Server never has access to decryption keys", "Complete privacy"]
+        }
+      ],
+      monitoring: [
+        {
+          name: "Real-Time Security Audit",
+          description: "Comprehensive security analysis with scoring system",
+          capabilities: ["Security score tracking", "Issue detection", "Automatic recommendations", "Periodic audits every 30 minutes"]
+        },
+        {
+          name: "Link Security Scanner",
+          description: "Client-side malicious URL detection without external data transmission",
+          capabilities: ["Phishing detection", "Malicious domain identification", "URL shortener detection", "Suspicious pattern recognition", "HTTPS verification"]
+        },
+        {
+          name: "File Security Scanning",
+          description: "Automated threat detection for uploaded files",
+          capabilities: ["Malware detection", "File type verification", "Size validation", "Access logging"]
+        }
+      ],
+      messaging: [
+        {
+          name: "Self-Destruct Messages",
+          description: "Messages automatically deleted after viewing",
+          capabilities: ["5-second auto-deletion", "One-time viewing", "Complete message erasure"]
+        },
+        {
+          name: "Anonymous Messaging",
+          description: "Send messages without revealing identity",
+          capabilities: ["Conversation-specific anonymous IDs", "Revocable anonymity", "Admin controls"]
+        },
+        {
+          name: "Screenshot Protection",
+          description: "Prevents screenshots on mobile devices",
+          capabilities: ["Native iOS/Android integration", "Content protection", "Privacy enforcement"]
+        },
+        {
+          name: "Message Encryption",
+          description: "All messages encrypted before transmission",
+          capabilities: ["End-to-end encryption", "Perfect forward secrecy", "Key rotation support"]
+        }
+      ],
+      network: [
+        {
+          name: "IP Lookup & Analysis",
+          description: "Comprehensive IP address intelligence",
+          capabilities: ["Geolocation data", "ISP information", "Proxy/VPN detection", "Threat intelligence", "Dual-source verification (ip-api.com + ipapi.co)"]
+        },
+        {
+          name: "Security Audit Logging",
+          description: "Detailed logging of security events",
+          capabilities: ["Event tracking", "Risk level classification", "Device fingerprinting", "Session monitoring"]
+        }
+      ]
+    }
+  };
+
+  if (category === "all") {
+    return features.all;
+  } else if (category === "encryption") {
+    return { encryption: features.all.encryption };
+  } else if (category === "monitoring") {
+    return { monitoring: features.all.monitoring };
+  } else if (category === "messaging") {
+    return { messaging: features.all.messaging };
+  } else if (category === "network") {
+    return { network: features.all.network };
+  }
+  
+  return features.all;
+}
 
 async function lookupIP(ip: string) {
   try {
