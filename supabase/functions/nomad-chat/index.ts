@@ -12,10 +12,10 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const VENICE_API_KEY = Deno.env.get("VENICE_API_KEY");
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!VENICE_API_KEY) {
+      throw new Error("VENICE_API_KEY is not configured");
     }
 
     // System prompt with IP lookup capabilities
@@ -28,14 +28,14 @@ When users ask you to lookup an IP address or provide information about an IP:
 
 Be helpful, concise, and professional.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.venice.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${VENICE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "llama-3.3-70b",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -113,14 +113,14 @@ Be helpful, concise, and professional.`;
       }
       
       // Make another call with tool results
-      const followUpResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const followUpResponse = await fetch("https://api.venice.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${VENICE_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "llama-3.3-70b",
           messages: [
             { role: "system", content: systemPrompt },
             ...messages,
