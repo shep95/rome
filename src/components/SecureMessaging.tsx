@@ -187,6 +187,9 @@ const [showSettings, setShowSettings] = useState(false);
     }
   };
 
+  // State for NOMAD typing indicator
+  const [isNomadTyping, setIsNomadTyping] = useState(false);
+
   const sendNomadMessage = async (content: string) => {
     if (!user) return;
 
@@ -207,6 +210,7 @@ const [showSettings, setShowSettings] = useState(false);
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setNewMessage('');
+    setIsNomadTyping(true);
 
     try {
       // Call NOMAD chat API
@@ -222,6 +226,7 @@ const [showSettings, setShowSettings] = useState(false);
       if (error) {
         console.error('NOMAD error:', error);
         toast.error('Failed to get response from NOMAD');
+        setIsNomadTyping(false);
         return;
       }
 
@@ -246,6 +251,8 @@ const [showSettings, setShowSettings] = useState(false);
     } catch (error) {
       console.error('NOMAD error:', error);
       toast.error('Failed to get response from NOMAD');
+    } finally {
+      setIsNomadTyping(false);
     }
   };
 
@@ -2148,8 +2155,24 @@ editingMessageId === message.id ? (
         )}
         
         {/* Typing Indicator */}
-        {user?.id && conversationId !== 'nomad-ai-agent' && (
-          <TypingIndicator conversationId={conversationId} currentUserId={user.id} />
+        {conversationId === 'nomad-ai-agent' ? (
+          isNomadTyping && (
+            <div className="flex items-center gap-2 px-4 py-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={nomadLogo} alt="NOMAD" />
+                <AvatarFallback>N</AvatarFallback>
+              </Avatar>
+              <div className="flex gap-1">
+                <span className="animate-bounce inline-block w-2 h-2 bg-primary rounded-full" style={{ animationDelay: '0ms' }}></span>
+                <span className="animate-bounce inline-block w-2 h-2 bg-primary rounded-full" style={{ animationDelay: '150ms' }}></span>
+                <span className="animate-bounce inline-block w-2 h-2 bg-primary rounded-full" style={{ animationDelay: '300ms' }}></span>
+              </div>
+            </div>
+          )
+        ) : (
+          user?.id && (
+            <TypingIndicator conversationId={conversationId} currentUserId={user.id} />
+          )
         )}
         
         <div ref={messagesEndRef} />
