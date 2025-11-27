@@ -107,20 +107,40 @@ export const Teams = () => {
 
   const loadTeamMembers = async (teamId: string) => {
     try {
-      const { data, error } = await supabase
+      // First get team members
+      const { data: members, error: membersError } = await supabase
         .from("team_members")
-        .select(`
-          id,
-          user_id,
-          role,
-          joined_at,
-          profiles:user_id (username, display_name, avatar_url)
-        `)
+        .select("id, user_id, role, joined_at")
         .eq("team_id", teamId)
         .order("joined_at", { ascending: true });
 
-      if (error) throw error;
-      setTeamMembers(data as any || []);
+      if (membersError) throw membersError;
+
+      if (!members || members.length === 0) {
+        setTeamMembers([]);
+        return;
+      }
+
+      // Then get profiles for those users
+      const userIds = members.map(m => m.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, display_name, avatar_url")
+        .in("id", userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const membersWithProfiles = members.map(member => ({
+        ...member,
+        profiles: profiles?.find(p => p.id === member.user_id) || {
+          username: 'unknown',
+          display_name: 'Unknown User',
+          avatar_url: null
+        }
+      }));
+
+      setTeamMembers(membersWithProfiles as any);
     } catch (error: any) {
       toast.error("Failed to load team members: " + error.message);
     }
