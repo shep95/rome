@@ -341,6 +341,12 @@ const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (conversationId && user) {
+      // Prevent body scroll on mobile
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        document.body.classList.add('chat-active');
+      }
+      
       // Load wallpaper from cache first (for all conversations including NOMAD)
       const cachedWallpaper = localStorage.getItem('rome-background-image');
       if (cachedWallpaper) {
@@ -420,6 +426,8 @@ const [showSettings, setShowSettings] = useState(false);
         if (user && conversationId) {
           setTypingStatus(false);
         }
+        // Remove mobile scroll prevention
+        document.body.classList.remove('chat-active');
       };
     }
   }, [conversationId, user, nomadConversationId]);
@@ -1772,10 +1780,10 @@ if (!append && user && conversationId) {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
+    <div className="flex-1 flex flex-col bg-background h-full fixed inset-0 md:relative" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
       {/* Chat Header - responsive positioning */}
       <div 
-        className="p-3 sm:p-4 border-b border-border md:relative fixed top-0 left-0 right-0 z-50 md:backdrop-blur-none backdrop-blur-xl"
+        className="p-3 sm:p-4 border-b border-border fixed top-0 left-0 right-0 z-50 md:relative md:backdrop-blur-none backdrop-blur-xl shrink-0"
         style={{
           backgroundColor: backgroundThemeColor ? `${backgroundThemeColor}CC` : 'hsl(var(--card) / 0.5)'
         }}
@@ -1919,7 +1927,7 @@ if (!append && user && conversationId) {
 
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 relative custom-scrollbar md:mt-0 mt-16 md:mb-0 mb-20"
+        className="flex-1 overflow-y-auto overflow-x-hidden p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 relative custom-scrollbar pt-20 md:pt-2 pb-24 md:pb-4"
         style={{
           backgroundImage: userWallpaper ? `url(${userWallpaper})` : undefined,
           backgroundSize: 'cover',
@@ -2375,7 +2383,7 @@ editingMessageId === message.id ? (
 
       {/* Message Input - floating on mobile */}
       <div 
-        className="p-3 sm:p-4 border-t border-border backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:w-auto w-full min-h-16"
+        className="p-3 sm:p-4 border-t border-border backdrop-blur-xl md:relative md:bottom-auto md:left-auto md:right-auto fixed bottom-0 left-0 right-0 z-50 md:w-auto w-full min-h-16 shrink-0"
         style={{
           backgroundColor: backgroundThemeColor ? `${backgroundThemeColor}CC` : 'hsl(var(--card) / 0.5)'
         }}
