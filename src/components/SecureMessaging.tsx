@@ -29,6 +29,7 @@ import { GroupAdminControls } from './GroupAdminControls';
 import { FilePreviewModal } from './FilePreviewModal';
 import { getLoggingIP } from '@/lib/ip-utils';
 import nomadLogo from '@/assets/nomad-logo.png';
+import { NomadMessageRenderer } from './NomadMessageRenderer';
 
 interface Message {
   id: string;
@@ -2004,13 +2005,17 @@ editingMessageId === message.id ? (
       <Button size="sm" onClick={cancelEditing} variant="outline">Cancel</Button>
     </div>
   </div>
-) : (
+                ) : (
   <div className="space-y-2">
-    <div className="text-sm leading-relaxed whitespace-pre-wrap">
-      {message.isTranslated && message.translatedContent 
-        ? message.translatedContent 
-        : message.content}
-    </div>
+    {conversationId === 'nomad-ai-agent' && message.sender_id === 'nomad-ai' ? (
+      <NomadMessageRenderer content={message.content} />
+    ) : (
+      <div className="text-sm leading-relaxed whitespace-pre-wrap">
+        {message.isTranslated && message.translatedContent 
+          ? message.translatedContent 
+          : message.content}
+      </div>
+    )}
     {message.message_type === 'text' && (
       <div className="flex items-center gap-2">
         <Button
