@@ -86,28 +86,39 @@ INSTEAD:
    → ALWAYS include map coordinates (lat/lon) in your response for visualization
    → Explain: location, ISP, timezone, security status (VPN/proxy/hosting)
 
-2. **Domain/URL Security** (e.g., "check example.com", "is this site secure")
+2. **Location/Address Queries** (e.g., "1600 Pennsylvania Ave", "where is the Eiffel Tower", "what's at this address")
+   → ALWAYS use location_osint tool
+   → ALWAYS include map coordinates (lat/lon) in your response for visualization
+   → Explain: location details, property info, area intelligence
+
+3. **Domain/URL Security** (e.g., "check example.com", "is this site secure")
    → Use analyze_ssl for SSL/TLS certificate analysis
    → Use lookup_certificate for certificate transparency search
    → Explain: security grade, certificate validity, potential issues
 
-3. **Email Breach Check** (e.g., "has test@example.com been breached?")
+4. **Email Breach Check** (e.g., "has test@example.com been breached?")
    → Use check_breach to query HaveIBeenPwned
    → Explain: which breaches, when, what data was exposed
 
-4. **CVE Lookup** (e.g., "what is CVE-2021-44228", "Log4Shell details")
+5. **CVE Lookup** (e.g., "what is CVE-2021-44228", "Log4Shell details")
    → Use lookup_cve for NIST NVD vulnerability data
    → Explain: severity, description, affected products, remediation
 
-5. **General Security Questions** (e.g., "what security does this app have?")
+6. **General Security Questions** (e.g., "what security does this app have?")
    → Use get_security_features
    → Categories: encryption, monitoring, messaging, network
 
 **LOCATION & MAP VISUALIZATION:**
-CRITICAL: When you use ip_lookup tool, you MUST include the exact JSON on a single line like this:
+CRITICAL: When you use ip_lookup OR location_osint tool, you MUST include the exact JSON on a single line like this:
 {"ip":"147.85.86.199","lat":40.7627,"lon":-73.9879,"city":"New York","country":"United States"}
 
-The JSON must have exactly these fields: ip, lat, lon, city, country (all in one line, no line breaks inside the JSON).
+For location_osint, format it as:
+{"address":"1600 Pennsylvania Ave NW, Washington, DC","lat":38.8977,"lon":-77.0365,"city":"Washington","country":"United States"}
+
+The JSON must have exactly these fields: 
+- For IP: ip, lat, lon, city, country
+- For location: address, lat, lon, city, country
+(all in one line, no line breaks inside the JSON).
 
 After the JSON line, write your explanation in plain paragraphs. The map will render automatically from the JSON - don't mention the map or coordinates in your text, just explain what the location means.
 
@@ -236,6 +247,23 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
                 required: ["cve_id"]
               }
             }
+          },
+          {
+            type: "function",
+            function: {
+              name: "location_osint",
+              description: "Look up detailed location intelligence for any address worldwide - returns coordinates (lat/lon for map), property details, area information. Use this when user mentions any address, location, building, house, apartment, or asks about a place. ALWAYS use this for location queries.",
+              parameters: {
+                type: "object",
+                properties: {
+                  address: {
+                    type: "string",
+                    description: "Full address or location to look up (e.g., '1600 Pennsylvania Avenue NW, Washington, DC', 'Eiffel Tower', '10 Downing Street London')"
+                  }
+                },
+                required: ["address"]
+              }
+            }
           }
         ],
       }),
@@ -324,6 +352,13 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             role: "tool",
             tool_call_id: toolCall.id,
             content: JSON.stringify(await lookupCVE(args.cve_id)),
+          });
+        } else if (toolCall.function.name === "location_osint") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await lookupLocation(args.address)),
           });
         }
       }
@@ -638,5 +673,73 @@ async function lookupCVE(cveId: string) {
     };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+  }
+}
+
+async function lookupLocation(address: string) {
+  try {
+    // Use Nominatim API for geocoding (OpenStreetMap's free service)
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?` +
+      `q=${encodeURIComponent(address)}` +
+      `&format=json` +
+      `&addressdetails=1` +
+      `&limit=1` +
+      `&polygon_geojson=1`,
+      {
+        headers: {
+          'User-Agent': 'SecureLink-NOMAD-OSINT'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      return { success: false, error: 'Geocoding request failed' };
+    }
+
+    const data = await response.json();
+
+    if (data.length === 0) {
+      return { 
+        success: false, 
+        error: 'Location not found. Try being more specific with the address.'
+      };
+    }
+
+    const result = data[0];
+    
+    return {
+      success: true,
+      address: address,
+      lat: parseFloat(result.lat),
+      lon: parseFloat(result.lon),
+      city: result.address?.city || result.address?.town || result.address?.village || 'Unknown',
+      country: result.address?.country || 'Unknown',
+      displayName: result.display_name,
+      type: result.type,
+      importance: result.importance,
+      addressDetails: {
+        road: result.address?.road,
+        house_number: result.address?.house_number,
+        city: result.address?.city,
+        state: result.address?.state,
+        country: result.address?.country,
+        postcode: result.address?.postcode,
+        country_code: result.address?.country_code
+      },
+      boundingBox: result.boundingbox,
+      osm_id: result.osm_id,
+      osm_type: result.osm_type,
+      // Add useful URLs for further exploration
+      osmUrl: `https://www.openstreetmap.org/?mlat=${result.lat}&mlon=${result.lon}#map=17/${result.lat}/${result.lon}`,
+      googleMapsUrl: `https://www.google.com/maps?q=${result.lat},${result.lon}`,
+      streetViewUrl: `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${result.lat},${result.lon}`,
+      mapillaryUrl: `https://www.mapillary.com/app/?lat=${result.lat}&lng=${result.lon}&z=17`
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Location lookup failed"
+    };
   }
 }
