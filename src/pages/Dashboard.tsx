@@ -8,6 +8,7 @@ import { NavigationSidebar } from '@/components/NavigationSidebar';
 import { LiveMainContent } from '@/components/LiveMainContent';
 import { AppLock } from '@/components/SecurityLock';
 import { ReconnectModal } from "@/components/ReconnectModal";
+import { QuickApproval } from '@/components/QuickApproval';
 import { supabase } from '@/integrations/supabase/client';
 
 // Lazy load heavy components
@@ -130,8 +131,11 @@ const Dashboard = () => {
               <Teams />
             </div>
           ) : activeSection === 'admin' ? (
-            <div className="flex-1 bg-background min-h-screen">
-              <AdminPanel />
+            <div className="flex-1 bg-background min-h-screen p-6">
+              <QuickApproval />
+              <div className="mt-8">
+                <AdminPanel />
+              </div>
             </div>
           ) : activeSection === 'features' ? (
             <div className="flex-1 bg-background min-h-screen">
