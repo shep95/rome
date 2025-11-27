@@ -351,8 +351,66 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
 
     const data = await response.json();
     
+    console.log('Venice AI response:', JSON.stringify(data, null, 2));
+    
     // Check if AI wants to use tools
     const toolCalls = data.choices?.[0]?.message?.tool_calls;
+    const messageContent = data.choices?.[0]?.message?.content;
+    
+    // Check if tool calls are in content instead of tool_calls array (model misbehavior)
+    if (!toolCalls?.length && messageContent?.includes('"name":') && messageContent?.includes('"arguments":')) {
+      console.log('Tool calls detected in content, model is not following protocol correctly');
+      
+      // Extract tool call from content using regex
+      const toolCallMatch = messageContent.match(/\{"name":\s*"([^"]+)",\s*"arguments":\s*(\{[^}]+\})\}/);
+      if (toolCallMatch) {
+        const [, functionName, argsStr] = toolCallMatch;
+        console.log('Extracted tool call:', functionName, argsStr);
+        
+        try {
+          const args = JSON.parse(argsStr);
+          let toolResult;
+          
+          if (functionName === "location_osint") {
+            toolResult = await lookupLocation(args.address);
+          } else if (functionName === "ip_lookup") {
+            toolResult = await lookupIP(args.ip);
+          }
+          
+          if (toolResult) {
+            // Call AI again with tool result
+            const followUpResponse = await fetch("https://api.venice.ai/api/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${VENICE_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "qwen3-235b",
+                messages: [
+                  { role: "system", content: systemPrompt },
+                  ...messages,
+                  { role: "assistant", content: `I need to look up: ${args.address || args.ip}` },
+                  { role: "user", content: `Tool result: ${JSON.stringify(toolResult)}. Now provide the property intelligence analysis in plain paragraphs.` }
+                ],
+              }),
+            });
+            
+            if (followUpResponse.ok) {
+              const followUpData = await followUpResponse.json();
+              const sanitizedContent = sanitizeResponse(followUpData.choices[0].message.content);
+              return new Response(
+                JSON.stringify({ content: sanitizedContent }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+              );
+            }
+          }
+        } catch (e) {
+          console.error('Failed to parse tool call from content:', e);
+        }
+      }
+    }
+    
     if (toolCalls && toolCalls.length > 0) {
       const toolResults = [];
       
