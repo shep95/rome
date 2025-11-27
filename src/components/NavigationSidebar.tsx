@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MobileSidebar, MobileSidebarTrigger } from '@/components/ui/mobile-sidebar';
 import { LiveTimeClock } from '@/components/LiveTimeClock';
+import { supabase } from '@/integrations/supabase/client';
 import {
   MessageCircle, 
   Settings, 
@@ -69,6 +70,35 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const wallpaperInputRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminCheckLoading, setAdminCheckLoading] = useState(true);
+
+  // Check admin status
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        setAdminCheckLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.functions.invoke('admin-operations', {
+          body: { action: 'check_admin' }
+        });
+
+        if (error) throw error;
+        setIsAdmin(data?.isAdmin || false);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      } finally {
+        setAdminCheckLoading(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
 
   // Load profile data from localStorage and update when user changes
   useEffect(() => {
@@ -257,21 +287,23 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             <span className="text-sm font-medium">Teams</span>
           </Button>
 
-          <Button
-            onClick={() => {
-              onSectionChange('admin');
-              setIsMobileSidebarOpen(false);
-            }}
-            variant="ghost"
-            className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
-              activeSection === 'admin'
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                : 'text-foreground hover:text-primary hover:bg-primary/10'
-            }`}
-          >
-            <Shield className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
-            <span className="text-sm font-medium">Admin Panel</span>
-          </Button>
+          {isAdmin && (
+            <Button
+              onClick={() => {
+                onSectionChange('admin');
+                setIsMobileSidebarOpen(false);
+              }}
+              variant="ghost"
+              className={`w-full h-10 lg:h-12 justify-start px-3 lg:px-4 transition-all duration-300 ${
+                activeSection === 'admin'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'text-foreground hover:text-primary hover:bg-primary/10'
+              }`}
+            >
+              <Shield className="w-4 h-4 lg:w-5 lg:h-5 mr-2 lg:mr-3" />
+              <span className="text-sm font-medium">Admin Panel</span>
+            </Button>
+          )}
           
           <Button
             onClick={() => {
