@@ -365,6 +365,17 @@ const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (conversationId && user) {
+      // Load wallpaper from cache first (for all conversations including NOMAD)
+      const cachedWallpaper = localStorage.getItem('rome-background-image');
+      if (cachedWallpaper) {
+        setUserWallpaper(cachedWallpaper);
+        // Preload image to ensure it's cached
+        const img = new Image();
+        img.src = cachedWallpaper;
+        // Extract theme color from cached background
+        extractBackgroundThemeColor(cachedWallpaper);
+      }
+
       // Check NOMAD access for NOMAD AI conversations
       if (conversationId === 'nomad-ai-agent') {
         const checkNomadAccess = async () => {
@@ -390,21 +401,11 @@ const [showSettings, setShowSettings] = useState(false);
         };
 
         checkNomadAccess();
+        loadUserWallpaper(); // Also load wallpaper from DB for NOMAD
         return;
       } else {
         // Not a NOMAD conversation, set access check as complete
         setCheckingAccess(false);
-      }
-
-      // Immediately load wallpaper from cache to avoid flash
-      const cachedWallpaper = localStorage.getItem('rome-background-image');
-      if (cachedWallpaper) {
-        setUserWallpaper(cachedWallpaper);
-        // Preload image to ensure it's cached
-        const img = new Image();
-        img.src = cachedWallpaper;
-        // Extract theme color from cached background
-        extractBackgroundThemeColor(cachedWallpaper);
       }
 
       // Reset state for new conversation
