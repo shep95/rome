@@ -35,7 +35,7 @@ Be helpful, concise, and professional.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b",
+        model: "venice-uncensored",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -120,7 +120,7 @@ Be helpful, concise, and professional.`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b",
+          model: "venice-uncensored",
           messages: [
             { role: "system", content: systemPrompt },
             ...messages,
