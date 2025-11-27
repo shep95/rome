@@ -21,16 +21,7 @@ serve(async (req) => {
       }
     });
 
-    let teamName = 'zorak_corp'; // Default to zorak_corp
-    
-    try {
-      const body = await req.json();
-      if (body.teamName) {
-        teamName = body.teamName;
-      }
-    } catch (e) {
-      // If no body, use default
-    }
+    const teamName = 'zorak_corp'; // Hardcoded for this approval
 
     console.log('Approving NOMAD access for team:', teamName);
 
