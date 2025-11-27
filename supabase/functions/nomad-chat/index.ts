@@ -94,7 +94,7 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             type: "function",
             function: {
               name: "ip_lookup",
-              description: "Lookup detailed information about an IP address including geolocation, ISP, and security information",
+              description: "Look up detailed information about an IP address including geolocation (latitude/longitude for map display), city, country, ISP, timezone, and security details (VPN/proxy/hosting detection). Returns coordinates for map visualization.",
               parameters: {
                 type: "object",
                 properties: {
