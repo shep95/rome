@@ -10,6 +10,7 @@ import { lazy, Suspense } from "react";
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AdminSetup = lazy(() => import("./pages/AdminSetup"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -34,6 +35,7 @@ const AppContent = () => {
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/admin-setup" element={<AdminSetup />} />
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />
