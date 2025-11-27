@@ -3,6 +3,7 @@ import tailscaleLogo from "@/assets/tailscale-logo.png";
 import zorakLogo from "@/assets/aureum-logo.png";
 import aesLogo from "@/assets/aes-military-logo.png";
 import argon2Logo from "@/assets/argon2-military-logo.png";
+import nomadLogo from "@/assets/nomad-logo.png";
 
 export function TechnologyStack() {
   const technologies = [
@@ -25,6 +26,11 @@ export function TechnologyStack() {
       name: "Argon2",
       logo: argon2Logo,
       description: "Password-level encryption for all files"
+    },
+    {
+      name: "NOMAD",
+      logo: nomadLogo,
+      description: "Advanced AI Agent for Cyber Security & Uncensored LLM"
     }
   ];
 
@@ -46,7 +52,7 @@ export function TechnologyStack() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 max-w-7xl mx-auto">
           {technologies.map((tech, index) => (
             <motion.div
               key={tech.name}
