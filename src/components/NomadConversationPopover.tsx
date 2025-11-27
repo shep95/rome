@@ -160,7 +160,7 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0 bg-background/95 backdrop-blur-xl border-border/50 shadow-xl" 
+        className="w-80 p-0 bg-background/95 backdrop-blur-xl border-border/50 shadow-xl z-[100]" 
         align="end"
         sideOffset={8}
       >
