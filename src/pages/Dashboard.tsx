@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 const SecureFiles = lazy(() => import('@/components/SecureFiles').then(m => ({ default: m.SecureFiles })));
 const Features = lazy(() => import('@/pages/Features'));
 const Teams = lazy(() => import('@/components/Teams').then(m => ({ default: m.Teams })));
+const AdminPanel = lazy(() => import('@/components/AdminPanel').then(m => ({ default: m.AdminPanel })));
 
 const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -127,6 +128,10 @@ const Dashboard = () => {
           ) : activeSection === 'teams' ? (
             <div className="flex-1 bg-background min-h-screen">
               <Teams />
+            </div>
+          ) : activeSection === 'admin' ? (
+            <div className="flex-1 bg-background min-h-screen">
+              <AdminPanel />
             </div>
           ) : activeSection === 'features' ? (
             <div className="flex-1 bg-background min-h-screen">

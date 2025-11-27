@@ -1313,6 +1313,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_security: {
         Row: {
           backup_codes: string[] | null
@@ -1494,7 +1515,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      pending_nomad_requests: {
+        Row: {
+          approved: boolean | null
+          id: string | null
+          member_count: number | null
+          notes: string | null
+          requested_at: string | null
+          requested_by: string | null
+          requester_display_name: string | null
+          requester_username: string | null
+          team_description: string | null
+          team_id: string | null
+          team_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nomad_team_access_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       check_rate_limit: {
@@ -1582,6 +1626,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      is_admin: { Args: { user_uuid: string }; Returns: boolean }
       is_authenticated_user: { Args: never; Returns: boolean }
       is_service_admin: { Args: never; Returns: boolean }
       is_team_admin: {
@@ -1681,6 +1726,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "user"
       team_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
@@ -1809,6 +1855,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       team_role: ["owner", "admin", "member"],
     },
   },

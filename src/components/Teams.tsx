@@ -131,17 +131,21 @@ export const Teams = () => {
       if (profilesError) throw profilesError;
 
       // Combine the data
-      const membersWithProfiles = members.map(member => ({
-        ...member,
-        profiles: profiles?.find(p => p.id === member.user_id) || {
-          username: 'unknown',
-          display_name: 'Unknown User',
-          avatar_url: null
-        }
-      }));
+      const membersWithProfiles = members.map(member => {
+        const profile = profiles?.find(p => p.id === member.user_id);
+        return {
+          ...member,
+          profiles: profile || {
+            username: member.user_id.slice(0, 8),
+            display_name: `User ${member.user_id.slice(0, 8)}`,
+            avatar_url: null
+          }
+        };
+      });
 
       setTeamMembers(membersWithProfiles as any);
     } catch (error: any) {
+      console.error('Error loading team members:', error);
       toast.error("Failed to load team members: " + error.message);
     }
   };
