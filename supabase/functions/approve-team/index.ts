@@ -14,9 +14,23 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    });
 
-    const { teamName } = await req.json();
+    let teamName = 'zorak_corp'; // Default to zorak_corp
+    
+    try {
+      const body = await req.json();
+      if (body.teamName) {
+        teamName = body.teamName;
+      }
+    } catch (e) {
+      // If no body, use default
+    }
 
     console.log('Approving NOMAD access for team:', teamName);
 
