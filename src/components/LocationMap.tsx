@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -33,12 +33,28 @@ export const LocationMap = ({
   ipAddress,
   zoom = 10 
 }: LocationMapProps) => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className="w-full h-[300px] rounded-lg overflow-hidden border border-border flex items-center justify-center bg-muted">
+        <div className="text-sm text-muted-foreground">Loading map...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-[300px] rounded-lg overflow-hidden border border-border">
       <MapContainer 
+        key={`${latitude}-${longitude}`}
         center={[latitude, longitude]} 
         zoom={zoom} 
         style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
