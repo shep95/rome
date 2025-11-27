@@ -1,4 +1,4 @@
-import { LocationMap } from './LocationMap';
+import { DynamicLocationMap } from './DynamicLocationMap';
 
 interface NomadMessageRendererProps {
   content: string;
@@ -55,7 +55,7 @@ export const NomadMessageRenderer = ({ content }: NomadMessageRendererProps) => 
         <div className="text-sm leading-relaxed whitespace-pre-wrap">
           {content}
         </div>
-        <LocationMap
+        <DynamicLocationMap
           latitude={locationData.lat}
           longitude={locationData.lon}
           city={locationData.city}
