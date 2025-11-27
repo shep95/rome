@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 // Lazy load heavy components
 const SecureFiles = lazy(() => import('@/components/SecureFiles').then(m => ({ default: m.SecureFiles })));
 const Features = lazy(() => import('@/pages/Features'));
+const LocationIntelligence = lazy(() => import('@/components/LocationIntelligence').then(m => ({ default: m.LocationIntelligence })));
 
 const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -126,6 +127,10 @@ const Dashboard = () => {
           ) : activeSection === 'features' ? (
             <div className="flex-1 bg-background min-h-screen">
               <Features />
+            </div>
+          ) : activeSection === 'location-osint' ? (
+            <div className="flex-1 bg-background min-h-screen p-4">
+              <LocationIntelligence />
             </div>
           ) : (
             <LiveMainContent 
