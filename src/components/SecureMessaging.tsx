@@ -240,6 +240,7 @@ const [showSettings, setShowSettings] = useState(false);
   const handleNomadPasscodeVerified = () => {
     setIsNomadAccessVerified(true);
     setShowNomadPasscodeDialog(false);
+    setIsCheckingNomadAccess(false);
     toast.success('NOMAD access granted');
   };
 
