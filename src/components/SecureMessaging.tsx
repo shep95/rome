@@ -207,11 +207,26 @@ const [showSettings, setShowSettings] = useState(false);
     setMessages(updatedMessages);
     setNewMessage('');
 
-    // Simulate AI response (you can integrate with actual AI API here)
-    setTimeout(() => {
+    try {
+      // Call NOMAD chat API
+      const { data, error } = await supabase.functions.invoke('nomad-chat', {
+        body: { 
+          messages: updatedMessages.map(msg => ({
+            role: msg.sender_id === user.id ? 'user' : 'assistant',
+            content: msg.content
+          }))
+        }
+      });
+
+      if (error) {
+        console.error('NOMAD error:', error);
+        toast.error('Failed to get response from NOMAD');
+        return;
+      }
+
       const aiResponse: Message = {
         id: `nomad-${Date.now()}`,
-        content: `I received your message: "${content}". This is a placeholder response. Connect me to an AI service for real responses!`,
+        content: data.content || 'I apologize, I encountered an error. Please try again.',
         sender_id: 'nomad-ai',
         created_at: new Date().toISOString(),
         message_type: 'text',
@@ -227,10 +242,10 @@ const [showSettings, setShowSettings] = useState(false);
       
       // Cache messages
       localStorage.setItem('nomad-messages', JSON.stringify(finalMessages));
-    }, 1000);
-
-    // Cache user message immediately
-    localStorage.setItem('nomad-messages', JSON.stringify(updatedMessages));
+    } catch (error) {
+      console.error('NOMAD error:', error);
+      toast.error('Failed to get response from NOMAD');
+    }
   };
 
   // Extract color from media and store it
@@ -1267,6 +1282,9 @@ if (!append && user && conversationId) {
   // Handle typing indicators
   const setTypingStatus = async (typing: boolean) => {
     if (!conversationId || !user) return;
+    
+    // Skip typing indicators for NOMAD AI Agent
+    if (conversationId === 'nomad-ai-agent') return;
 
     try {
       if (typing) {
@@ -2125,7 +2143,7 @@ editingMessageId === message.id ? (
         )}
         
         {/* Typing Indicator */}
-        {user?.id && (
+        {user?.id && conversationId !== 'nomad-ai-agent' && (
           <TypingIndicator conversationId={conversationId} currentUserId={user.id} />
         )}
         
