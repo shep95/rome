@@ -108,7 +108,7 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b",
+        model: "llama-3.1-405b",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -316,7 +316,7 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b",
+          model: "llama-3.1-405b",
           messages: [
             { role: "system", content: systemPrompt },
             ...messages,
