@@ -14,3 +14,9 @@ verify_jwt = true
 
 [functions.nomad-chat]
 verify_jwt = true
+
+[functions.admin-operations]
+verify_jwt = true
+
+[functions.grant-admin]
+verify_jwt = true
