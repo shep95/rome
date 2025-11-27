@@ -23,7 +23,7 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
 
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || conversationId === 'nomad-ai-agent') return;
 
     // Load initial typing users
     loadTypingUsers();
