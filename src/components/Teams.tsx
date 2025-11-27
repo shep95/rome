@@ -231,6 +231,20 @@ export const Teams = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Check if team username is already taken
+      const { data: existingTeam, error: checkError } = await supabase
+        .from("teams")
+        .select("name")
+        .eq("name", newTeamName)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existingTeam) {
+        toast.error("Team username is already taken");
+        return;
+      }
+
       const { error } = await supabase
         .from("teams")
         .insert({
