@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download, Search, Users, Bell, Copy, Check, Shield } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download, Search, Users, Bell, Copy, Check, Shield, MessageSquare } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
@@ -30,6 +30,8 @@ import { FilePreviewModal } from './FilePreviewModal';
 import { getLoggingIP } from '@/lib/ip-utils';
 import nomadLogo from '@/assets/nomad-logo.png';
 import { NomadMessageRenderer } from './NomadMessageRenderer';
+import { NomadConversationList } from './NomadConversationList';
+import { nomadStorage } from '@/lib/nomad-storage';
 
 interface Message {
   id: string;
@@ -81,6 +83,16 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
   const { user } = useAuth();
   const { uploadFile } = useFileUpload();
   const { showNotification } = useMessageNotifications();
+  
+  // NOMAD conversation management
+  const [nomadConversationId, setNomadConversationId] = useState<string>(() => {
+    if (conversationId === 'nomad-ai-agent') {
+      nomadStorage.migrateOldMessages();
+      return nomadStorage.getCurrentConversationId() || nomadStorage.createConversation();
+    }
+    return '';
+  });
+  const [showNomadSidebar, setShowNomadSidebar] = useState(false);
   
   // Import download utilities
   const handleDownloadConversation = async (format: 'txt' | 'json' | 'encrypted') => {
@@ -167,51 +179,10 @@ const [showSettings, setShowSettings] = useState(false);
     if (!user?.id) return;
     
     try {
-      // Load messages from database
-      const { data: messagesData, error } = await supabase
-        .from('messages')
-        .select(`
-          *,
-          sender:profiles!messages_sender_id_fkey(username, display_name, avatar_url)
-        `)
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      if (messagesData && messagesData.length > 0) {
-        const decodedMessages = messagesData.map((msg) => {
-          try {
-            // Decode the data_payload (bytea) back to text
-            const decoder = new TextDecoder();
-            // data_payload comes as bytea from database, handle as Uint8Array
-            const payloadArray = typeof msg.data_payload === 'string' 
-              ? new Uint8Array(Buffer.from(msg.data_payload, 'base64'))
-              : new Uint8Array(msg.data_payload as any);
-            const content = decoder.decode(payloadArray);
-            
-            return {
-              id: msg.id,
-              content,
-              sender_id: msg.sender_id,
-              created_at: msg.created_at,
-              message_type: msg.message_type || 'text',
-              sender: msg.sender_id === 'nomad-ai' ? {
-                username: 'NOMAD',
-                display_name: 'NOMAD',
-                avatar_url: nomadLogo,
-              } : msg.sender,
-              file_url: msg.file_url,
-              file_name: msg.file_name,
-              file_size: msg.file_size,
-            };
-          } catch (decodeError) {
-            console.error('Failed to decode NOMAD message:', decodeError);
-            return null;
-          }
-        }).filter(Boolean) as Message[];
-        
-        setMessages(decodedMessages);
+      const messages = nomadStorage.getMessages(nomadConversationId);
+      
+      if (messages.length > 0) {
+        setMessages(messages);
       } else {
         // Welcome message for first time
         const welcomeMessage: Message = {
@@ -317,7 +288,7 @@ const [showSettings, setShowSettings] = useState(false);
         setMessages(finalMessages);
         
         // Store in localStorage for persistence
-        localStorage.setItem('nomad-messages', JSON.stringify(finalMessages));
+        nomadStorage.saveMessages(nomadConversationId, finalMessages);
         
       } catch (error) {
         console.error('NOMAD error:', error);
@@ -446,7 +417,7 @@ const [showSettings, setShowSettings] = useState(false);
         }
       };
     }
-  }, [conversationId, user]);
+  }, [conversationId, user, nomadConversationId]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -1796,32 +1767,76 @@ if (!append && user && conversationId) {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
-      {/* Chat Header - responsive positioning */}
-      <div 
-        className="p-3 sm:p-4 border-b border-border md:relative fixed top-0 left-0 right-0 z-50 md:backdrop-blur-none backdrop-blur-xl"
-        style={{
-          backgroundColor: backgroundThemeColor ? `${backgroundThemeColor}CC` : 'hsl(var(--card) / 0.5)'
-        }}
-      >
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Back button for mobile and tablet */}
-          {onBackToMessages && (
-            <Button
-              onClick={onBackToMessages}
-              variant="ghost"
-              size="sm"
-              className="lg:hidden p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
-            >
-              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
-          )}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground text-sm sm:text-base lg:text-lg truncate">
-              {conversationDetails?.name || 'Secure Chat'}
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">End-to-end encrypted</p>
-          </div>
+    <div className="flex-1 flex flex-row bg-background overflow-hidden h-full" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
+      {/* NOMAD Conversation Sidebar */}
+      {conversationId === 'nomad-ai-agent' && showNomadSidebar && (
+        <div className="w-64 flex-shrink-0">
+          <NomadConversationList
+            currentConversationId={nomadConversationId}
+            onSelectConversation={(id) => {
+              setNomadConversationId(id);
+              nomadStorage.setCurrentConversationId(id);
+              loadNomadMessages();
+            }}
+            onNewConversation={() => {
+              const newId = nomadStorage.createConversation();
+              setNomadConversationId(newId);
+              setMessages([{
+                id: 'nomad-welcome',
+                content: 'Hello! I am NOMAD, your AI assistant. How can I help you today?',
+                sender_id: 'nomad-ai',
+                created_at: new Date().toISOString(),
+                message_type: 'text',
+                sender: {
+                  username: 'NOMAD',
+                  display_name: 'NOMAD',
+                  avatar_url: nomadLogo,
+                },
+              }]);
+            }}
+          />
+        </div>
+      )}
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Chat Header - responsive positioning */}
+        <div 
+          className="p-3 sm:p-4 border-b border-border md:relative fixed top-0 left-0 right-0 z-50 md:backdrop-blur-none backdrop-blur-xl"
+          style={{
+            backgroundColor: backgroundThemeColor ? `${backgroundThemeColor}CC` : 'hsl(var(--card) / 0.5)'
+          }}
+        >
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Back button for mobile and tablet */}
+            {onBackToMessages && (
+              <Button
+                onClick={onBackToMessages}
+                variant="ghost"
+                size="sm"
+                className="lg:hidden p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+              >
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            )}
+            
+            {/* NOMAD conversation list toggle */}
+            {conversationId === 'nomad-ai-agent' && (
+              <Button
+                onClick={() => setShowNomadSidebar(!showNomadSidebar)}
+                variant="ghost"
+                size="sm"
+                className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+              >
+                <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            )}
+            
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-foreground text-sm sm:text-base lg:text-lg truncate">
+                {conversationDetails?.name || 'Secure Chat'}
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">End-to-end encrypted</p>
+            </div>
           
           {/* Mention notifications button */}
           <Button
@@ -2594,6 +2609,7 @@ editingMessageId === message.id ? (
 
       {/* Typing Indicator */}
       <TypingIndicator conversationId={conversationId} currentUserId={user?.id} />
+      </div>
     </div>
   );
 };
