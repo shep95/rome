@@ -160,16 +160,16 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0 bg-background/95 backdrop-blur-xl border-border/50 shadow-xl z-[100]" 
+        className="w-80 p-0 bg-background backdrop-blur-xl border-border shadow-xl z-[100]" 
         align="end"
         sideOffset={8}
       >
         <div className="flex flex-col max-h-[500px]">
           {/* Header */}
-          <div className="p-3 border-b border-border/50 bg-background/50">
+          <div className="p-3 border-b border-border bg-card/50">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-sm">Chat History</h3>
+                <h3 className="font-semibold text-sm text-foreground">Chat History</h3>
               </div>
               <Button
                 onClick={() => {
@@ -209,10 +209,10 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
                       }
                     }}
                     className={cn(
-                      "group relative p-3 rounded-lg cursor-pointer transition-all",
-                      "hover:bg-accent/50 animate-fade-in",
-                      currentConversationId === conv.id && "bg-accent ring-1 ring-primary/20",
-                      editingId === conv.id && "bg-accent"
+                      "group relative p-3 rounded-lg cursor-pointer transition-all border border-transparent",
+                      "hover:bg-muted/50 hover:border-border/30",
+                      currentConversationId === conv.id && "bg-muted border-primary/30",
+                      editingId === conv.id && "bg-muted"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -229,14 +229,14 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
                                   setEditTitle('');
                                 }
                               }}
-                              className="h-7 text-sm"
+                              className="h-7 text-sm bg-background"
                               maxLength={50}
                               autoFocus
                             />
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-7 w-7 shrink-0 hover:bg-primary/10 hover:text-primary"
+                              className="h-7 w-7 shrink-0 hover:bg-primary/20 hover:text-primary"
                               onClick={(e) => saveEdit(conv.id, e)}
                             >
                               <Check className="w-3 h-3" />
@@ -244,21 +244,21 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-7 w-7 shrink-0 hover:bg-destructive/10 hover:text-destructive"
+                              className="h-7 w-7 shrink-0 hover:bg-destructive/20 hover:text-destructive"
                               onClick={cancelEdit}
                             >
                               <X className="w-3 h-3" />
                             </Button>
                           </div>
                         ) : (
-                          <h4 className="text-sm font-medium truncate" title={conv.title}>
+                          <h4 className="text-sm font-medium truncate text-foreground" title={conv.title}>
                             {truncateTitle(conv.title)}
                           </h4>
                         )}
                         <p className="text-xs text-muted-foreground truncate mt-1">
                           {conv.lastMessage}
                         </p>
-                        <p className="text-xs text-muted-foreground/70 mt-1">
+                        <p className="text-xs text-muted-foreground/60 mt-1">
                           {formatTimestamp(conv.timestamp)}
                         </p>
                       </div>
@@ -267,7 +267,7 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-6 w-6 hover:bg-primary/10 hover:text-primary"
+                            className="h-6 w-6 hover:bg-primary/20 hover:text-primary"
                             onClick={(e) => startEditing(conv.id, conv.title, e)}
                           >
                             <Edit2 className="w-3 h-3" />
@@ -275,7 +275,7 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+                            className="h-6 w-6 hover:bg-destructive/20 hover:text-destructive"
                             onClick={(e) => deleteConversation(conv.id, e)}
                           >
                             <Trash2 className="w-3 h-3" />
