@@ -127,6 +127,12 @@ CRITICAL: When you use ip_lookup OR location_osint tool, you MUST include the ex
 For location_osint, format it as:
 {"address":"1600 Pennsylvania Ave NW, Washington, DC","lat":38.8977,"lon":-77.0365,"city":"Washington","country":"United States"}
 
+ABSOLUTE REQUIREMENT FOR LOCATION COORDINATES:
+- Use the EXACT lat/lon values returned from the location_osint tool
+- DO NOT use city center coordinates - use the precise property coordinates
+- The tool returns specific building/address coordinates - use those exact values
+- These coordinates pinpoint the actual property location, not just the general area
+
 The JSON must have exactly these fields: 
 - For IP: ip, lat, lon, city, country
 - For location: address, lat, lon, city, country
