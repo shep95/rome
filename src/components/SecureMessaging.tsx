@@ -92,7 +92,7 @@ export const SecureMessaging: React.FC<SecureMessagingProps> = ({ conversationId
     }
     return '';
   });
-  const [showNomadSidebar, setShowNomadSidebar] = useState(false);
+  const [showNomadSidebar, setShowNomadSidebar] = useState(() => conversationId === 'nomad-ai-agent');
   
   // Import download utilities
   const handleDownloadConversation = async (format: 'txt' | 'json' | 'encrypted') => {
@@ -175,11 +175,13 @@ const [showSettings, setShowSettings] = useState(false);
   useScreenshotProtection(true);
 
   // NOMAD AI Agent functions
-  const loadNomadMessages = async () => {
+  const loadNomadMessages = async (conversationIdOverride?: string) => {
     if (!user?.id) return;
     
+    const targetConversationId = conversationIdOverride || nomadConversationId;
+    
     try {
-      const messages = nomadStorage.getMessages(nomadConversationId);
+      const messages = nomadStorage.getMessages(targetConversationId);
       
       if (messages.length > 0) {
         setMessages(messages);
@@ -187,7 +189,7 @@ const [showSettings, setShowSettings] = useState(false);
         // Welcome message for first time
         const welcomeMessage: Message = {
           id: 'nomad-welcome',
-          content: 'Hello! I am NOMAD, your AI assistant. How can I help you today?',
+          content: 'Hello! I am NOMAD, your AI assistant. How can I help you today?\n\n💡 Tip: Click the chat icon (📱) in the top left to view your conversation history or start a new chat.',
           sender_id: 'nomad-ai',
           created_at: new Date().toISOString(),
           message_type: 'text',
@@ -289,6 +291,9 @@ const [showSettings, setShowSettings] = useState(false);
         
         // Store in localStorage for persistence
         nomadStorage.saveMessages(nomadConversationId, finalMessages);
+        
+        // Refresh conversation list to show updated lastMessage
+        window.dispatchEvent(new Event('storage'));
         
       } catch (error) {
         console.error('NOMAD error:', error);
@@ -1776,14 +1781,14 @@ if (!append && user && conversationId) {
             onSelectConversation={(id) => {
               setNomadConversationId(id);
               nomadStorage.setCurrentConversationId(id);
-              loadNomadMessages();
+              loadNomadMessages(id);
             }}
             onNewConversation={() => {
               const newId = nomadStorage.createConversation();
               setNomadConversationId(newId);
               setMessages([{
                 id: 'nomad-welcome',
-                content: 'Hello! I am NOMAD, your AI assistant. How can I help you today?',
+                content: 'Hello! I am NOMAD, your AI assistant. How can I help you today?\n\n💡 Tip: Click the chat icon (📱) in the top left to view your conversation history or start a new chat.',
                 sender_id: 'nomad-ai',
                 created_at: new Date().toISOString(),
                 message_type: 'text',
@@ -1823,9 +1828,10 @@ if (!append && user && conversationId) {
             {conversationId === 'nomad-ai-agent' && (
               <Button
                 onClick={() => setShowNomadSidebar(!showNomadSidebar)}
-                variant="ghost"
+                variant={showNomadSidebar ? "default" : "ghost"}
                 size="sm"
-                className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+                className="p-1.5 sm:p-2 h-auto flex-shrink-0"
+                title={showNomadSidebar ? "Hide conversations" : "Show conversations"}
               >
                 <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
@@ -1833,9 +1839,11 @@ if (!append && user && conversationId) {
             
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground text-sm sm:text-base lg:text-lg truncate">
-                {conversationDetails?.name || 'Secure Chat'}
+                {conversationId === 'nomad-ai-agent' ? 'NOMAD AI Assistant' : (conversationDetails?.name || 'Secure Chat')}
               </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">End-to-end encrypted</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {conversationId === 'nomad-ai-agent' ? 'AI-powered assistant' : 'End-to-end encrypted'}
+              </p>
             </div>
           
           {/* Mention notifications button */}
@@ -1909,15 +1917,17 @@ if (!append && user && conversationId) {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          {/* Settings button */}
-          <Button
-            onClick={() => setShowSettings(true)}
-            variant="ghost"
-            size="sm"
-            className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
-          >
-            <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Button>
+          {/* Settings button - hide for NOMAD */}
+          {conversationId !== 'nomad-ai-agent' && (
+            <Button
+              onClick={() => setShowSettings(true)}
+              variant="ghost"
+              size="sm"
+              className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+            >
+              <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
+          )}
         </div>
       </div>
 

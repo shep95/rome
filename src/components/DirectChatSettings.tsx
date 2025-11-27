@@ -44,6 +44,11 @@ export const DirectChatSettings: React.FC<DirectChatSettingsProps> = ({
   }, [isOpen, conversationId]);
 
   const fetchParticipants = async () => {
+    // Don't fetch for NOMAD conversations
+    if (conversationId === 'nomad-ai-agent' || conversationId.startsWith('nomad-')) {
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('conversation_participants')
