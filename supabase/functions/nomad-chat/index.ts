@@ -89,9 +89,19 @@ INSTEAD:
  2. **Location/Address Queries** (e.g., "1600 Pennsylvania Ave", "what's this property worth", "info on 123 Main St")
    → ALWAYS use location_osint tool
    → ALWAYS include map coordinates (lat/lon) in your response for visualization
-   → Focus on PROPERTY INTELLIGENCE: construction year, current market value, original cost, occupancy details
-   → Base estimates on location quality, property type, regional market data, and area development patterns
-   → Skip generic location info - provide actionable property insights
+   → Provide CRITICAL PROPERTY INTELLIGENCE ONLY:
+     • Construction year / property age
+     • Current market value estimate (based on location tier, property type, regional comps)
+     • Original build cost estimate (inflation-adjusted from build year)
+     • Ownership/occupancy analysis (residential vs commercial, likely occupants based on property type)
+     • Property tax estimates (based on regional tax rates and assessed value)
+     • Area crime statistics and safety rating (high/medium/low risk based on location)
+     • School district quality if residential area (ratings 1-10 based on region)
+     • Recent comparable sales in area (price trends, market direction)
+     • Zoning classification and usage restrictions
+     • Red flags: flood zones, environmental risks, legal issues, market concerns
+   → Base ALL estimates on: location quality tier (prime/mid/low), property type indicators, regional market data, neighborhood development patterns
+   → NO generic filler - only actionable intelligence that affects value, safety, and investment potential
 
 3. **Domain/URL Security** (e.g., "check example.com", "is this site secure")
    → Use analyze_ssl for SSL/TLS certificate analysis
@@ -254,7 +264,7 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             type: "function",
             function: {
               name: "location_osint",
-              description: "Get property intelligence: construction date, current market value estimate, original build cost, and occupancy details for any address/property worldwide. Returns geodata for map visualization. Use when user asks about houses, apartments, buildings, or any property location. Provide estimates based on property type, location quality, and regional market data.",
+              description: "Get comprehensive property intelligence: construction year, market value, build cost, ownership patterns, property taxes, crime stats, school ratings, sales comps, zoning, and risk factors. Returns critical actionable data for property assessment - no generic filler. Use for any property/address query.",
               parameters: {
                 type: "object",
                 properties: {
