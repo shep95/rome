@@ -260,42 +260,12 @@ const [showSettings, setShowSettings] = useState(false);
     if (!user || !conversationId) return;
 
     try {
-      // Get sequence number for user message
-      const { count: userMsgCount } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('conversation_id', conversationId);
-
-      const userSequence = (userMsgCount || 0) + 1;
-
-      // Encode content as bytea for database storage
-      const encoder = new TextEncoder();
-      const encodedUserContent = encoder.encode(content);
-      
-      const { data: userMsgData, error: userError } = await supabase
-        .from('messages')
-        .insert([{
-          conversation_id: conversationId,
-          sender_id: user.id,
-          data_payload: Array.from(encodedUserContent) as any,
-          sequence_number: userSequence,
-          message_type: 'text'
-        }])
-        .select()
-        .single();
-
-      if (userError) {
-        console.error('Failed to save user message:', userError);
-        toast.error('Failed to send message');
-        return;
-      }
-
-      // Add user message to UI
+      // Create user message (NOMAD messages stored in localStorage only, not DB)
       const userMessage: Message = {
-        id: userMsgData.id,
+        id: `nomad-user-${Date.now()}`,
         content,
         sender_id: user.id,
-        created_at: userMsgData.created_at,
+        created_at: new Date().toISOString(),
         message_type: 'text',
         sender: {
           username: user.email?.split('@')[0] || 'User',
@@ -329,41 +299,12 @@ const [showSettings, setShowSettings] = useState(false);
 
         const aiContent = data.content || 'I apologize, I encountered an error. Please try again.';
 
-        // Get sequence number for AI response
-        const { count: aiMsgCount } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('conversation_id', conversationId);
-
-        const aiSequence = (aiMsgCount || 0) + 1;
-
-        // Encode AI response as bytea for database storage
-        const encodedAiContent = encoder.encode(aiContent);
-        
-        const { data: aiMsgData, error: aiError } = await supabase
-          .from('messages')
-          .insert([{
-            conversation_id: conversationId,
-            sender_id: 'nomad-ai',
-            data_payload: Array.from(encodedAiContent) as any,
-            sequence_number: aiSequence,
-            message_type: 'text'
-          }])
-          .select()
-          .single();
-
-        if (aiError) {
-          console.error('Failed to save AI response:', aiError);
-          toast.error('Failed to save AI response');
-          setIsNomadTyping(false);
-          return;
-        }
-
-        const aiResponse: Message = {
-          id: aiMsgData.id,
+        // Create AI response message
+        const aiMessage: Message = {
+          id: `nomad-ai-${Date.now()}`,
           content: aiContent,
           sender_id: 'nomad-ai',
-          created_at: aiMsgData.created_at,
+          created_at: new Date().toISOString(),
           message_type: 'text',
           sender: {
             username: 'NOMAD',
@@ -372,7 +313,12 @@ const [showSettings, setShowSettings] = useState(false);
           },
         };
 
-        setMessages([...updatedMessages, aiResponse]);
+        const finalMessages = [...updatedMessages, aiMessage];
+        setMessages(finalMessages);
+        
+        // Store in localStorage for persistence
+        localStorage.setItem('nomad-messages', JSON.stringify(finalMessages));
+        
       } catch (error) {
         console.error('NOMAD error:', error);
         toast.error('Failed to get response from NOMAD');
