@@ -7,6 +7,7 @@ import { ScrollDownButton } from "@/components/ui/scroll-down-button";
 import { GlassmorphismHeader } from "@/components/ui/glassmorphism-header";
 import { GlassmorphismFooter } from "@/components/ui/glassmorphism-footer";
 import { BlackHoleBackground } from "@/components/ui/blackhole-background";
+import { NomadShowcase } from "@/components/NomadShowcase";
 import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
@@ -124,6 +125,11 @@ const Index = () => {
       {/* Technology Stack Section */}
       <div id="technology-section" className="relative">
         <TechnologyStack />
+      </div>
+      
+      {/* NOMAD Showcase Section */}
+      <div id="nomad-showcase-section" className="relative">
+        <NomadShowcase />
       </div>
       
       {/* Footer Section */}
