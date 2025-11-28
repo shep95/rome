@@ -464,8 +464,166 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
                 required: ["address"]
               }
             }
+          },
+      {
+        type: "function",
+        function: {
+          name: "enumerate_subdomains",
+          description: "Discover subdomains for a target domain using DNS enumeration with common subdomain wordlist. Returns found subdomains with their IP addresses.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "The target domain to enumerate (e.g., 'example.com')"
+              }
+            },
+            required: ["domain"]
           }
-        ],
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_username",
+          description: "Check if a username exists across multiple social media platforms and services (GitHub, Twitter, Instagram, Reddit, etc.). Returns availability status for each platform.",
+          parameters: {
+            type: "object",
+            properties: {
+              username: {
+                type: "string",
+                description: "The username to check across platforms"
+              }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "identify_hash",
+          description: "Identify the type of hash (MD5, SHA-1, SHA-256, bcrypt, etc.) based on length and format patterns.",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: {
+                type: "string",
+                description: "The hash string to identify"
+              }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_wayback",
+          description: "Query the Wayback Machine to find archived snapshots of a URL. Returns available snapshots with dates.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "The URL to check in Wayback Machine archives"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "search_github",
+          description: "Search GitHub for repositories, users, or code snippets. Returns relevant results with details.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Search query (repository name, username, or code snippet)"
+              },
+              type: {
+                type: "string",
+                enum: ["repositories", "users", "code"],
+                description: "Type of search to perform"
+              }
+            },
+            required: ["query", "type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dns_enumerate",
+          description: "Perform comprehensive DNS enumeration including A, AAAA, MX, NS, TXT, CNAME, and SOA records.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "The domain to enumerate DNS records for"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "extract_metadata",
+          description: "Extract metadata from a URL including title, description, Open Graph tags, and security headers.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "The URL to extract metadata from"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "reverse_dns",
+          description: "Perform reverse DNS lookup to find the hostname associated with an IP address.",
+          parameters: {
+            type: "object",
+            properties: {
+              ip: {
+                type: "string",
+                description: "The IP address to perform reverse DNS lookup on"
+              }
+            },
+            required: ["ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_robots_txt",
+          description: "Retrieve and analyze robots.txt file from a domain to discover hidden directories and crawl rules.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "The domain to check robots.txt for"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      }
+    ],
       }),
     });
 
@@ -652,6 +810,69 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             role: "tool",
             tool_call_id: toolCall.id,
             content: JSON.stringify(await lookupLocation(args.address)),
+          });
+        } else if (toolCall.function.name === "enumerate_subdomains") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await enumerateSubdomains(args.domain)),
+          });
+        } else if (toolCall.function.name === "check_username") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await checkUsername(args.username)),
+          });
+        } else if (toolCall.function.name === "identify_hash") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(identifyHash(args.hash)),
+          });
+        } else if (toolCall.function.name === "check_wayback") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await checkWayback(args.url)),
+          });
+        } else if (toolCall.function.name === "search_github") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await searchGithub(args.query, args.type)),
+          });
+        } else if (toolCall.function.name === "dns_enumerate") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await dnsEnumerate(args.domain)),
+          });
+        } else if (toolCall.function.name === "extract_metadata") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await extractMetadata(args.url)),
+          });
+        } else if (toolCall.function.name === "reverse_dns") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await reverseDns(args.ip)),
+          });
+        } else if (toolCall.function.name === "check_robots_txt") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await checkRobotsTxt(args.domain)),
           });
         }
       }
@@ -1220,6 +1441,394 @@ async function lookupLocation(address: string) {
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Location lookup failed"
+    };
+  }
+}
+
+// Subdomain enumeration using common wordlist
+async function enumerateSubdomains(domain: string) {
+  const commonSubdomains = [
+    'www', 'mail', 'ftp', 'localhost', 'webmail', 'smtp', 'pop', 'ns1', 'webdisk',
+    'ns2', 'cpanel', 'whm', 'autodiscover', 'autoconfig', 'm', 'imap', 'test',
+    'ns', 'blog', 'pop3', 'dev', 'www2', 'admin', 'forum', 'news', 'vpn', 'ns3',
+    'mail2', 'new', 'mysql', 'old', 'lists', 'support', 'mobile', 'mx', 'static',
+    'docs', 'beta', 'shop', 'sql', 'secure', 'demo', 'cp', 'calendar', 'wiki',
+    'web', 'media', 'email', 'images', 'img', 'www1', 'intranet', 'portal', 'video',
+    'sip', 'dns2', 'api', 'cdn', 'stats', 'dns1', 'ns4', 'www3', 'dns', 'search',
+    'staging', 'server', 'mx1', 'chat', 'wap', 'my', 'svn', 'mail1', 'sites',
+    'proxy', 'ads', 'host', 'crm', 'cms', 'backup', 'mx2', 'lyncdiscover', 'info',
+    'apps', 'download', 'remote', 'db', 'forums', 'store', 'relay', 'files',
+    'newsletter', 'app', 'live', 'owa', 'en', 'start', 'sms', 'office', 'exchange',
+    'ipv4', 'git', 'upload', 'stage', 'internal', 'cloud', 'dashboard', 'localhost'
+  ];
+
+  const found: { subdomain: string; ip: string }[] = [];
+  const notFound: string[] = [];
+
+  console.log(`Starting subdomain enumeration for ${domain}...`);
+
+  for (const sub of commonSubdomains) {
+    try {
+      const fullDomain = `${sub}.${domain}`;
+      const response = await fetch(`https://dns.google/resolve?name=${fullDomain}&type=A`);
+      const data = await response.json();
+      
+      if (data.Answer && data.Answer.length > 0) {
+        const ips = data.Answer
+          .filter((record: any) => record.type === 1) // A records
+          .map((record: any) => record.data);
+        
+        if (ips.length > 0) {
+          found.push({
+            subdomain: fullDomain,
+            ip: ips[0]
+          });
+          console.log(`Found: ${fullDomain} -> ${ips[0]}`);
+        }
+      } else {
+        notFound.push(fullDomain);
+      }
+    } catch (error) {
+      console.error(`Error checking ${sub}.${domain}:`, error);
+    }
+  }
+
+  return {
+    success: true,
+    domain,
+    found_count: found.length,
+    subdomains: found,
+    checked: commonSubdomains.length
+  };
+}
+
+// Username enumeration across platforms
+async function checkUsername(username: string) {
+  const platforms = [
+    { name: 'GitHub', url: `https://github.com/${username}` },
+    { name: 'Twitter', url: `https://twitter.com/${username}` },
+    { name: 'Instagram', url: `https://instagram.com/${username}` },
+    { name: 'Reddit', url: `https://reddit.com/user/${username}` },
+    { name: 'YouTube', url: `https://youtube.com/@${username}` },
+    { name: 'TikTok', url: `https://tiktok.com/@${username}` },
+    { name: 'LinkedIn', url: `https://linkedin.com/in/${username}` },
+    { name: 'Medium', url: `https://medium.com/@${username}` },
+    { name: 'DeviantArt', url: `https://${username}.deviantart.com` },
+    { name: 'Twitch', url: `https://twitch.tv/${username}` }
+  ];
+
+  const results = [];
+
+  for (const platform of platforms) {
+    try {
+      const response = await fetch(platform.url, {
+        method: 'HEAD',
+        redirect: 'follow'
+      });
+      
+      results.push({
+        platform: platform.name,
+        url: platform.url,
+        exists: response.status === 200,
+        status_code: response.status
+      });
+    } catch (error) {
+      results.push({
+        platform: platform.name,
+        url: platform.url,
+        exists: false,
+        error: 'Failed to check'
+      });
+    }
+  }
+
+  return {
+    success: true,
+    username,
+    results,
+    found_on: results.filter(r => r.exists).map(r => r.platform)
+  };
+}
+
+// Hash identification
+function identifyHash(hash: string) {
+  const patterns = [
+    { type: 'MD5', regex: /^[a-f0-9]{32}$/i, length: 32 },
+    { type: 'SHA-1', regex: /^[a-f0-9]{40}$/i, length: 40 },
+    { type: 'SHA-224', regex: /^[a-f0-9]{56}$/i, length: 56 },
+    { type: 'SHA-256', regex: /^[a-f0-9]{64}$/i, length: 64 },
+    { type: 'SHA-384', regex: /^[a-f0-9]{96}$/i, length: 96 },
+    { type: 'SHA-512', regex: /^[a-f0-9]{128}$/i, length: 128 },
+    { type: 'bcrypt', regex: /^\$2[ayb]\$.{56}$/i, length: 60 },
+    { type: 'NTLM', regex: /^[a-f0-9]{32}$/i, length: 32 },
+    { type: 'MySQL5', regex: /^\*[a-f0-9]{40}$/i, length: 41 },
+    { type: 'PostgreSQL MD5', regex: /^md5[a-f0-9]{32}$/i, length: 35 }
+  ];
+
+  const matches = patterns.filter(p => p.regex.test(hash));
+  
+  return {
+    success: true,
+    hash: hash.substring(0, 20) + '...',
+    length: hash.length,
+    possible_types: matches.map(m => m.type),
+    most_likely: matches.length > 0 ? matches[0].type : 'Unknown'
+  };
+}
+
+// Wayback Machine check
+async function checkWayback(url: string) {
+  try {
+    const apiUrl = `https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent(url)}&output=json&limit=10`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    
+    if (!data || data.length <= 1) {
+      return {
+        success: true,
+        url,
+        snapshots: 0,
+        message: 'No archived snapshots found'
+      };
+    }
+
+    // Skip header row
+    const snapshots = data.slice(1).map((row: any[]) => ({
+      timestamp: row[1],
+      date: `${row[1].substring(0, 4)}-${row[1].substring(4, 6)}-${row[1].substring(6, 8)}`,
+      status: row[4],
+      archive_url: `https://web.archive.org/web/${row[1]}/${url}`
+    }));
+
+    return {
+      success: true,
+      url,
+      snapshots: snapshots.length,
+      latest_snapshot: snapshots[0],
+      oldest_snapshot: snapshots[snapshots.length - 1],
+      all_snapshots: snapshots
+    };
+  } catch (error) {
+    console.error('Error checking Wayback:', error);
+    return {
+      success: false,
+      error: 'Failed to check Wayback Machine',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+// GitHub search
+async function searchGithub(query: string, type: 'repositories' | 'users' | 'code') {
+  try {
+    const apiUrl = `https://api.github.com/search/${type}?q=${encodeURIComponent(query)}&per_page=10`;
+    const response = await fetch(apiUrl, {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'NOMAD-OSINT'
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (type === 'repositories') {
+      return {
+        success: true,
+        query,
+        type,
+        total_count: data.total_count,
+        results: data.items?.map((repo: any) => ({
+          name: repo.full_name,
+          description: repo.description,
+          stars: repo.stargazers_count,
+          forks: repo.forks_count,
+          language: repo.language,
+          url: repo.html_url,
+          created: repo.created_at,
+          updated: repo.updated_at
+        })) || []
+      };
+    } else if (type === 'users') {
+      return {
+        success: true,
+        query,
+        type,
+        total_count: data.total_count,
+        results: data.items?.map((user: any) => ({
+          username: user.login,
+          profile_url: user.html_url,
+          avatar: user.avatar_url,
+          type: user.type
+        })) || []
+      };
+    } else {
+      return {
+        success: true,
+        query,
+        type,
+        total_count: data.total_count,
+        results: data.items?.map((item: any) => ({
+          name: item.name,
+          path: item.path,
+          repository: item.repository.full_name,
+          url: item.html_url
+        })) || []
+      };
+    }
+  } catch (error) {
+    console.error('Error searching GitHub:', error);
+    return {
+      success: false,
+      error: 'Failed to search GitHub',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+// DNS enumeration
+async function dnsEnumerate(domain: string) {
+  const recordTypes = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CNAME', 'SOA'];
+  const results: any = {};
+
+  for (const type of recordTypes) {
+    try {
+      const response = await fetch(`https://dns.google/resolve?name=${domain}&type=${type}`);
+      const data = await response.json();
+      
+      if (data.Answer && data.Answer.length > 0) {
+        results[type] = data.Answer.map((record: any) => ({
+          data: record.data,
+          ttl: record.TTL
+        }));
+      } else {
+        results[type] = [];
+      }
+    } catch (error) {
+      results[type] = { error: 'Failed to query' };
+    }
+  }
+
+  return {
+    success: true,
+    domain,
+    records: results
+  };
+}
+
+// Metadata extraction
+async function extractMetadata(url: string) {
+  try {
+    const response = await fetch(url);
+    const html = await response.text();
+    const headers = Object.fromEntries(response.headers.entries());
+    
+    // Extract title
+    const titleMatch = html.match(/<title>(.*?)<\/title>/i);
+    const title = titleMatch ? titleMatch[1] : null;
+    
+    // Extract meta tags
+    const metaTags: any = {};
+    const metaRegex = /<meta\s+(?:name|property)=["']([^"']+)["']\s+content=["']([^"']+)["']/gi;
+    let match;
+    while ((match = metaRegex.exec(html)) !== null) {
+      metaTags[match[1]] = match[2];
+    }
+    
+    return {
+      success: true,
+      url,
+      title,
+      meta_tags: metaTags,
+      security_headers: {
+        'content-security-policy': headers['content-security-policy'] || 'Not set',
+        'x-frame-options': headers['x-frame-options'] || 'Not set',
+        'x-content-type-options': headers['x-content-type-options'] || 'Not set',
+        'strict-transport-security': headers['strict-transport-security'] || 'Not set'
+      },
+      server: headers['server'] || 'Unknown',
+      powered_by: headers['x-powered-by'] || 'Unknown'
+    };
+  } catch (error) {
+    console.error('Error extracting metadata:', error);
+    return {
+      success: false,
+      error: 'Failed to extract metadata',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+// Reverse DNS lookup
+async function reverseDns(ip: string) {
+  try {
+    const response = await fetch(`https://dns.google/resolve?name=${ip}&type=PTR`);
+    const data = await response.json();
+    
+    if (data.Answer && data.Answer.length > 0) {
+      return {
+        success: true,
+        ip,
+        hostnames: data.Answer.map((record: any) => record.data)
+      };
+    }
+    
+    return {
+      success: true,
+      ip,
+      hostnames: [],
+      message: 'No PTR records found'
+    };
+  } catch (error) {
+    console.error('Error in reverse DNS:', error);
+    return {
+      success: false,
+      error: 'Failed to perform reverse DNS lookup',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+// Check robots.txt
+async function checkRobotsTxt(domain: string) {
+  try {
+    const url = `https://${domain}/robots.txt`;
+    const response = await fetch(url);
+    
+    if (response.status === 404) {
+      return {
+        success: true,
+        domain,
+        exists: false,
+        message: 'No robots.txt found'
+      };
+    }
+    
+    const content = await response.text();
+    const lines = content.split('\n');
+    
+    const disallowed = lines
+      .filter(line => line.trim().toLowerCase().startsWith('disallow:'))
+      .map(line => line.split(':')[1].trim());
+    
+    const sitemaps = lines
+      .filter(line => line.trim().toLowerCase().startsWith('sitemap:'))
+      .map(line => line.split(':').slice(1).join(':').trim());
+    
+    return {
+      success: true,
+      domain,
+      exists: true,
+      url,
+      disallowed_paths: disallowed,
+      sitemaps,
+      full_content: content
+    };
+  } catch (error) {
+    console.error('Error checking robots.txt:', error);
+    return {
+      success: false,
+      error: 'Failed to check robots.txt',
+      details: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
