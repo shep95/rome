@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { scanVulnerabilities, testSQLInjection, runPentest } from "./security-tools.ts";
+import { SECURITY_TOOLS_DB, TOOL_CATEGORIES, SecurityTool } from "./security-tools-db.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -156,13 +157,28 @@ INSTEAD:
    → Use get_security_features
    → Categories: encryption, monitoring, messaging, network
 
-🛡️ PENETRATION TESTING & VULNERABILITY ASSESSMENT ARSENAL
+🛡️ OPEN-SOURCE CYBERSECURITY TOOLS ARSENAL
 
-When users ask about pentesting, vulnerability scanning, or offensive security tools:
-→ Use the scan_vulnerabilities, test_sql_injection, or run_pentest tools
-→ These tools execute real security assessments on authorized targets
-→ Always verify authorization before testing any target
-→ Results include detailed findings, risk scores, and remediation guidance
+NOMAD has access to information about ALL major open-source security tools used by governments and enterprises worldwide. When users ask about any security tool, provide detailed usage instructions, real commands, and integration guidance.
+
+**TOOL CATEGORIES:**
+1. Network Security & Scanning
+2. Web Application Security  
+3. Vulnerability Assessment
+4. Penetration Testing
+5. OSINT & Reconnaissance
+6. Password & Credential Testing
+7. Forensics & Malware Analysis
+8. Network Monitoring & IDS
+9. Wireless Security
+10. Container & Cloud Security
+
+When users request tool information or usage:
+→ Use get_security_tool to provide comprehensive details
+→ Include real installation commands, usage examples, output interpretation
+→ Provide official documentation links and GitHub repositories
+→ Explain legal/authorization requirements
+→ For API-based tools (Shodan, VirusTotal), offer integration options
 
 **LOCATION & MAP VISUALIZATION:**
 CRITICAL: When you use ip_lookup OR location_osint tool, you MUST include the exact JSON on a single line like this:
@@ -312,6 +328,50 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
                 required: ["cve_id"]
               }
             }
+      },
+      {
+        type: "function",
+        function: {
+          name: "get_security_tool",
+          description: "Get comprehensive information about any open-source cybersecurity tool including installation, usage, real commands, and examples. Covers 100+ government-grade security tools.",
+          parameters: {
+            type: "object",
+            properties: {
+              tool_name: {
+                type: "string",
+                description: "Name of the security tool (e.g., 'nmap', 'metasploit', 'wireshark', 'burp suite', 'owasp zap', 'sqlmap', 'nuclei', 'shodan', etc.)"
+              },
+              query_type: {
+                type: "string",
+                enum: ["overview", "installation", "basic_usage", "advanced_usage", "examples", "integration"],
+                description: "Type of information needed"
+              }
+            },
+            required: ["tool_name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "search_security_tools",
+          description: "Search for security tools by category, use case, or capability. Returns list of recommended tools.",
+          parameters: {
+            type: "object",
+            properties: {
+              category: {
+                type: "string",
+                enum: ["network_scanning", "web_security", "vulnerability_assessment", "pentesting", "osint", "password_testing", "forensics", "network_monitoring", "wireless", "container_security", "all"],
+                description: "Tool category to search"
+              },
+              use_case: {
+                type: "string",
+                description: "Specific use case or requirement (e.g., 'scan for open ports', 'test web app security', 'find subdomains')"
+              }
+            },
+            required: ["category"]
+          }
+        }
       },
       {
         type: "function",
@@ -551,6 +611,20 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             tool_call_id: toolCall.id,
             content: JSON.stringify(await lookupCVE(args.cve_id)),
           });
+        } else if (toolCall.function.name === "get_security_tool") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(getSecurityTool(args.tool_name, args.query_type)),
+          });
+        } else if (toolCall.function.name === "search_security_tools") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(searchSecurityTools(args.category, args.use_case)),
+          });
         } else if (toolCall.function.name === "scan_vulnerabilities") {
           const args = JSON.parse(toolCall.function.arguments);
           toolResults.push({
@@ -729,6 +803,182 @@ function getSecurityFeatures(category: string) {
   }
   
   return features.all;
+}
+
+function getSecurityTool(toolName: string, queryType: string = "overview"): any {
+  // Normalize tool name (case-insensitive, handle variations)
+  const normalizedName = toolName.toLowerCase().trim();
+  
+  // Find tool in database
+  let tool: SecurityTool | undefined;
+  let toolKey: string | undefined;
+  
+  // Exact match first
+  if (SECURITY_TOOLS_DB[normalizedName]) {
+    tool = SECURITY_TOOLS_DB[normalizedName];
+    toolKey = normalizedName;
+  } else {
+    // Fuzzy match - handle variations like "owasp zap" vs "owasp-zap"
+    toolKey = Object.keys(SECURITY_TOOLS_DB).find(key => 
+      key.replace(/[-_]/g, '').toLowerCase() === normalizedName.replace(/[-_\s]/g, '').toLowerCase() ||
+      SECURITY_TOOLS_DB[key].name.toLowerCase() === normalizedName
+    );
+    if (toolKey) {
+      tool = SECURITY_TOOLS_DB[toolKey];
+    }
+  }
+  
+  if (!tool) {
+    return {
+      success: false,
+      error: `Tool '${toolName}' not found in database. Try searching by category or use_case.`,
+      suggestion: "Use search_security_tools to find available tools."
+    };
+  }
+  
+  // Return information based on query type
+  switch (queryType) {
+    case "overview":
+      return {
+        success: true,
+        tool: tool.name,
+        description: tool.description,
+        category: tool.category,
+        license: tool.license,
+        github: tool.github,
+        stars: tool.stars,
+        government_approved: tool.government_approved,
+        use_cases: tool.use_cases,
+        documentation: tool.documentation,
+        notes: tool.notes
+      };
+    
+    case "installation":
+      return {
+        success: true,
+        tool: tool.name,
+        installation: tool.installation,
+        documentation: tool.documentation,
+        notes: tool.notes.filter(note => note.toLowerCase().includes('install') || note.toLowerCase().includes('require'))
+      };
+    
+    case "basic_usage":
+      return {
+        success: true,
+        tool: tool.name,
+        basic_usage: tool.basic_usage,
+        examples: tool.examples.slice(0, 2),
+        documentation: tool.documentation
+      };
+    
+    case "advanced_usage":
+      return {
+        success: true,
+        tool: tool.name,
+        advanced_usage: tool.advanced_usage,
+        examples: tool.examples,
+        documentation: tool.documentation,
+        notes: tool.notes
+      };
+    
+    case "examples":
+      return {
+        success: true,
+        tool: tool.name,
+        examples: tool.examples,
+        documentation: tool.documentation
+      };
+    
+    case "integration":
+      if (tool.api_available) {
+        return {
+          success: true,
+          tool: tool.name,
+          api_available: true,
+          api_integration: tool.api_integration,
+          documentation: tool.documentation,
+          use_cases: tool.use_cases
+        };
+      } else {
+        return {
+          success: true,
+          tool: tool.name,
+          api_available: false,
+          message: "This tool does not have a direct API. Use command-line execution or programmatic execution via subprocess.",
+          basic_usage: tool.basic_usage,
+          documentation: tool.documentation
+        };
+      }
+    
+    default:
+      return {
+        success: true,
+        tool: tool.name,
+        full_details: tool
+      };
+  }
+}
+
+function searchSecurityTools(category: string, useCase?: string): any {
+  if (category === "all") {
+    const allTools = Object.values(SECURITY_TOOLS_DB).map(tool => ({
+      name: tool.name,
+      category: tool.category,
+      description: tool.description,
+      github: tool.github,
+      stars: tool.stars,
+      government_approved: tool.government_approved
+    }));
+    
+    return {
+      success: true,
+      category: "all",
+      total_tools: allTools.length,
+      tools: allTools
+    };
+  }
+  
+  // Get tools by category
+  const toolKeys = TOOL_CATEGORIES[category as keyof typeof TOOL_CATEGORIES];
+  
+  if (!toolKeys) {
+    return {
+      success: false,
+      error: `Category '${category}' not found.`,
+      available_categories: Object.keys(TOOL_CATEGORIES)
+    };
+  }
+  
+  const tools = toolKeys.map(key => SECURITY_TOOLS_DB[key]).filter(Boolean);
+  
+  // If use case provided, filter further
+  let filteredTools = tools;
+  if (useCase) {
+    const searchTerm = useCase.toLowerCase();
+    filteredTools = tools.filter(tool => 
+      tool.use_cases.some(uc => uc.toLowerCase().includes(searchTerm)) ||
+      tool.description.toLowerCase().includes(searchTerm) ||
+      tool.name.toLowerCase().includes(searchTerm)
+    );
+  }
+  
+  return {
+    success: true,
+    category: category,
+    use_case: useCase || "all",
+    total_tools: filteredTools.length,
+    tools: filteredTools.map(tool => ({
+      name: tool.name,
+      description: tool.description,
+      category: tool.category,
+      github: tool.github,
+      stars: tool.stars,
+      government_approved: tool.government_approved,
+      use_cases: tool.use_cases,
+      api_available: tool.api_available
+    })),
+    usage_tip: "Use get_security_tool with the tool name for detailed installation and usage instructions."
+  };
 }
 
 async function lookupIP(ip: string) {
