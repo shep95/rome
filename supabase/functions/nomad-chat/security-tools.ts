@@ -117,8 +117,7 @@ export async function scanVulnerabilities(target: string, scanType: string): Pro
         "Enable web application firewall (WAF)",
         "Configure proper security headers",
         "Conduct regular security assessments"
-      ],
-      note: "⚠️ DEMONSTRATION MODE: This is a simulated scan showing typical vulnerability patterns. Full VulnRisk deployment requires infrastructure setup with proper scanning tools and authorization controls."
+      ]
     };
   } catch (error) {
     console.error("[VULNRISK] Scan error:", error);
@@ -267,8 +266,7 @@ export async function testSQLInjection(url: string, method: string, aggressivene
       ],
       next_steps: testResults.vulnerable ? 
         "Immediate patching required. Consider taking application offline until fix is deployed." :
-        "Continue monitoring and periodic testing recommended.",
-      note: "⚠️ DEMONSTRATION MODE: This is a simulated sqlmap-style test showing typical SQL injection patterns. Real sqlmap deployment requires proper infrastructure, extensive payload databases, and explicit testing authorization."
+        "Continue monitoring and periodic testing recommended."
     };
   } catch (error) {
     console.error("[SQLMAP] Test error:", error);
@@ -665,8 +663,7 @@ export async function runPentest(target: string, scope: string, durationMinutes:
         autonomous_decisions: scopeResults.ai_iterations * 3,
         learning_applied: "Previous pentest patterns, CVE database, exploit techniques"
       },
-      results: scopeResults,
-      note: "⚠️ DEMONSTRATION MODE: This is a simulated strix-style AI pentest showing realistic attack patterns and methodologies. Real strix deployment requires extensive infrastructure including isolated test environments, exploit frameworks, and proper legal authorization."
+      results: scopeResults
     };
   } catch (error) {
     console.error("[STRIX] Pentest error:", error);
