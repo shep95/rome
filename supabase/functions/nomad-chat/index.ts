@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { scanVulnerabilities, testSQLInjection, runPentest } from "./security-tools.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -157,36 +158,11 @@ INSTEAD:
 
 🛡️ PENETRATION TESTING & VULNERABILITY ASSESSMENT ARSENAL
 
-When users ask about pentesting, vulnerability scanning, or offensive security tools, reference these:
-
-1. **VulnRisk** — Open-source vulnerability risk assessment platform
-   → Purpose: Comprehensive vulnerability scanning and risk prioritization
-   → Use cases: Enterprise-grade vuln assessment, compliance reporting, attack surface mapping
-   → Website: vulnrisk.animogovcon.com
-   → GitHub: github.com/GurkhaShieldForce/VulnRisk_Public
-   → Key features: Automated scanning, risk scoring, remediation tracking, compliance frameworks
-   → Best for: Organizations needing structured vulnerability management programs
-
-2. **sqlmap** — Automatic SQL injection exploitation tool (36k+ stars)
-   → Purpose: Automated SQL injection detection and database takeover
-   → Use cases: Web app security testing, database penetration, vulnerability validation
-   → Website: sqlmap.org
-   → GitHub: github.com/sqlmapproject/sqlmap
-   → Key features: Automatic SQL injection detection, database enumeration, OS command execution
-   → Best for: Web application security assessments, ethical hacking, bug bounty hunting
-   → Industry standard tool used by security researchers worldwide
-
-3. **strix** — AI-powered penetration testing agents (13.9k+ stars)
-   → Purpose: Autonomous AI agents that perform penetration testing
-   → Use cases: Automated security assessments, continuous pentesting, vulnerability discovery
-   → Website: usestrix.com
-   → GitHub: github.com/usestrix/strix
-   → Key features: AI-driven attack simulation, autonomous exploitation, intelligent reconnaissance
-   → Best for: Modern automated pentesting, scalable security assessments
-   → Apache 2.0 licensed, cutting-edge AI security technology
-
-**ETHICAL USAGE REMINDER:**
-These tools are for authorized security testing only. Unauthorized use against systems you don't own or have explicit permission to test is illegal. Always operate within legal boundaries and ethical guidelines. Security testing requires explicit written authorization.
+When users ask about pentesting, vulnerability scanning, or offensive security tools:
+→ Use the scan_vulnerabilities, test_sql_injection, or run_pentest tools
+→ These tools execute real security assessments on authorized targets
+→ Always verify authorization before testing any target
+→ Results include detailed findings, risk scores, and remediation guidance
 
 **LOCATION & MAP VISUALIZATION:**
 CRITICAL: When you use ip_lookup OR location_osint tool, you MUST include the exact JSON on a single line like this:
@@ -336,11 +312,86 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
                 required: ["cve_id"]
               }
             }
-          },
-          {
-            type: "function",
-            function: {
-              name: "location_osint",
+      },
+      {
+        type: "function",
+        function: {
+          name: "scan_vulnerabilities",
+          description: "Scan a target system for vulnerabilities using VulnRisk-style assessment. Requires explicit authorization.",
+          parameters: {
+            type: "object",
+            properties: {
+              target: {
+                type: "string",
+                description: "Target IP address, domain, or URL to scan"
+              },
+              scan_type: {
+                type: "string",
+                enum: ["quick", "standard", "comprehensive"],
+                description: "Scan depth: quick (5 min), standard (30 min), comprehensive (2+ hours)"
+              }
+            },
+            required: ["target", "scan_type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "test_sql_injection",
+          description: "Test web application for SQL injection vulnerabilities using sqlmap-style techniques. Requires explicit authorization.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "Target URL with parameters to test (e.g., http://example.com/page?id=1)"
+              },
+              method: {
+                type: "string",
+                enum: ["GET", "POST"],
+                description: "HTTP method to use for testing"
+              },
+              aggressiveness: {
+                type: "string",
+                enum: ["passive", "active", "aggressive"],
+                description: "Testing level: passive (safe), active (moderate), aggressive (intrusive)"
+              }
+            },
+            required: ["url", "method", "aggressiveness"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "run_pentest",
+          description: "Execute AI-powered autonomous penetration testing using strix-style agents. Requires explicit authorization.",
+          parameters: {
+            type: "object",
+            properties: {
+              target: {
+                type: "string",
+                description: "Target system, network, or application to test"
+              },
+              scope: {
+                type: "string",
+                enum: ["reconnaissance", "vulnerability_discovery", "exploitation", "full_assessment"],
+                description: "Penetration testing scope and objectives"
+              },
+              duration_minutes: {
+                type: "number",
+                description: "Maximum test duration in minutes (15-240)"
+              }
+            },
+            required: ["target", "scope", "duration_minutes"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "location_osint",
               description: "Get comprehensive property intelligence: construction year, market value, build cost, ownership patterns, property taxes, crime stats, school ratings, sales comps, zoning, and risk factors. Returns critical actionable data for property assessment - no generic filler. Use for any property/address query.",
               parameters: {
                 type: "object",
@@ -499,6 +550,27 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             role: "tool",
             tool_call_id: toolCall.id,
             content: JSON.stringify(await lookupCVE(args.cve_id)),
+          });
+        } else if (toolCall.function.name === "scan_vulnerabilities") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await scanVulnerabilities(args.target, args.scan_type)),
+          });
+        } else if (toolCall.function.name === "test_sql_injection") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await testSQLInjection(args.url, args.method, args.aggressiveness)),
+          });
+        } else if (toolCall.function.name === "run_pentest") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await runPentest(args.target, args.scope, args.duration_minutes)),
           });
         } else if (toolCall.function.name === "location_osint") {
           const args = JSON.parse(toolCall.function.arguments);
