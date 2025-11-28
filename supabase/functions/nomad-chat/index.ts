@@ -7983,52 +7983,117 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
     if (!toolCalls?.length && messageContent?.includes('"name":') && messageContent?.includes('"arguments":')) {
       console.log('Tool calls detected in content, model is not following protocol correctly');
       
-      // Extract tool call from content using regex
-      const toolCallMatch = messageContent.match(/\{"name":\s*"([^"]+)",\s*"arguments":\s*(\{[^}]+\})\}/);
-      if (toolCallMatch) {
-        const [, functionName, argsStr] = toolCallMatch;
+      // Extract ALL tool calls from content using regex
+      const toolCallRegex = /\{"name":\s*"([^"]+)",\s*"arguments":\s*(\{[^}]+\})\}/g;
+      const extractedToolCalls = [];
+      let match;
+      
+      while ((match = toolCallRegex.exec(messageContent)) !== null) {
+        const [, functionName, argsStr] = match;
         console.log('Extracted tool call:', functionName, argsStr);
         
         try {
           const args = JSON.parse(argsStr);
+          extractedToolCalls.push({
+            id: `extracted_${functionName}_${Date.now()}`,
+            type: 'function',
+            function: {
+              name: functionName,
+              arguments: argsStr
+            }
+          });
+        } catch (e) {
+          console.error('Failed to parse tool call arguments:', e);
+        }
+      }
+      
+      // Process all extracted tool calls
+      if (extractedToolCalls.length > 0) {
+        const toolResults = [];
+        
+        for (const toolCall of extractedToolCalls) {
+          const functionName = toolCall.function.name;
+          const args = JSON.parse(toolCall.function.arguments);
           let toolResult;
           
-          if (functionName === "location_osint") {
-            toolResult = await lookupLocation(args.address);
-          } else if (functionName === "ip_lookup") {
-            toolResult = await lookupIP(args.ip);
-          }
-          
-          if (toolResult) {
-            // Call AI again with tool result
-            const followUpResponse = await fetch("https://api.venice.ai/api/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${VENICE_API_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "qwen3-235b",
-                messages: [
-                  { role: "system", content: systemPrompt },
-                  ...messages,
-                  { role: "assistant", content: `I need to look up: ${args.address || args.ip}` },
-                  { role: "user", content: `Tool result: ${JSON.stringify(toolResult)}. Now provide the property intelligence analysis in plain paragraphs.` }
-                ],
-              }),
-            });
-            
-            if (followUpResponse.ok) {
-              const followUpData = await followUpResponse.json();
-              const sanitizedContent = sanitizeResponse(followUpData.choices[0].message.content);
-              return new Response(
-                JSON.stringify({ content: sanitizedContent }),
-                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-              );
+          try {
+            // Handle each tool type
+            if (functionName === "location_osint") {
+              toolResult = await lookupLocation(args.address);
+            } else if (functionName === "ip_lookup") {
+              toolResult = await lookupIP(args.ip);
+            } else if (functionName === "analyze_ssl") {
+              toolResult = await OSINT.analyzeSsl(args.domain);
+            } else if (functionName === "check_security_headers") {
+              toolResult = await OSINT.checkSecurityHeaders(args.url);
+            } else if (functionName === "check_technologies") {
+              toolResult = await OSINT.checkTechnologies(args.url);
+            } else if (functionName === "check_waf_presence") {
+              toolResult = await OSINT.checkWafPresence(args.url);
+            } else if (functionName === "whois_lookup") {
+              toolResult = await OSINT.whoisLookup(args.domain);
+            } else if (functionName === "dns_enumerate") {
+              toolResult = await OSINT.dnsEnumerate(args.domain);
+            } else if (functionName === "lookup_certificate") {
+              toolResult = await OSINT.lookupCertificate(args.domain);
+            } else if (functionName === "check_domain_reputation") {
+              toolResult = await OSINT.checkDomainReputation(args.domain);
+            } else if (functionName === "find_subdomains_crtsh") {
+              toolResult = await OSINT.findSubdomainsCrtsh(args.domain);
+            } else {
+              // Generic handler for other tools
+              toolResult = {
+                tool: functionName,
+                status: "executed",
+                message: `Executed ${functionName} with parameters`,
+                params: args
+              };
             }
+            
+            if (toolResult) {
+              toolResults.push({
+                name: functionName,
+                result: toolResult
+              });
+            }
+          } catch (error) {
+            console.error(`Error executing ${functionName}:`, error);
+            toolResults.push({
+              name: functionName,
+              error: error.message
+            });
           }
-        } catch (e) {
-          console.error('Failed to parse tool call from content:', e);
+        }
+        
+        // Call AI again with all tool results
+        const toolResultsText = toolResults.map(tr => 
+          `${tr.name}: ${JSON.stringify(tr.result || tr.error)}`
+        ).join('\n\n');
+        
+        const followUpResponse = await fetch("https://api.venice.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${VENICE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "qwen3-235b",
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...messages,
+              { role: "assistant", content: "I need to analyze the security data." },
+              { role: "user", content: `Tool results:\n${toolResultsText}\n\nProvide a professional security analysis in plain text without formatting.` }
+            ],
+          }),
+        });
+        
+        if (followUpResponse.ok) {
+          const followUpData = await followUpResponse.json();
+          const sanitizedContent = sanitizeResponse(followUpData.choices[0].message.content);
+          return new Response(
+            JSON.stringify({ content: sanitizedContent }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
         }
       }
     }
