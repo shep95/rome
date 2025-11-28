@@ -29,13 +29,7 @@ export async function inspectWebsite(url: string): Promise<any> {
         server: headers['server'] || 'Not disclosed',
         powered_by: headers['x-powered-by'] || 'Not disclosed',
         content_type: headers['content-type'] || 'Unknown',
-        security_headers: {
-          hsts: headers['strict-transport-security'] || '❌ Missing',
-          csp: headers['content-security-policy'] || '❌ Missing',
-          xfo: headers['x-frame-options'] || '❌ Missing',
-          xcto: headers['x-content-type-options'] || '❌ Missing',
-          referrer: headers['referrer-policy'] || '❌ Missing'
-        }
+        security_headers: extractSecurityHeaders(html, headers)
       },
       
       // Form analysis
@@ -515,4 +509,80 @@ function calculateComplexity(html: string): string {
   if (score < 2000) return 'Moderate';
   if (score < 5000) return 'Complex';
   return 'Very Complex';
+}
+
+function extractSecurityHeaders(html: string, headers: Record<string, string>) {
+  // Check HTTP Response Headers (Server-level - STRONGEST protection)
+  const httpHeaders = {
+    hsts: headers['strict-transport-security'] || null,
+    csp: headers['content-security-policy'] || null,
+    xfo: headers['x-frame-options'] || null,
+    xcto: headers['x-content-type-options'] || null,
+    xss: headers['x-xss-protection'] || null,
+    referrer: headers['referrer-policy'] || null
+  };
+  
+  // Extract Meta Tags from HTML (Second-line defense)
+  const metaTags = {
+    hsts: null as string | null,
+    csp: null as string | null,
+    xfo: null as string | null,
+    xcto: null as string | null,
+    xss: null as string | null,
+    referrer: null as string | null
+  };
+  
+  // Parse meta tags with http-equiv
+  const cspMatch = html.match(/<meta\s+http-equiv=["']Content-Security-Policy["']\s+content=["']([^"']+)["']/i);
+  if (cspMatch) metaTags.csp = 'Present (meta tag)';
+  
+  const xfoMatch = html.match(/<meta\s+http-equiv=["']X-Frame-Options["']\s+content=["']([^"']+)["']/i);
+  if (xfoMatch) metaTags.xfo = xfoMatch[1];
+  
+  const xctoMatch = html.match(/<meta\s+http-equiv=["']X-Content-Type-Options["']\s+content=["']([^"']+)["']/i);
+  if (xctoMatch) metaTags.xcto = xctoMatch[1];
+  
+  const xssMatch = html.match(/<meta\s+http-equiv=["']X-XSS-Protection["']\s+content=["']([^"']+)["']/i);
+  if (xssMatch) metaTags.xss = xssMatch[1];
+  
+  const refMatch = html.match(/<meta\s+http-equiv=["']Referrer-Policy["']\s+content=["']([^"']+)["']/i);
+  if (refMatch) metaTags.referrer = refMatch[1];
+  
+  // Build report with protection levels
+  return {
+    hsts: {
+      value: httpHeaders.hsts || metaTags.hsts || '❌ Missing',
+      level: httpHeaders.hsts ? '🛡️ SERVER' : metaTags.hsts ? '⚠️ META' : '🚨 MISSING'
+    },
+    csp: {
+      value: httpHeaders.csp || metaTags.csp || '❌ Missing',
+      level: httpHeaders.csp ? '🛡️ SERVER' : metaTags.csp ? '⚠️ META' : '🚨 MISSING'
+    },
+    xfo: {
+      value: httpHeaders.xfo || metaTags.xfo || '❌ Missing',
+      level: httpHeaders.xfo ? '🛡️ SERVER' : metaTags.xfo ? '⚠️ META' : '🚨 MISSING'
+    },
+    xcto: {
+      value: httpHeaders.xcto || metaTags.xcto || '❌ Missing',
+      level: httpHeaders.xcto ? '🛡️ SERVER' : metaTags.xcto ? '⚠️ META' : '🚨 MISSING'
+    },
+    xss: {
+      value: httpHeaders.xss || metaTags.xss || '❌ Missing',
+      level: httpHeaders.xss ? '🛡️ SERVER' : metaTags.xss ? '⚠️ META' : '🚨 MISSING'
+    },
+    referrer: {
+      value: httpHeaders.referrer || metaTags.referrer || '❌ Missing',
+      level: httpHeaders.referrer ? '🛡️ SERVER' : metaTags.referrer ? '⚠️ META' : '🚨 MISSING'
+    },
+    overall: {
+      http_count: Object.values(httpHeaders).filter(v => v !== null).length,
+      meta_count: Object.values(metaTags).filter(v => v !== null).length,
+      recommendation: Object.values(httpHeaders).filter(v => v !== null).length === 0 && 
+                     Object.values(metaTags).filter(v => v !== null).length > 0 ?
+        '⚠️ Using meta tags - Configure server headers at Cloudflare for stronger protection' :
+        Object.values(httpHeaders).filter(v => v !== null).length < 6 ?
+        '🚨 Missing critical headers - Configure immediately' :
+        '✅ Properly configured'
+    }
+  };
 }
