@@ -5178,6 +5178,2685 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             required: ["target", "scope"]
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "search_exploit_db",
+          description: "Search Exploit-DB for vulnerabilities and exploits",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "CVE, product, or vulnerability" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "metasploit_modules",
+          description: "Search Metasploit Framework modules",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Module or exploit name" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "nuclei_templates",
+          description: "Search Nuclei vulnerability templates",
+          parameters: {
+            type: "object",
+            properties: {
+              category: { type: "string", description: "Template category" }
+            },
+            required: ["category"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "nmap_scan_profiles",
+          description: "Get Nmap scan profiles and commands",
+          parameters: {
+            type: "object",
+            properties: {
+              scan_type: { type: "string", enum: ["quick", "full", "stealth", "udp", "vuln"], description: "Scan type" }
+            },
+            required: ["scan_type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "gobuster_wordlists",
+          description: "Get Gobuster wordlists for directory brute forcing",
+          parameters: {
+            type: "object",
+            properties: {
+              category: { type: "string", enum: ["directory", "dns", "vhost"], description: "Wordlist type" }
+            },
+            required: ["category"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ffuf_fuzzing",
+          description: "Web fuzzing with FFUF techniques",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Target URL" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sqlmap_payloads",
+          description: "SQLMap injection payloads and techniques",
+          parameters: {
+            type: "object",
+            properties: {
+              db_type: { type: "string", enum: ["mysql", "mssql", "postgres", "oracle", "sqlite"], description: "Database type" }
+            },
+            required: ["db_type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "xss_payloads",
+          description: "Cross-Site Scripting (XSS) payload database",
+          parameters: {
+            type: "object",
+            properties: {
+              context: { type: "string", enum: ["reflected", "stored", "dom"], description: "XSS context" }
+            },
+            required: ["context"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "xxe_payloads",
+          description: "XML External Entity (XXE) exploitation payloads",
+          parameters: {
+            type: "object",
+            properties: {
+              technique: { type: "string", description: "XXE technique" }
+            },
+            required: ["technique"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ssrf_payloads",
+          description: "Server-Side Request Forgery (SSRF) payloads",
+          parameters: {
+            type: "object",
+            properties: {
+              target_protocol: { type: "string", enum: ["http", "file", "gopher", "dict"], description: "Protocol" }
+            },
+            required: ["target_protocol"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "lfi_rfi_payloads",
+          description: "Local/Remote File Inclusion payloads",
+          parameters: {
+            type: "object",
+            properties: {
+              type: { type: "string", enum: ["lfi", "rfi"], description: "Inclusion type" }
+            },
+            required: ["type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "command_injection_payloads",
+          description: "OS Command Injection payloads",
+          parameters: {
+            type: "object",
+            properties: {
+              os: { type: "string", enum: ["linux", "windows"], description: "Target OS" }
+            },
+            required: ["os"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "csrf_token_analysis",
+          description: "Analyze CSRF token implementation",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "idor_testing",
+          description: "Test for Insecure Direct Object References (IDOR)",
+          parameters: {
+            type: "object",
+            properties: {
+              endpoint: { type: "string", description: "API endpoint" }
+            },
+            required: ["endpoint"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "jwt_analysis",
+          description: "Analyze and decode JWT tokens",
+          parameters: {
+            type: "object",
+            properties: {
+              token: { type: "string", description: "JWT token" }
+            },
+            required: ["token"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "oauth_flow_analysis",
+          description: "Analyze OAuth implementation and flows",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "OAuth endpoint" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "api_key_scanner",
+          description: "Scan for exposed API keys in code/config",
+          parameters: {
+            type: "object",
+            properties: {
+              source: { type: "string", description: "GitHub repo or URL" }
+            },
+            required: ["source"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "graphql_introspection",
+          description: "GraphQL schema introspection and enumeration",
+          parameters: {
+            type: "object",
+            properties: {
+              endpoint: { type: "string", description: "GraphQL endpoint" }
+            },
+            required: ["endpoint"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "rest_api_fuzzing",
+          description: "Fuzz REST API endpoints for vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              api_url: { type: "string", description: "API base URL" }
+            },
+            required: ["api_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "grpc_enumeration",
+          description: "Enumerate gRPC services and methods",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "gRPC server" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "websocket_analysis",
+          description: "Analyze WebSocket security",
+          parameters: {
+            type: "object",
+            properties: {
+              ws_url: { type: "string", description: "WebSocket URL" }
+            },
+            required: ["ws_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "mqtt_enumeration",
+          description: "Enumerate MQTT brokers and topics",
+          parameters: {
+            type: "object",
+            properties: {
+              broker: { type: "string", description: "MQTT broker address" }
+            },
+            required: ["broker"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "amqp_analysis",
+          description: "Analyze AMQP/RabbitMQ security",
+          parameters: {
+            type: "object",
+            properties: {
+              server: { type: "string", description: "AMQP server" }
+            },
+            required: ["server"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "redis_enumeration",
+          description: "Enumerate Redis instances and keys",
+          parameters: {
+            type: "object",
+            properties: {
+              host: { type: "string", description: "Redis host" }
+            },
+            required: ["host"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "mongodb_enumeration",
+          description: "Enumerate MongoDB databases and collections",
+          parameters: {
+            type: "object",
+            properties: {
+              host: { type: "string", description: "MongoDB host" }
+            },
+            required: ["host"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "elasticsearch_enumeration",
+          description: "Enumerate Elasticsearch indices",
+          parameters: {
+            type: "object",
+            properties: {
+              host: { type: "string", description: "Elasticsearch host" }
+            },
+            required: ["host"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "memcached_scan",
+          description: "Scan Memcached for exposed data",
+          parameters: {
+            type: "object",
+            properties: {
+              host: { type: "string", description: "Memcached host" }
+            },
+            required: ["host"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cassandra_enumeration",
+          description: "Enumerate Cassandra keyspaces",
+          parameters: {
+            type: "object",
+            properties: {
+              host: { type: "string", description: "Cassandra host" }
+            },
+            required: ["host"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "couchdb_enumeration",
+          description: "Enumerate CouchDB databases",
+          parameters: {
+            type: "object",
+            properties: {
+              host: { type: "string", description: "CouchDB host" }
+            },
+            required: ["host"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "jenkins_enumeration",
+          description: "Enumerate Jenkins jobs and credentials",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Jenkins URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "gitlab_enumeration",
+          description: "Enumerate GitLab repositories and secrets",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "GitLab instance" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "jira_enumeration",
+          description: "Enumerate Jira projects and issues",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Jira URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "confluence_enumeration",
+          description: "Enumerate Confluence spaces and pages",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Confluence URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "slack_token_scanner",
+          description: "Scan for exposed Slack tokens",
+          parameters: {
+            type: "object",
+            properties: {
+              source: { type: "string", description: "Source to scan" }
+            },
+            required: ["source"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "discord_token_scanner",
+          description: "Scan for exposed Discord tokens",
+          parameters: {
+            type: "object",
+            properties: {
+              source: { type: "string", description: "Source to scan" }
+            },
+            required: ["source"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "telegram_bot_enumeration",
+          description: "Enumerate Telegram bots and channels",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "s3_bucket_scanner",
+          description: "Scan for open S3 buckets",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Bucket name pattern" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "azure_blob_scanner",
+          description: "Scan for exposed Azure Blob storage",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Storage account name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "gcp_bucket_scanner",
+          description: "Scan for open GCP storage buckets",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Bucket name pattern" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "docker_registry_scan",
+          description: "Scan Docker registries for images",
+          parameters: {
+            type: "object",
+            properties: {
+              registry: { type: "string", description: "Registry URL" }
+            },
+            required: ["registry"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "kubernetes_enumeration",
+          description: "Enumerate Kubernetes resources",
+          parameters: {
+            type: "object",
+            properties: {
+              endpoint: { type: "string", description: "K8s API endpoint" }
+            },
+            required: ["endpoint"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "etcd_enumeration",
+          description: "Enumerate etcd key-value store",
+          parameters: {
+            type: "object",
+            properties: {
+              host: { type: "string", description: "etcd host" }
+            },
+            required: ["host"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "consul_enumeration",
+          description: "Enumerate Consul services and KV store",
+          parameters: {
+            type: "object",
+            properties: {
+              host: { type: "string", description: "Consul host" }
+            },
+            required: ["host"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "vault_enumeration",
+          description: "Enumerate HashiCorp Vault secrets",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Vault URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "terraform_state_scanner",
+          description: "Scan for exposed Terraform state files",
+          parameters: {
+            type: "object",
+            properties: {
+              source: { type: "string", description: "S3 bucket or URL" }
+            },
+            required: ["source"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ansible_vault_cracker",
+          description: "Attempt to crack Ansible Vault passwords",
+          parameters: {
+            type: "object",
+            properties: {
+              vault_file: { type: "string", description: "Vault file content" }
+            },
+            required: ["vault_file"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "chef_knife_enumeration",
+          description: "Enumerate Chef infrastructure",
+          parameters: {
+            type: "object",
+            properties: {
+              server: { type: "string", description: "Chef server" }
+            },
+            required: ["server"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "puppet_enumeration",
+          description: "Enumerate Puppet nodes and modules",
+          parameters: {
+            type: "object",
+            properties: {
+              server: { type: "string", description: "Puppet server" }
+            },
+            required: ["server"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "saltstack_enumeration",
+          description: "Enumerate SaltStack minions",
+          parameters: {
+            type: "object",
+            properties: {
+              master: { type: "string", description: "Salt master" }
+            },
+            required: ["master"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "wifi_network_scanner",
+          description: "Scan for nearby WiFi networks",
+          parameters: {
+            type: "object",
+            properties: {
+              interface: { type: "string", description: "Network interface" }
+            },
+            required: ["interface"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "wpa_handshake_capture",
+          description: "Capture WPA handshakes for analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              bssid: { type: "string", description: "Target BSSID" }
+            },
+            required: ["bssid"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "wps_pin_attack",
+          description: "Test WPS PIN vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              bssid: { type: "string", description: "Target BSSID" }
+            },
+            required: ["bssid"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "bluetooth_scanner",
+          description: "Scan for Bluetooth devices",
+          parameters: {
+            type: "object",
+            properties: {
+              mode: { type: "string", enum: ["classic", "ble"], description: "Bluetooth mode" }
+            },
+            required: ["mode"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "rfid_cloner",
+          description: "RFID card cloning and analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              card_type: { type: "string", description: "RFID card type" }
+            },
+            required: ["card_type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "nfc_reader",
+          description: "Read NFC tags and cards",
+          parameters: {
+            type: "object",
+            properties: {
+              tag_type: { type: "string", description: "NFC tag type" }
+            },
+            required: ["tag_type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "zigbee_sniffer",
+          description: "Sniff ZigBee network traffic",
+          parameters: {
+            type: "object",
+            properties: {
+              channel: { type: "number", description: "ZigBee channel" }
+            },
+            required: ["channel"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "zwave_enumeration",
+          description: "Enumerate Z-Wave devices",
+          parameters: {
+            type: "object",
+            properties: {
+              network_id: { type: "string", description: "Z-Wave network" }
+            },
+            required: ["network_id"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "lorawan_sniffer",
+          description: "Sniff LoRaWAN communications",
+          parameters: {
+            type: "object",
+            properties: {
+              frequency: { type: "number", description: "LoRa frequency" }
+            },
+            required: ["frequency"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sdr_signal_analyzer",
+          description: "Analyze radio signals with SDR",
+          parameters: {
+            type: "object",
+            properties: {
+              frequency: { type: "number", description: "Center frequency" }
+            },
+            required: ["frequency"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "gps_spoofer",
+          description: "GPS spoofing attack simulation",
+          parameters: {
+            type: "object",
+            properties: {
+              latitude: { type: "number", description: "Target latitude" },
+              longitude: { type: "number", description: "Target longitude" }
+            },
+            required: ["latitude", "longitude"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "gsm_sniffer",
+          description: "Sniff GSM network traffic",
+          parameters: {
+            type: "object",
+            properties: {
+              arfcn: { type: "number", description: "ARFCN channel" }
+            },
+            required: ["arfcn"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "lte_imsi_catcher",
+          description: "LTE/4G IMSI catcher detection",
+          parameters: {
+            type: "object",
+            properties: {
+              cell_id: { type: "string", description: "Cell ID" }
+            },
+            required: ["cell_id"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ss7_vulnerability_scanner",
+          description: "Scan for SS7 protocol vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              msisdn: { type: "string", description: "Target phone number" }
+            },
+            required: ["msisdn"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "diameter_protocol_analyzer",
+          description: "Analyze Diameter protocol security",
+          parameters: {
+            type: "object",
+            properties: {
+              network: { type: "string", description: "Network identifier" }
+            },
+            required: ["network"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sip_scanner",
+          description: "Scan SIP/VoIP infrastructure",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "SIP server" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "rtp_stream_analyzer",
+          description: "Analyze RTP media streams",
+          parameters: {
+            type: "object",
+            properties: {
+              stream_id: { type: "string", description: "RTP stream" }
+            },
+            required: ["stream_id"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "scada_scanner",
+          description: "Scan SCADA/ICS systems",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "SCADA system" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "modbus_enumeration",
+          description: "Enumerate Modbus devices",
+          parameters: {
+            type: "object",
+            properties: {
+              host: { type: "string", description: "Modbus host" }
+            },
+            required: ["host"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "bacnet_scanner",
+          description: "Scan BACnet building automation systems",
+          parameters: {
+            type: "object",
+            properties: {
+              network: { type: "string", description: "BACnet network" }
+            },
+            required: ["network"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dnp3_analyzer",
+          description: "Analyze DNP3 protocol traffic",
+          parameters: {
+            type: "object",
+            properties: {
+              endpoint: { type: "string", description: "DNP3 endpoint" }
+            },
+            required: ["endpoint"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "profinet_scanner",
+          description: "Scan PROFINET industrial networks",
+          parameters: {
+            type: "object",
+            properties: {
+              network: { type: "string", description: "Network range" }
+            },
+            required: ["network"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ethercat_analyzer",
+          description: "Analyze EtherCAT industrial protocol",
+          parameters: {
+            type: "object",
+            properties: {
+              interface: { type: "string", description: "Network interface" }
+            },
+            required: ["interface"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "canbus_sniffer",
+          description: "Sniff CAN bus automotive networks",
+          parameters: {
+            type: "object",
+            properties: {
+              interface: { type: "string", description: "CAN interface" }
+            },
+            required: ["interface"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "obd2_scanner",
+          description: "Scan OBD-II vehicle diagnostics",
+          parameters: {
+            type: "object",
+            properties: {
+              port: { type: "string", description: "OBD-II port" }
+            },
+            required: ["port"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "satellite_tracker",
+          description: "Track satellite communications",
+          parameters: {
+            type: "object",
+            properties: {
+              norad_id: { type: "string", description: "NORAD catalog number" }
+            },
+            required: ["norad_id"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ais_ship_tracker",
+          description: "Track ships via AIS signals",
+          parameters: {
+            type: "object",
+            properties: {
+              mmsi: { type: "string", description: "MMSI number" }
+            },
+            required: ["mmsi"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "adsb_aircraft_tracker",
+          description: "Track aircraft via ADS-B signals",
+          parameters: {
+            type: "object",
+            properties: {
+              icao: { type: "string", description: "ICAO aircraft address" }
+            },
+            required: ["icao"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "acars_decoder",
+          description: "Decode ACARS aircraft messages",
+          parameters: {
+            type: "object",
+            properties: {
+              frequency: { type: "number", description: "ACARS frequency" }
+            },
+            required: ["frequency"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "aprs_tracker",
+          description: "Track APRS ham radio positions",
+          parameters: {
+            type: "object",
+            properties: {
+              callsign: { type: "string", description: "Ham radio callsign" }
+            },
+            required: ["callsign"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "pocsag_pager_decoder",
+          description: "Decode POCSAG pager messages",
+          parameters: {
+            type: "object",
+            properties: {
+              frequency: { type: "number", description: "Pager frequency" }
+            },
+            required: ["frequency"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "flex_pager_decoder",
+          description: "Decode FLEX pager protocol",
+          parameters: {
+            type: "object",
+            properties: {
+              frequency: { type: "number", description: "FLEX frequency" }
+            },
+            required: ["frequency"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dect_sniffer",
+          description: "Sniff DECT cordless phone calls",
+          parameters: {
+            type: "object",
+            properties: {
+              channel: { type: "number", description: "DECT channel" }
+            },
+            required: ["channel"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "tetra_decoder",
+          description: "Decode TETRA radio communications",
+          parameters: {
+            type: "object",
+            properties: {
+              frequency: { type: "number", description: "TETRA frequency" }
+            },
+            required: ["frequency"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "p25_decoder",
+          description: "Decode P25 public safety radio",
+          parameters: {
+            type: "object",
+            properties: {
+              talkgroup: { type: "string", description: "P25 talkgroup" }
+            },
+            required: ["talkgroup"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dmr_decoder",
+          description: "Decode DMR digital radio",
+          parameters: {
+            type: "object",
+            properties: {
+              frequency: { type: "number", description: "DMR frequency" }
+            },
+            required: ["frequency"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "weather_satellite_decoder",
+          description: "Decode weather satellite imagery",
+          parameters: {
+            type: "object",
+            properties: {
+              satellite: { type: "string", enum: ["NOAA-15", "NOAA-18", "NOAA-19", "METEOR-M2"], description: "Satellite name" }
+            },
+            required: ["satellite"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "iridium_decoder",
+          description: "Decode Iridium satellite communications",
+          parameters: {
+            type: "object",
+            properties: {
+              frequency: { type: "number", description: "Iridium frequency" }
+            },
+            required: ["frequency"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "inmarsat_decoder",
+          description: "Decode Inmarsat satellite data",
+          parameters: {
+            type: "object",
+            properties: {
+              channel: { type: "string", description: "Inmarsat channel" }
+            },
+            required: ["channel"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "starlink_tracker",
+          description: "Track Starlink satellite constellation",
+          parameters: {
+            type: "object",
+            properties: {
+              latitude: { type: "number", description: "Observer latitude" },
+              longitude: { type: "number", description: "Observer longitude" }
+            },
+            required: ["latitude", "longitude"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "submarine_cable_mapper",
+          description: "Map undersea fiber optic cables",
+          parameters: {
+            type: "object",
+            properties: {
+              region: { type: "string", description: "Geographic region" }
+            },
+            required: ["region"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "bgp_hijack_detector",
+          description: "Detect BGP route hijacking",
+          parameters: {
+            type: "object",
+            properties: {
+              asn: { type: "string", description: "Autonomous System Number" }
+            },
+            required: ["asn"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "asn_lookup",
+          description: "Lookup Autonomous System information",
+          parameters: {
+            type: "object",
+            properties: {
+              asn: { type: "string", description: "AS number" }
+            },
+            required: ["asn"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ipv6_enumeration",
+          description: "Enumerate IPv6 addresses in range",
+          parameters: {
+            type: "object",
+            properties: {
+              prefix: { type: "string", description: "IPv6 prefix" }
+            },
+            required: ["prefix"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "icmp_tunnel_detector",
+          description: "Detect ICMP tunneling",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Network to monitor" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dns_tunnel_detector",
+          description: "Detect DNS tunneling and exfiltration",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain to analyze" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "http_tunnel_detector",
+          description: "Detect HTTP/HTTPS tunneling",
+          parameters: {
+            type: "object",
+            properties: {
+              traffic_sample: { type: "string", description: "Traffic capture" }
+            },
+            required: ["traffic_sample"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "covert_channel_detector",
+          description: "Detect covert communication channels",
+          parameters: {
+            type: "object",
+            properties: {
+              protocol: { type: "string", description: "Protocol to analyze" }
+            },
+            required: ["protocol"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "steganography_detector",
+          description: "Detect steganography in images/files",
+          parameters: {
+            type: "object",
+            properties: {
+              file_path: { type: "string", description: "File to analyze" }
+            },
+            required: ["file_path"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "exif_data_extractor",
+          description: "Extract EXIF metadata from images",
+          parameters: {
+            type: "object",
+            properties: {
+              image_url: { type: "string", description: "Image URL" }
+            },
+            required: ["image_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "reverse_image_search",
+          description: "Reverse image search across platforms",
+          parameters: {
+            type: "object",
+            properties: {
+              image_url: { type: "string", description: "Image URL" }
+            },
+            required: ["image_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "face_recognition_osint",
+          description: "Face recognition across social media",
+          parameters: {
+            type: "object",
+            properties: {
+              image_url: { type: "string", description: "Face image URL" }
+            },
+            required: ["image_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "license_plate_lookup",
+          description: "Lookup vehicle license plate information",
+          parameters: {
+            type: "object",
+            properties: {
+              plate: { type: "string", description: "License plate number" },
+              state: { type: "string", description: "State/region" }
+            },
+            required: ["plate"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "vin_decoder",
+          description: "Decode Vehicle Identification Number",
+          parameters: {
+            type: "object",
+            properties: {
+              vin: { type: "string", description: "17-character VIN" }
+            },
+            required: ["vin"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "aircraft_tail_lookup",
+          description: "Lookup aircraft by tail number",
+          parameters: {
+            type: "object",
+            properties: {
+              tail_number: { type: "string", description: "Aircraft registration" }
+            },
+            required: ["tail_number"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "vessel_imo_lookup",
+          description: "Lookup ship by IMO number",
+          parameters: {
+            type: "object",
+            properties: {
+              imo: { type: "string", description: "IMO number" }
+            },
+            required: ["imo"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ham_radio_lookup",
+          description: "Lookup ham radio callsign details",
+          parameters: {
+            type: "object",
+            properties: {
+              callsign: { type: "string", description: "Amateur radio callsign" }
+            },
+            required: ["callsign"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "fcc_license_lookup",
+          description: "Search FCC license database",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Name or callsign" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "firearms_trace",
+          description: "Trace firearm serial numbers (law enforcement)",
+          parameters: {
+            type: "object",
+            properties: {
+              serial: { type: "string", description: "Serial number" }
+            },
+            required: ["serial"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "stolen_property_check",
+          description: "Check stolen property databases",
+          parameters: {
+            type: "object",
+            properties: {
+              serial: { type: "string", description: "Serial number or description" }
+            },
+            required: ["serial"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "art_theft_database",
+          description: "Search stolen art databases",
+          parameters: {
+            type: "object",
+            properties: {
+              description: { type: "string", description: "Artwork description" }
+            },
+            required: ["description"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "antiquities_trafficking",
+          description: "Search for trafficked antiquities",
+          parameters: {
+            type: "object",
+            properties: {
+              artifact: { type: "string", description: "Artifact description" }
+            },
+            required: ["artifact"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "wildlife_trafficking",
+          description: "Track wildlife trafficking networks",
+          parameters: {
+            type: "object",
+            properties: {
+              species: { type: "string", description: "Species or trade route" }
+            },
+            required: ["species"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "counterfeit_detection",
+          description: "Detect counterfeit goods and currency",
+          parameters: {
+            type: "object",
+            properties: {
+              item: { type: "string", description: "Item description or image" }
+            },
+            required: ["item"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "trademark_search",
+          description: "Search trademark databases",
+          parameters: {
+            type: "object",
+            properties: {
+              mark: { type: "string", description: "Trademark term" }
+            },
+            required: ["mark"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "copyright_search",
+          description: "Search copyright registrations",
+          parameters: {
+            type: "object",
+            properties: {
+              work: { type: "string", description: "Work title or author" }
+            },
+            required: ["work"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "piracy_tracker",
+          description: "Track pirated content distribution",
+          parameters: {
+            type: "object",
+            properties: {
+              content: { type: "string", description: "Content identifier" }
+            },
+            required: ["content"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dmca_takedown_tracker",
+          description: "Track DMCA takedown notices",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain name" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "threat_actor_profiler",
+          description: "Profile cyber threat actors and groups",
+          parameters: {
+            type: "object",
+            properties: {
+              actor: { type: "string", description: "Threat actor name or TTP" }
+            },
+            required: ["actor"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "mitre_attack_mapper",
+          description: "Map techniques to MITRE ATT&CK framework",
+          parameters: {
+            type: "object",
+            properties: {
+              technique: { type: "string", description: "Attack technique or ID" }
+            },
+            required: ["technique"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "yara_rule_search",
+          description: "Search YARA malware detection rules",
+          parameters: {
+            type: "object",
+            properties: {
+              malware: { type: "string", description: "Malware family" }
+            },
+            required: ["malware"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sigma_rule_search",
+          description: "Search Sigma detection rules",
+          parameters: {
+            type: "object",
+            properties: {
+              threat: { type: "string", description: "Threat or log source" }
+            },
+            required: ["threat"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "snort_rule_search",
+          description: "Search Snort IDS rules",
+          parameters: {
+            type: "object",
+            properties: {
+              signature: { type: "string", description: "Attack signature" }
+            },
+            required: ["signature"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "suricata_rule_search",
+          description: "Search Suricata IDS/IPS rules",
+          parameters: {
+            type: "object",
+            properties: {
+              threat_type: { type: "string", description: "Threat category" }
+            },
+            required: ["threat_type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "capa_malware_analyzer",
+          description: "Analyze malware capabilities with CAPA",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "File hash" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cuckoo_sandbox_analyzer",
+          description: "Analyze malware with Cuckoo Sandbox",
+          parameters: {
+            type: "object",
+            properties: {
+              sample: { type: "string", description: "Sample hash or URL" }
+            },
+            required: ["sample"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "joe_sandbox_analyzer",
+          description: "Analyze files with Joe Sandbox",
+          parameters: {
+            type: "object",
+            properties: {
+              file_hash: { type: "string", description: "File hash" }
+            },
+            required: ["file_hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "any_run_analyzer",
+          description: "Interactive malware analysis with ANY.RUN",
+          parameters: {
+            type: "object",
+            properties: {
+              sample_url: { type: "string", description: "Sample URL or hash" }
+            },
+            required: ["sample_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "hybrid_analysis",
+          description: "Analyze files with Hybrid Analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "File hash" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "intezer_analyze",
+          description: "Genetic malware analysis with Intezer",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "File hash" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "reversing_labs_lookup",
+          description: "Lookup file reputation on ReversingLabs",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "File hash" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "alienvault_otx_lookup",
+          description: "Query AlienVault OTX threat intelligence",
+          parameters: {
+            type: "object",
+            properties: {
+              indicator: { type: "string", description: "IoC to lookup" }
+            },
+            required: ["indicator"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "threatcrowd_lookup",
+          description: "Query ThreatCrowd threat data",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Domain, IP, or email" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "threatminer_lookup",
+          description: "Query ThreatMiner threat intelligence",
+          parameters: {
+            type: "object",
+            properties: {
+              indicator: { type: "string", description: "IoC to search" }
+            },
+            required: ["indicator"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "circl_passive_dns",
+          description: "Query CIRCL Passive DNS database",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain to query" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "circl_passive_ssl",
+          description: "Query CIRCL Passive SSL database",
+          parameters: {
+            type: "object",
+            properties: {
+              ip_or_hash: { type: "string", description: "IP or cert hash" }
+            },
+            required: ["ip_or_hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "censys_search",
+          description: "Search Censys for hosts and certificates",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Censys search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "binaryedge_search",
+          description: "Search BinaryEdge for exposed systems",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "zoomeye_search",
+          description: "Search ZoomEye cyberspace search engine",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "fofa_search",
+          description: "Search FOFA for network assets",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "FOFA query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "hunter_io_email_finder",
+          description: "Find email addresses with Hunter.io",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Company domain" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "hunter_io_email_verifier",
+          description: "Verify email deliverability",
+          parameters: {
+            type: "object",
+            properties: {
+              email: { type: "string", description: "Email to verify" }
+            },
+            required: ["email"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "phonebook_cz_search",
+          description: "Search Phonebook.cz for domains and URLs",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain to search" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "intelx_search",
+          description: "Search Intelligence X for leaked data",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search term" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "leak_lookup",
+          description: "Search leak-lookup.com databases",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Email or username" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dehashed_search",
+          description: "Search DeHashed breach database",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Email, username, or domain" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "snusbase_search",
+          description: "Search Snusbase database leaks",
+          parameters: {
+            type: "object",
+            properties: {
+              term: { type: "string", description: "Search term" }
+            },
+            required: ["term"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "weleakinfo_search",
+          description: "Search WeLeakInfo archives",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Email or username" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "pimeyes_face_search",
+          description: "Search faces with PimEyes",
+          parameters: {
+            type: "object",
+            properties: {
+              image_url: { type: "string", description: "Face image URL" }
+            },
+            required: ["image_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "clearview_ai_search",
+          description: "Facial recognition with Clearview AI",
+          parameters: {
+            type: "object",
+            properties: {
+              image: { type: "string", description: "Image for analysis" }
+            },
+            required: ["image"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "social_analyzer",
+          description: "Analyze social media accounts across platforms",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Username to analyze" }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sherlock_username_search",
+          description: "Hunt usernames across social networks",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Username to hunt" }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "maigret_osint",
+          description: "Collect data by username with Maigret",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Target username" }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "whatsmyname_search",
+          description: "Username enumeration with WhatsMyName",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Username to search" }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "namechk_availability",
+          description: "Check username availability across sites",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Username to check" }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "spiderfoot_osint",
+          description: "Automated OSINT with SpiderFoot",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Target for investigation" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "recon_ng_modules",
+          description: "Recon-ng reconnaissance framework",
+          parameters: {
+            type: "object",
+            properties: {
+              module: { type: "string", description: "Module to run" },
+              target: { type: "string", description: "Target" }
+            },
+            required: ["module", "target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "maltego_transforms",
+          description: "Run Maltego OSINT transforms",
+          parameters: {
+            type: "object",
+            properties: {
+              entity: { type: "string", description: "Entity to investigate" }
+            },
+            required: ["entity"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "amass_enumeration",
+          description: "Attack surface mapping with OWASP Amass",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Target domain" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "subfinder_enum",
+          description: "Fast subdomain discovery with Subfinder",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain to enumerate" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "assetfinder_domains",
+          description: "Find domains with Assetfinder",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Root domain" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "findomain_recon",
+          description: "Cross-platform subdomain finder",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Target domain" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "chaos_dataset",
+          description: "Query ProjectDiscovery Chaos dataset",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain to query" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dnsdumpster_recon",
+          description: "DNS reconnaissance with DNSdumpster",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain to map" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "securitytrails_api",
+          description: "Query SecurityTrails DNS intelligence",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain to investigate" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "viewdns_tools",
+          description: "ViewDNS.info investigation tools",
+          parameters: {
+            type: "object",
+            properties: {
+              tool: { type: "string", enum: ["reverse_ip", "ip_history", "dns_propagation"], description: "Tool type" },
+              query: { type: "string", description: "Query parameter" }
+            },
+            required: ["tool", "query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "urlscan_io",
+          description: "Scan and analyze URLs with urlscan.io",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "URL to scan" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "publicwww_search",
+          description: "Search source code with PublicWWW",
+          parameters: {
+            type: "object",
+            properties: {
+              code_snippet: { type: "string", description: "Code to search for" }
+            },
+            required: ["code_snippet"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "grep_app_search",
+          description: "Search GitHub code with grep.app",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Code search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "searchcode_search",
+          description: "Search open source code repositories",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Code query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "networksdb_search",
+          description: "Search WiFi networks database",
+          parameters: {
+            type: "object",
+            properties: {
+              bssid_or_location: { type: "string", description: "BSSID or location" }
+            },
+            required: ["bssid_or_location"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "wigle_wifi_search",
+          description: "Search WiGLE WiFi database",
+          parameters: {
+            type: "object",
+            properties: {
+              ssid: { type: "string", description: "WiFi SSID" }
+            },
+            required: ["ssid"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "exploit_db_search",
+          description: "Search Exploit Database thoroughly",
+          parameters: {
+            type: "object",
+            properties: {
+              vulnerability: { type: "string", description: "CVE or software" }
+            },
+            required: ["vulnerability"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "packet_storm_search",
+          description: "Search PacketStorm Security",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Security tool or exploit" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "rapid7_vulnerability_db",
+          description: "Query Rapid7 vulnerability database",
+          parameters: {
+            type: "object",
+            properties: {
+              cve: { type: "string", description: "CVE identifier" }
+            },
+            required: ["cve"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "vulners_search",
+          description: "Search Vulners security database",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Vulnerability or software" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cvedetails_lookup",
+          description: "Detailed CVE information lookup",
+          parameters: {
+            type: "object",
+            properties: {
+              cve_id: { type: "string", description: "CVE ID" }
+            },
+            required: ["cve_id"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "nist_nvd_search",
+          description: "Search NIST National Vulnerability Database",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "CVE or keyword" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cisa_kev_catalog",
+          description: "Check CISA Known Exploited Vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              cve: { type: "string", description: "CVE to check" }
+            },
+            required: ["cve"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "epss_score_lookup",
+          description: "Check EPSS exploit prediction score",
+          parameters: {
+            type: "object",
+            properties: {
+              cve: { type: "string", description: "CVE identifier" }
+            },
+            required: ["cve"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "opencve_monitoring",
+          description: "Monitor CVEs with OpenCVE",
+          parameters: {
+            type: "object",
+            properties: {
+              vendor_product: { type: "string", description: "Vendor or product" }
+            },
+            required: ["vendor_product"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ghidra_decompiler",
+          description: "Decompile binaries with Ghidra",
+          parameters: {
+            type: "object",
+            properties: {
+              binary_hash: { type: "string", description: "Binary file hash" }
+            },
+            required: ["binary_hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ida_pro_analysis",
+          description: "Disassemble with IDA Pro techniques",
+          parameters: {
+            type: "object",
+            properties: {
+              file_type: { type: "string", description: "Executable type" }
+            },
+            required: ["file_type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "radare2_analysis",
+          description: "Reverse engineer with Radare2",
+          parameters: {
+            type: "object",
+            properties: {
+              binary_hash: { type: "string", description: "Binary hash" }
+            },
+            required: ["binary_hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "binary_ninja_decompile",
+          description: "Decompile with Binary Ninja",
+          parameters: {
+            type: "object",
+            properties: {
+              sample: { type: "string", description: "Sample identifier" }
+            },
+            required: ["sample"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "flare_vm_setup",
+          description: "Get FLARE-VM malware analysis setup",
+          parameters: {
+            type: "object",
+            properties: {
+              config_type: { type: "string", enum: ["basic", "advanced", "custom"], description: "Setup type" }
+            },
+            required: ["config_type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "remnux_toolkit",
+          description: "REMnux malware analysis tools",
+          parameters: {
+            type: "object",
+            properties: {
+              tool_category: { type: "string", description: "Tool category" }
+            },
+            required: ["tool_category"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "kali_linux_tools",
+          description: "Browse Kali Linux security tools",
+          parameters: {
+            type: "object",
+            properties: {
+              category: { type: "string", enum: ["info_gathering", "vuln_analysis", "wireless", "web_apps", "exploitation", "forensics", "password", "reverse_eng"], description: "Tool category" }
+            },
+            required: ["category"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "parrot_os_tools",
+          description: "ParrotOS security tools arsenal",
+          parameters: {
+            type: "object",
+            properties: {
+              use_case: { type: "string", description: "Security use case" }
+            },
+            required: ["use_case"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "blackarch_repository",
+          description: "Search BlackArch penetration testing tools",
+          parameters: {
+            type: "object",
+            properties: {
+              tool_name: { type: "string", description: "Tool to search" }
+            },
+            required: ["tool_name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "pentestbox_tools",
+          description: "Windows penetration testing tools",
+          parameters: {
+            type: "object",
+            properties: {
+              category: { type: "string", description: "Tool category" }
+            },
+            required: ["category"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "osint_framework_nav",
+          description: "Navigate OSINT Framework resources",
+          parameters: {
+            type: "object",
+            properties: {
+              category: { type: "string", enum: ["username", "email", "domain", "ip", "image", "video", "social", "people", "phone"], description: "OSINT category" }
+            },
+            required: ["category"]
+          }
+        }
       }
     ],
       }),
