@@ -1,10 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { scanVulnerabilities, testSQLInjection, runPentest } from "./security-tools.ts";
 import { SECURITY_TOOLS_DB, TOOL_CATEGORIES, SecurityTool } from "./security-tools-db.ts";
+import * as OSINT from "./osint-tools.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+  "Referrer-Policy": "strict-origin-when-cross-origin"
 };
 
 // Sanitize response to remove any leaked tool call syntax
@@ -616,10 +622,1119 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             properties: {
               domain: {
                 type: "string",
-                description: "The domain to check robots.txt for"
+                description: "The domain to check robots_txt for"
               }
             },
             required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "web_search",
+          description: "Search the web for cybersecurity information, research papers, vulnerabilities, exploits, and any topic. Returns comprehensive results with snippets and URLs for cross-domain research.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Search query for any topic"
+              },
+              num_results: {
+                type: "number",
+                description: "Number of results to return (default: 5)"
+              }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "whois_lookup",
+          description: "Perform WHOIS lookup for domain registration information including registrar, creation date, expiry, nameservers, and registrant details.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to lookup"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_pastebin",
+          description: "Search Pastebin and similar paste sites for leaked credentials, code, or sensitive information related to a domain or email.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Domain, email, or keyword to search for"
+              }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "shodan_search",
+          description: "Search Shodan for exposed devices, services, and vulnerabilities. Returns IP addresses, ports, banners, and vulnerability data.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Shodan search query (e.g., 'apache', 'port:22', 'country:US')"
+              }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_security_headers",
+          description: "Analyze HTTP security headers (CSP, HSTS, X-Frame-Options, etc.) and provide security score.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to analyze"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "extract_emails",
+          description: "Extract email addresses from a website or text using regex patterns.",
+          parameters: {
+            type: "object",
+            properties: {
+              source: {
+                type: "string",
+                description: "URL or text to extract emails from"
+              }
+            },
+            required: ["source"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_domain_reputation",
+          description: "Check domain reputation across multiple blacklists and threat intelligence feeds.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to check"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_exposed_ports",
+          description: "Scan for commonly exposed ports and services on a target.",
+          parameters: {
+            type: "object",
+            properties: {
+              target: {
+                type: "string",
+                description: "IP address or domain"
+              }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_technologies",
+          description: "Identify web technologies, frameworks, CMS, analytics, and hosting provider used by a website.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "Website URL"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_subdomains_crtsh",
+          description: "Find subdomains using crt.sh certificate transparency logs.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to search"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_dns_dumpster",
+          description: "Perform comprehensive DNS reconnaissance using DNS Dumpster techniques.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to analyze"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_social_media",
+          description: "Find social media profiles associated with a person or organization.",
+          parameters: {
+            type: "object",
+            properties: {
+              name: {
+                type: "string",
+                description: "Person or organization name"
+              }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_email_format",
+          description: "Validate email format and check if domain has MX records.",
+          parameters: {
+            type: "object",
+            properties: {
+              email: {
+                type: "string",
+                description: "Email address to validate"
+              }
+            },
+            required: ["email"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "analyze_http_headers",
+          description: "Analyze all HTTP headers for security issues and information disclosure.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to analyze"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_exposed_files",
+          description: "Check for exposed sensitive files (.git, .env, backup files, etc.).",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "Base URL to check"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_ip_geolocation",
+          description: "Get detailed geolocation data for an IP including coordinates, timezone, ISP, and ASN.",
+          parameters: {
+            type: "object",
+            properties: {
+              ip: {
+                type: "string",
+                description: "IP address"
+              }
+            },
+            required: ["ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_website_status",
+          description: "Check if a website is online, get response time, and status code.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "Website URL"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_related_domains",
+          description: "Find related domains using reverse IP lookup and shared hosting analysis.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to analyze"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_dark_web_mentions",
+          description: "Search for mentions of email, username, or domain in dark web leak databases.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Email, username, or domain"
+              }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "analyze_url_safety",
+          description: "Check URL against phishing databases and malware scanners.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to check"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_company_info",
+          description: "Get company information including employees, founded date, industry, and social presence.",
+          parameters: {
+            type: "object",
+            properties: {
+              company: {
+                type: "string",
+                description: "Company name"
+              }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_ssl_vulnerabilities",
+          description: "Check for SSL/TLS vulnerabilities (Heartbleed, POODLE, weak ciphers).",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to check"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_network_neighbors",
+          description: "Find other hosts on the same network subnet.",
+          parameters: {
+            type: "object",
+            properties: {
+              ip: {
+                type: "string",
+                description: "IP address"
+              }
+            },
+            required: ["ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_redirect_chain",
+          description: "Follow and analyze HTTP redirect chains.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "Starting URL"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_api_endpoints",
+          description: "Discover API endpoints and documentation for a domain.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to scan"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_cors_policy",
+          description: "Analyze CORS policy and test for misconfigurations.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to test"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_js_libraries",
+          description: "Identify JavaScript libraries and their versions used on a website.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "Website URL"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_content_type",
+          description: "Analyze Content-Type headers and detect mismatches.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to check"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_hidden_params",
+          description: "Discover hidden URL parameters and query strings.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to test"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_waf_presence",
+          description: "Detect Web Application Firewall (WAF) presence and type.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to test"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "analyze_cookies",
+          description: "Analyze cookies for security flags (HttpOnly, Secure, SameSite).",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to analyze"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_admin_panels",
+          description: "Attempt to discover common admin panel URLs.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to scan"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_leaked_credentials",
+          description: "Search for leaked credentials in public databases.",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: {
+                type: "string",
+                description: "Email, username, or domain"
+              }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_s3_buckets",
+          description: "Search for exposed AWS S3 buckets related to a domain.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain name"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_github_repos",
+          description: "Find GitHub repositories and exposed secrets for an organization or user.",
+          parameters: {
+            type: "object",
+            properties: {
+              target: {
+                type: "string",
+                description: "Organization or username"
+              }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "analyze_dns_sec",
+          description: "Check DNSSEC configuration and validation.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to check"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_linkedin_employees",
+          description: "Find employees of a company on LinkedIn.",
+          parameters: {
+            type: "object",
+            properties: {
+              company: {
+                type: "string",
+                description: "Company name"
+              }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_email_delivery",
+          description: "Test email deliverability and SPF/DKIM/DMARC records.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to check"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_phone_info",
+          description: "Get information about a phone number including carrier, location, and type.",
+          parameters: {
+            type: "object",
+            properties: {
+              phone: {
+                type: "string",
+                description: "Phone number"
+              }
+            },
+            required: ["phone"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_certificate_chain",
+          description: "Analyze SSL certificate chain and trust path.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain to analyze"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_docker_images",
+          description: "Search for public Docker images related to a domain or company.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Search term"
+              }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_rate_limiting",
+          description: "Test for rate limiting and brute-force protection.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to test"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_code_repos",
+          description: "Find code repositories (GitHub, GitLab, Bitbucket) for a user or organization.",
+          parameters: {
+            type: "object",
+            properties: {
+              target: {
+                type: "string",
+                description: "Username or organization"
+              }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_password_policy",
+          description: "Test password policy requirements for a website.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "Login page URL"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_iot_devices",
+          description: "Search for IoT devices exposed on the internet.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Device type or search query"
+              }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_api_security",
+          description: "Test API endpoints for common security issues.",
+          parameters: {
+            type: "object",
+            properties: {
+              api_url: {
+                type: "string",
+                description: "API endpoint URL"
+              }
+            },
+            required: ["api_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_backup_files",
+          description: "Search for backup files and archives (.bak, .old, .zip).",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "Base URL"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_clickjacking",
+          description: "Test for clickjacking vulnerabilities.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to test"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_leaked_keys",
+          description: "Search for exposed API keys, tokens, and credentials in public repos.",
+          parameters: {
+            type: "object",
+            properties: {
+              target: {
+                type: "string",
+                description: "Domain or organization"
+              }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_open_redirects",
+          description: "Test for open redirect vulnerabilities.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to test"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_staging_environments",
+          description: "Discover staging, dev, and test environments.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Production domain"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_cms_version",
+          description: "Identify CMS type and version (WordPress, Drupal, Joomla).",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "Website URL"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_archived_pages",
+          description: "Search for archived versions of a page across multiple archives.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to search"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_subdomain_takeover",
+          description: "Check for subdomain takeover vulnerabilities.",
+          parameters: {
+            type: "object",
+            properties: {
+              subdomain: {
+                type: "string",
+                description: "Subdomain to check"
+              }
+            },
+            required: ["subdomain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_email_patterns",
+          description: "Identify email naming patterns for an organization.",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Domain name"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_tor_exit_nodes",
+          description: "Check if an IP is a Tor exit node.",
+          parameters: {
+            type: "object",
+            properties: {
+              ip: {
+                type: "string",
+                description: "IP address"
+              }
+            },
+            required: ["ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_data_breaches",
+          description: "Search for data breaches involving a company or domain.",
+          parameters: {
+            type: "object",
+            properties: {
+              target: {
+                type: "string",
+                description: "Company or domain"
+              }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_mixed_content",
+          description: "Detect mixed content (HTTP resources on HTTPS page).",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "HTTPS URL to check"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_cloud_storage",
+          description: "Find exposed cloud storage (S3, Azure Blob, GCS) for a target.",
+          parameters: {
+            type: "object",
+            properties: {
+              target: {
+                type: "string",
+                description: "Domain or company name"
+              }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_outdated_software",
+          description: "Identify outdated software versions with known vulnerabilities.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "Website URL"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_subdomains_all",
+          description: "Comprehensive subdomain discovery using multiple techniques (DNS, crt.sh, web scraping).",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: {
+                type: "string",
+                description: "Root domain"
+              }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_xss_protection",
+          description: "Test for XSS protection headers and filters.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to test"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_mobile_apps",
+          description: "Find mobile apps (iOS/Android) for a company or developer.",
+          parameters: {
+            type: "object",
+            properties: {
+              target: {
+                type: "string",
+                description: "Company or developer name"
+              }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_http2_support",
+          description: "Check if a website supports HTTP/2 or HTTP/3.",
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: "URL to check"
+              }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "find_vulnerabilities_db",
+          description: "Search vulnerability databases (CVE, NVD, ExploitDB) for a product or version.",
+          parameters: {
+            type: "object",
+            properties: {
+              product: {
+                type: "string",
+                description: "Product name and version"
+              }
+            },
+            required: ["product"]
           }
         }
       }
@@ -873,6 +1988,461 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             role: "tool",
             tool_call_id: toolCall.id,
             content: JSON.stringify(await checkRobotsTxt(args.domain)),
+          });
+        } else if (toolCall.function.name === "web_search") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.webSearch(args.query, args.num_results || 5)),
+          });
+        } else if (toolCall.function.name === "whois_lookup") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.whoisLookup(args.domain)),
+          });
+        } else if (toolCall.function.name === "check_pastebin") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.checkPastebin(args.query)),
+          });
+        } else if (toolCall.function.name === "shodan_search") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.shodanSearch(args.query)),
+          });
+        } else if (toolCall.function.name === "check_security_headers") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.checkSecurityHeaders(args.url)),
+          });
+        } else if (toolCall.function.name === "extract_emails") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.extractEmails(args.source)),
+          });
+        } else if (toolCall.function.name === "check_domain_reputation") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.checkDomainReputation(args.domain)),
+          });
+        } else if (toolCall.function.name === "find_exposed_ports") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findExposedPorts(args.target)),
+          });
+        } else if (toolCall.function.name === "check_technologies") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.checkTechnologies(args.url)),
+          });
+        } else if (toolCall.function.name === "find_subdomains_crtsh") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.findSubdomainsCrtsh(args.domain)),
+          });
+        } else if (toolCall.function.name === "check_dns_dumpster") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkDNSDumpster(args.domain)),
+          });
+        } else if (toolCall.function.name === "find_social_media") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findSocialMedia(args.name)),
+          });
+        } else if (toolCall.function.name === "check_email_format") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkEmailFormat(args.email)),
+          });
+        } else if (toolCall.function.name === "analyze_http_headers") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.analyzeHttpHeaders(args.url)),
+          });
+        } else if (toolCall.function.name === "check_exposed_files") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkExposedFiles(args.url)),
+          });
+        } else if (toolCall.function.name === "find_ip_geolocation") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findIPGeolocation(args.ip)),
+          });
+        } else if (toolCall.function.name === "check_website_status") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.checkWebsiteStatus(args.url)),
+          });
+        } else if (toolCall.function.name === "find_related_domains") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findRelatedDomains(args.domain)),
+          });
+        } else if (toolCall.function.name === "check_dark_web_mentions") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkDarkWebMentions(args.query)),
+          });
+        } else if (toolCall.function.name === "analyze_url_safety") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.analyzeURLSafety(args.url)),
+          });
+        } else if (toolCall.function.name === "find_company_info") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findCompanyInfo(args.company)),
+          });
+        } else if (toolCall.function.name === "check_ssl_vulnerabilities") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkSSLVulnerabilities(args.domain)),
+          });
+        } else if (toolCall.function.name === "find_network_neighbors") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findNetworkNeighbors(args.ip)),
+          });
+        } else if (toolCall.function.name === "check_redirect_chain") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(await OSINT.checkRedirectChain(args.url)),
+          });
+        } else if (toolCall.function.name === "find_api_endpoints") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findAPIEndpoints(args.domain)),
+          });
+        } else if (toolCall.function.name === "check_cors_policy") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkCORSPolicy(args.url)),
+          });
+        } else if (toolCall.function.name === "find_js_libraries") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findJSLibraries(args.url)),
+          });
+        } else if (toolCall.function.name === "check_content_type") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkContentType(args.url)),
+          });
+        } else if (toolCall.function.name === "find_hidden_params") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findHiddenParams(args.url)),
+          });
+        } else if (toolCall.function.name === "check_waf_presence") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkWAFPresence(args.url)),
+          });
+        } else if (toolCall.function.name === "analyze_cookies") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.analyzeCookies(args.url)),
+          });
+        } else if (toolCall.function.name === "find_admin_panels") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findAdminPanels(args.domain)),
+          });
+        } else if (toolCall.function.name === "check_leaked_credentials") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkLeakedCredentials(args.identifier)),
+          });
+        } else if (toolCall.function.name === "find_s3_buckets") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findS3Buckets(args.domain)),
+          });
+        } else if (toolCall.function.name === "check_github_repos") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkGitHubRepos(args.target)),
+          });
+        } else if (toolCall.function.name === "analyze_dns_sec") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.analyzeDNSSEC(args.domain)),
+          });
+        } else if (toolCall.function.name === "find_linkedin_employees") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findLinkedInEmployees(args.company)),
+          });
+        } else if (toolCall.function.name === "check_email_delivery") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkEmailDelivery(args.domain)),
+          });
+        } else if (toolCall.function.name === "find_phone_info") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findPhoneInfo(args.phone)),
+          });
+        } else if (toolCall.function.name === "check_certificate_chain") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkCertificateChain(args.domain)),
+          });
+        } else if (toolCall.function.name === "find_docker_images") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findDockerImages(args.query)),
+          });
+        } else if (toolCall.function.name === "check_rate_limiting") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkRateLimiting(args.url)),
+          });
+        } else if (toolCall.function.name === "find_code_repos") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findCodeRepos(args.target)),
+          });
+        } else if (toolCall.function.name === "check_password_policy") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkPasswordPolicy(args.url)),
+          });
+        } else if (toolCall.function.name === "find_iot_devices") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findIOTDevices(args.query)),
+          });
+        } else if (toolCall.function.name === "check_api_security") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkAPISecurity(args.api_url)),
+          });
+        } else if (toolCall.function.name === "find_backup_files") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findBackupFiles(args.url)),
+          });
+        } else if (toolCall.function.name === "check_clickjacking") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkClickjacking(args.url)),
+          });
+        } else if (toolCall.function.name === "find_leaked_keys") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findLeakedKeys(args.target)),
+          });
+        } else if (toolCall.function.name === "check_open_redirects") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkOpenRedirects(args.url)),
+          });
+        } else if (toolCall.function.name === "find_staging_environments") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findStagingEnvironments(args.domain)),
+          });
+        } else if (toolCall.function.name === "check_cms_version") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkCMSVersion(args.url)),
+          });
+        } else if (toolCall.function.name === "find_archived_pages") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findArchivedPages(args.url)),
+          });
+        } else if (toolCall.function.name === "check_subdomain_takeover") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkSubdomainTakeover(args.subdomain)),
+          });
+        } else if (toolCall.function.name === "find_email_patterns") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findEmailPatterns(args.domain)),
+          });
+        } else if (toolCall.function.name === "check_tor_exit_nodes") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkTorExitNode(args.ip)),
+          });
+        } else if (toolCall.function.name === "find_data_breaches") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findDataBreaches(args.target)),
+          });
+        } else if (toolCall.function.name === "check_mixed_content") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkMixedContent(args.url)),
+          });
+        } else if (toolCall.function.name === "find_cloud_storage") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findCloudStorage(args.target)),
+          });
+        } else if (toolCall.function.name === "check_outdated_software") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkOutdatedSoftware(args.url)),
+          });
+        } else if (toolCall.function.name === "find_subdomains_all") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findSubdomainsAll(args.domain)),
+          });
+        } else if (toolCall.function.name === "check_xss_protection") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkXSSProtection(args.url)),
+          });
+        } else if (toolCall.function.name === "find_mobile_apps") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findMobileApps(args.target)),
+          });
+        } else if (toolCall.function.name === "check_http2_support") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.checkHTTP2Support(args.url)),
+          });
+        } else if (toolCall.function.name === "find_vulnerabilities_db") {
+          const args = JSON.parse(toolCall.function.arguments);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(OSINT.findVulnerabilitiesDB(args.product)),
           });
         }
       }
