@@ -3,6 +3,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import nomadDemo1 from '@/assets/nomad-demo-1.png';
 import nomadDemo2 from '@/assets/nomad-demo-2.png';
+import nomadDemo3 from '@/assets/nomad-demo-3.png';
 
 export const NomadShowcase = () => {
   const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -16,7 +17,8 @@ export const NomadShowcase = () => {
 
   const slides = [
     { image: nomadDemo1, alt: 'NOMAD AI Assistant Security Analysis' },
-    { image: nomadDemo2, alt: 'NOMAD AI Assistant Blockchain Analysis' }
+    { image: nomadDemo2, alt: 'NOMAD AI Assistant Blockchain Analysis' },
+    { image: nomadDemo3, alt: 'NOMAD AI Assistant IP Geolocation Analysis' }
   ];
 
   return (
