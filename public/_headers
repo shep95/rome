@@ -1,0 +1,24 @@
+/*
+  # Security Headers for Production Deployment
+  # Add these headers at your hosting provider (Vercel, Netlify, etc.)
+  
+  # HTTP Strict Transport Security (HSTS) - Prevents SSL stripping attacks
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  
+  # Content Security Policy - Already set in HTML meta tag, reinforced here
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://progressier.app https://cdn.databuddy.cc https://oss.maxcdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://mnijromffaalvpadojbj.supabase.co wss://mnijromffaalvpadojbj.supabase.co https://progressier.app https://cdn.databuddy.cc; frame-src https://www.openstreetmap.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;
+  
+  # Prevent MIME type sniffing
+  X-Content-Type-Options: nosniff
+  
+  # Prevent clickjacking
+  X-Frame-Options: DENY
+  
+  # XSS Protection (deprecated but still useful for older browsers)
+  X-XSS-Protection: 1; mode=block
+  
+  # Referrer Policy
+  Referrer-Policy: strict-origin-when-cross-origin
+  
+  # Permissions Policy (formerly Feature-Policy)
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
