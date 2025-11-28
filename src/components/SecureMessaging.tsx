@@ -295,8 +295,10 @@ const [showSettings, setShowSettings] = useState(false);
         });
 
         if (error) {
-          console.error('NOMAD error:', error);
-          toast.error('Failed to get response from NOMAD');
+          console.error('NOMAD error details:', error);
+          console.error('NOMAD error message:', error?.message);
+          console.error('NOMAD error context:', error?.context);
+          toast.error(`NOMAD error: ${error?.message || 'Failed to get response'}`);
           setIsNomadTyping(false);
           return;
         }
@@ -327,8 +329,9 @@ const [showSettings, setShowSettings] = useState(false);
         window.dispatchEvent(new Event('storage'));
         
       } catch (error) {
-        console.error('NOMAD error:', error);
-        toast.error('Failed to get response from NOMAD');
+        console.error('NOMAD catch error:', error);
+        console.error('Error details:', error instanceof Error ? error.message : String(error));
+        toast.error(`NOMAD error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         setIsNomadTyping(false);
       }
