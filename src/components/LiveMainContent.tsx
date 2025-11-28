@@ -667,7 +667,7 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
       </div>
       
       {/* Right Panel - Chat Area */}
-      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 items-center justify-center bg-background`}>
+      <div className={`${selectedConversation ? 'flex flex-col overflow-hidden' : 'hidden lg:flex items-center justify-center'} flex-1 bg-background`}>
         {selectedConversation ? (
           <SecureMessaging 
             key={selectedConversation} // Force re-render when conversation changes

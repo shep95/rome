@@ -1811,7 +1811,7 @@ if (!append && user && conversationId) {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background h-full fixed inset-0 md:relative" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
+    <div className="flex-1 flex flex-col bg-background h-full w-full fixed inset-0 md:relative md:inset-auto overflow-hidden" style={{ height: 'calc(var(--app-vh, 1vh) * 100)' }}>
       {/* Chat Header - responsive positioning */}
       <div 
         className="p-3 sm:p-4 border-b border-border fixed top-0 left-0 right-0 z-50 md:relative md:backdrop-blur-none backdrop-blur-xl shrink-0"
