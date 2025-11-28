@@ -1866,6 +1866,7 @@ if (!append && user && conversationId) {
                     avatar_url: nomadLogo,
                   },
                 }]);
+                setNomadPopoverKey(prev => prev + 1);
               }}
               onConversationsChange={() => setNomadPopoverKey(prev => prev + 1)}
             />
@@ -1984,6 +1985,7 @@ if (!append && user && conversationId) {
                     avatar_url: nomadLogo,
                   },
                 }]);
+                setNomadPopoverKey(prev => prev + 1);
               }}
               onConversationsChange={() => setNomadPopoverKey(prev => prev + 1)}
             />
