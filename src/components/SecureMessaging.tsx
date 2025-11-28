@@ -33,6 +33,7 @@ import { NomadMessageRenderer } from './NomadMessageRenderer';
 import { NomadConversationPopover } from './NomadConversationPopover';
 import { nomadStorage } from '@/lib/nomad-storage';
 import { cn } from '@/lib/utils';
+import { EnhancedMessageContent } from './EnhancedMessageContent';
 
 interface Message {
   id: string;
@@ -2299,11 +2300,12 @@ editingMessageId === message.id ? (
     {conversationId === 'nomad-ai-agent' && message.sender_id === 'nomad-ai' ? (
       <NomadMessageRenderer content={message.content} />
     ) : (
-      <div className="text-sm leading-relaxed whitespace-pre-wrap">
-        {message.isTranslated && message.translatedContent 
+      <EnhancedMessageContent 
+        content={message.isTranslated && message.translatedContent 
           ? message.translatedContent 
           : message.content}
-      </div>
+        isSender={message.sender_id === user?.id}
+      />
     )}
     {message.message_type === 'text' && (
       <div className="flex items-center gap-2">

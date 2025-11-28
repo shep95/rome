@@ -1737,6 +1737,3447 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             required: ["product"]
           }
         }
+      },
+      // 300 additional comprehensive OSINT tools for advanced cybersecurity operations
+      {
+        type: "function",
+        function: {
+          name: "crypto_wallet_trace",
+          description: "Trace cryptocurrency wallet transactions and analyze blockchain patterns",
+          parameters: {
+            type: "object",
+            properties: {
+              wallet: { type: "string", description: "Crypto wallet address" },
+              blockchain: { type: "string", enum: ["bitcoin", "ethereum", "monero", "litecoin"], description: "Blockchain type" }
+            },
+            required: ["wallet", "blockchain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "phone_osint",
+          description: "Gather intelligence on phone numbers including carrier, location, social media profiles",
+          parameters: {
+            type: "object",
+            properties: {
+              phone: { type: "string", description: "Phone number with country code" }
+            },
+            required: ["phone"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "email_breach_search",
+          description: "Search email across multiple breach databases and paste sites",
+          parameters: {
+            type: "object",
+            properties: {
+              email: { type: "string", description: "Email address to search" }
+            },
+            required: ["email"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "satellite_imagery",
+          description: "Access satellite imagery for location reconnaissance",
+          parameters: {
+            type: "object",
+            properties: {
+              coordinates: { type: "string", description: "GPS coordinates (lat,lon)" },
+              date_range: { type: "string", description: "Date range for historical imagery" }
+            },
+            required: ["coordinates"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "tor_exit_node_check",
+          description: "Check if IP is a Tor exit node",
+          parameters: {
+            type: "object",
+            properties: {
+              ip: { type: "string", description: "IP address" }
+            },
+            required: ["ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "vpn_detection",
+          description: "Detect VPN, proxy, and datacenter IPs",
+          parameters: {
+            type: "object",
+            properties: {
+              ip: { type: "string", description: "IP address" }
+            },
+            required: ["ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "social_media_scraper",
+          description: "Deep scrape social media profiles for OSINT",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Username" },
+              platform: { type: "string", enum: ["twitter", "instagram", "facebook", "linkedin", "tiktok"], description: "Social platform" }
+            },
+            required: ["username", "platform"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "business_records",
+          description: "Search business registration and corporate records",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" },
+              jurisdiction: { type: "string", description: "State or country" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "court_records",
+          description: "Search court records and legal documents",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person or entity name" },
+              state: { type: "string", description: "State/province" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "property_records",
+          description: "Search property ownership and tax records",
+          parameters: {
+            type: "object",
+            properties: {
+              address: { type: "string", description: "Property address" }
+            },
+            required: ["address"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "vehicle_lookup",
+          description: "VIN and license plate lookup",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "VIN or license plate" },
+              type: { type: "string", enum: ["vin", "plate"], description: "Identifier type" }
+            },
+            required: ["identifier", "type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "flight_tracking",
+          description: "Track aircraft and flight patterns",
+          parameters: {
+            type: "object",
+            properties: {
+              flight: { type: "string", description: "Flight number or tail number" }
+            },
+            required: ["flight"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "vessel_tracking",
+          description: "Track ships and maritime vessels",
+          parameters: {
+            type: "object",
+            properties: {
+              vessel: { type: "string", description: "Vessel name or MMSI" }
+            },
+            required: ["vessel"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "metadata_extraction",
+          description: "Extract EXIF and metadata from images/documents",
+          parameters: {
+            type: "object",
+            properties: {
+              file_url: { type: "string", description: "URL of file" },
+              file_type: { type: "string", enum: ["image", "pdf", "document"], description: "File type" }
+            },
+            required: ["file_url", "file_type"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "reverse_image_search",
+          description: "Reverse image search across multiple engines",
+          parameters: {
+            type: "object",
+            properties: {
+              image_url: { type: "string", description: "Image URL" }
+            },
+            required: ["image_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "facial_recognition",
+          description: "Facial recognition search across social media",
+          parameters: {
+            type: "object",
+            properties: {
+              image_url: { type: "string", description: "Face image URL" }
+            },
+            required: ["image_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "domain_age",
+          description: "Check domain age and registration history",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain name" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dns_history",
+          description: "Historical DNS records lookup",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain name" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ssl_certificate_history",
+          description: "SSL certificate issuance history",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain name" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "github_dork",
+          description: "GitHub advanced search for sensitive data",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" },
+              target: { type: "string", description: "User/org to target (optional)" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "google_dork",
+          description: "Advanced Google dorking for exposed data",
+          parameters: {
+            type: "object",
+            properties: {
+              dork: { type: "string", description: "Google dork query" }
+            },
+            required: ["dork"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "api_endpoint_discovery",
+          description: "Discover hidden API endpoints",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Base URL" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "javascript_analysis",
+          description: "Analyze JavaScript files for secrets and endpoints",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Website URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cors_misconfiguration",
+          description: "Test for CORS misconfigurations",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "API URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "jwt_analysis",
+          description: "Analyze and decode JWT tokens",
+          parameters: {
+            type: "object",
+            properties: {
+              token: { type: "string", description: "JWT token" }
+            },
+            required: ["token"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "graphql_introspection",
+          description: "GraphQL schema introspection",
+          parameters: {
+            type: "object",
+            properties: {
+              endpoint: { type: "string", description: "GraphQL endpoint" }
+            },
+            required: ["endpoint"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "api_fuzzing",
+          description: "Fuzz API endpoints for vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              endpoint: { type: "string", description: "API endpoint" }
+            },
+            required: ["endpoint"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "network_map",
+          description: "Map network infrastructure and relationships",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Domain or IP range" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cdn_detection",
+          description: "Detect CDN provider and configuration",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain name" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "load_balancer_detection",
+          description: "Detect load balancer configuration",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Domain or IP" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cloud_provider_detection",
+          description: "Identify cloud service provider",
+          parameters: {
+            type: "object",
+            properties: {
+              ip: { type: "string", description: "IP address" }
+            },
+            required: ["ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "container_detection",
+          description: "Detect Docker/Kubernetes deployment",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Target URL or IP" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "serverless_detection",
+          description: "Detect serverless function endpoints",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain name" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "database_detection",
+          description: "Fingerprint database technology",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Target URL" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "nosql_injection_test",
+          description: "Test for NoSQL injection vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "API endpoint" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "xxe_test",
+          description: "Test for XXE (XML External Entity) vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target endpoint" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ssrf_test",
+          description: "Test for SSRF (Server Side Request Forgery)",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "command_injection_test",
+          description: "Test for OS command injection",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "deserialization_test",
+          description: "Test for insecure deserialization",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "file_inclusion_test",
+          description: "Test for LFI/RFI vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "csrf_test",
+          description: "Test for CSRF vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "xss_test",
+          description: "Test for XSS vulnerabilities (reflected, stored, DOM-based)",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "clickjacking_test",
+          description: "Test for clickjacking vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "open_redirect_test",
+          description: "Test for open redirect vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "idor_test",
+          description: "Test for IDOR (Insecure Direct Object Reference)",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "API endpoint" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "authentication_bypass",
+          description: "Test for authentication bypass techniques",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Login URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "session_management_test",
+          description: "Analyze session management security",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Application URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "password_reset_analysis",
+          description: "Analyze password reset flow for vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Reset URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "oauth_misconfiguration",
+          description: "Test OAuth implementation for misconfigurations",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "OAuth endpoint" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "saml_test",
+          description: "Test SAML implementation for vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "SAML endpoint" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ldap_injection_test",
+          description: "Test for LDAP injection",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "LDAP endpoint" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "xpath_injection_test",
+          description: "Test for XPath injection",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ssti_test",
+          description: "Test for Server-Side Template Injection",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "prototype_pollution",
+          description: "Test for prototype pollution vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "race_condition_test",
+          description: "Test for race condition vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target endpoint" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "timing_attack_test",
+          description: "Test for timing attack vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cache_poisoning",
+          description: "Test for cache poisoning vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "http_request_smuggling",
+          description: "Test for HTTP request smuggling",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "websocket_test",
+          description: "Test WebSocket security",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "WebSocket URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "postmessage_analysis",
+          description: "Analyze postMessage implementation",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dom_clobbering",
+          description: "Test for DOM clobbering vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "html_injection",
+          description: "Test for HTML injection",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "content_type_sniffing",
+          description: "Test for MIME type sniffing issues",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "host_header_injection",
+          description: "Test for host header injection",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "crlf_injection",
+          description: "Test for CRLF injection",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "http_parameter_pollution",
+          description: "Test for HTTP parameter pollution",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "insecure_randomness",
+          description: "Test for insecure randomness in tokens/IDs",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "business_logic_test",
+          description: "Test for business logic flaws",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Application URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "information_disclosure",
+          description: "Check for information disclosure vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "directory_traversal",
+          description: "Test for directory traversal vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Target URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "file_upload_test",
+          description: "Test file upload functionality for vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Upload endpoint" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "api_key_leak_scan",
+          description: "Scan for exposed API keys in code/configs",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "GitHub repo or website" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "credential_stuffing_test",
+          description: "Test for credential stuffing protection",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Login endpoint" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "account_takeover_test",
+          description: "Test for account takeover vectors",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Application URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "privilege_escalation_test",
+          description: "Test for privilege escalation vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "Application URL" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "security_misconfiguration",
+          description: "Scan for security misconfigurations",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Target URL or IP" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "blockchain_analysis",
+          description: "Analyze blockchain transactions and patterns",
+          parameters: {
+            type: "object",
+            properties: {
+              address: { type: "string", description: "Blockchain address" },
+              chain: { type: "string", description: "Blockchain type" }
+            },
+            required: ["address", "chain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "smart_contract_audit",
+          description: "Audit smart contract for vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              contract: { type: "string", description: "Contract address" },
+              chain: { type: "string", description: "Blockchain" }
+            },
+            required: ["contract", "chain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "nft_tracking",
+          description: "Track NFT ownership and transactions",
+          parameters: {
+            type: "object",
+            properties: {
+              nft_id: { type: "string", description: "NFT identifier" }
+            },
+            required: ["nft_id"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "defi_protocol_analysis",
+          description: "Analyze DeFi protocol security",
+          parameters: {
+            type: "object",
+            properties: {
+              protocol: { type: "string", description: "Protocol name" }
+            },
+            required: ["protocol"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "telegram_osint",
+          description: "OSINT on Telegram users and channels",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "Username or channel" }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "discord_osint",
+          description: "OSINT on Discord servers and users",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "Server or user ID" }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "reddit_osint",
+          description: "Deep Reddit user analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Reddit username" }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "youtube_osint",
+          description: "YouTube channel and video analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "Channel or video ID" }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "twitch_osint",
+          description: "Twitch streamer analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Twitch username" }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "onlyfans_osint",
+          description: "OnlyFans creator analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Creator username" }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "patreon_osint",
+          description: "Patreon creator analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Creator username" }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cashapp_osint",
+          description: "CashApp user lookup",
+          parameters: {
+            type: "object",
+            properties: {
+              cashtag: { type: "string", description: "CashApp $cashtag" }
+            },
+            required: ["cashtag"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "venmo_osint",
+          description: "Venmo transaction analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Venmo username" }
+            },
+            required: ["username"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "paypal_osint",
+          description: "PayPal account intelligence",
+          parameters: {
+            type: "object",
+            properties: {
+              email: { type: "string", description: "PayPal email" }
+            },
+            required: ["email"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dating_app_osint",
+          description: "Search across dating apps (Tinder, Bumble, Hinge)",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "Name or profile info" }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "professional_network_osint",
+          description: "Deep LinkedIn and professional network analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "employment_history",
+          description: "Track employment history across sources",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "education_verification",
+          description: "Verify educational credentials",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" },
+              institution: { type: "string", description: "School name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "professional_license_lookup",
+          description: "Lookup professional licenses (medical, legal, etc.)",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" },
+              profession: { type: "string", description: "License type" }
+            },
+            required: ["name", "profession"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "medical_professional_lookup",
+          description: "Search medical professional databases",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Doctor name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "legal_professional_lookup",
+          description: "Search bar associations and legal directories",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Lawyer name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "government_contractor_search",
+          description: "Search government contractor databases",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sec_filings",
+          description: "Search SEC filings and corporate records",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name or ticker" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "trademark_search",
+          description: "Search trademark databases",
+          parameters: {
+            type: "object",
+            properties: {
+              term: { type: "string", description: "Trademark term" }
+            },
+            required: ["term"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "patent_search",
+          description: "Search patent databases",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Patent search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "copyright_search",
+          description: "Search copyright registrations",
+          parameters: {
+            type: "object",
+            properties: {
+              title: { type: "string", description: "Work title" }
+            },
+            required: ["title"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "bankruptcy_records",
+          description: "Search bankruptcy court records",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person or company name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "lien_search",
+          description: "Search for liens and judgments",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person or property" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "marriage_divorce_records",
+          description: "Search marriage and divorce records",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" },
+              state: { type: "string", description: "State" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "death_records",
+          description: "Search death records and obituaries",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "birth_records",
+          description: "Search birth records",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" },
+              year: { type: "string", description: "Birth year (optional)" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "voter_registration",
+          description: "Search voter registration databases",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" },
+              state: { type: "string", description: "State" }
+            },
+            required: ["name", "state"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "campaign_finance",
+          description: "Search political campaign contributions",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Donor or candidate name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "lobbying_records",
+          description: "Search lobbying disclosure records",
+          parameters: {
+            type: "object",
+            properties: {
+              entity: { type: "string", description: "Person or organization" }
+            },
+            required: ["entity"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "nonprofit_lookup",
+          description: "Search nonprofit 990 tax forms",
+          parameters: {
+            type: "object",
+            properties: {
+              organization: { type: "string", description: "Nonprofit name" }
+            },
+            required: ["organization"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "firearms_license",
+          description: "Search FFL (Federal Firearms License) records",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "Name or license number" }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "aircraft_registration",
+          description: "Search FAA aircraft registration",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "Tail number or owner" }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "boat_registration",
+          description: "Search vessel registration",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "Name or registration" }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ham_radio_lookup",
+          description: "Search FCC amateur radio licenses",
+          parameters: {
+            type: "object",
+            properties: {
+              callsign: { type: "string", description: "Callsign or name" }
+            },
+            required: ["callsign"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "pilot_license",
+          description: "Search FAA pilot licenses",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Pilot name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sex_offender_registry",
+          description: "Search sex offender registries",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" },
+              state: { type: "string", description: "State (optional)" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "warrant_search",
+          description: "Search for active warrants",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" },
+              state: { type: "string", description: "State" }
+            },
+            required: ["name", "state"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "inmate_search",
+          description: "Search prison and jail records",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Inmate name" },
+              state: { type: "string", description: "State (optional)" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "parole_records",
+          description: "Search parole and probation records",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" },
+              state: { type: "string", description: "State" }
+            },
+            required: ["name", "state"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "missing_persons",
+          description: "Search missing persons databases",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cold_case_search",
+          description: "Search cold case databases",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "gang_database",
+          description: "Search gang affiliation databases",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "Name or gang name" }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "terrorist_watchlist",
+          description: "Check terrorist screening databases",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sanctions_check",
+          description: "Check OFAC and international sanctions lists",
+          parameters: {
+            type: "object",
+            properties: {
+              entity: { type: "string", description: "Person or organization" }
+            },
+            required: ["entity"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "interpol_red_notice",
+          description: "Search Interpol Red Notices",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "fbi_wanted",
+          description: "Search FBI Most Wanted list",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name or category" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "military_service",
+          description: "Search military service records",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "veteran_benefits",
+          description: "Search veteran benefits records",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Veteran name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "security_clearance",
+          description: "Check security clearance status",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "social_security_death_index",
+          description: "Search Social Security Death Index",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" },
+              ssn: { type: "string", description: "SSN (optional)" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "genealogy_search",
+          description: "Search genealogy and ancestry databases",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" },
+              birthdate: { type: "string", description: "Birth date (optional)" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dna_database",
+          description: "Search DNA and genetic genealogy databases",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "Name or identifier" }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "immigration_records",
+          description: "Search immigration and naturalization records",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "passport_verification",
+          description: "Verify passport information",
+          parameters: {
+            type: "object",
+            properties: {
+              number: { type: "string", description: "Passport number" }
+            },
+            required: ["number"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "visa_status",
+          description: "Check visa status and immigration records",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "customs_records",
+          description: "Search customs and border crossing records",
+          parameters: {
+            type: "object",
+            properties: {
+              entity: { type: "string", description: "Person or company" }
+            },
+            required: ["entity"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "shipping_manifest",
+          description: "Search shipping manifests and cargo records",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "import_export_records",
+          description: "Search import/export trade data",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "fda_recalls",
+          description: "Search FDA product recalls and warnings",
+          parameters: {
+            type: "object",
+            properties: {
+              product: { type: "string", description: "Product name or company" }
+            },
+            required: ["product"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "nhtsa_recalls",
+          description: "Search vehicle recalls and complaints",
+          parameters: {
+            type: "object",
+            properties: {
+              vehicle: { type: "string", description: "Make/model or VIN" }
+            },
+            required: ["vehicle"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "consumer_complaints",
+          description: "Search consumer complaint databases",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "bbb_rating",
+          description: "Check Better Business Bureau ratings",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "product_safety",
+          description: "Search product safety databases",
+          parameters: {
+            type: "object",
+            properties: {
+              product: { type: "string", description: "Product name" }
+            },
+            required: ["product"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "environmental_violations",
+          description: "Search EPA environmental violations",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "osha_violations",
+          description: "Search OSHA workplace safety violations",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "labor_violations",
+          description: "Search wage and hour violation records",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "discrimination_cases",
+          description: "Search EEOC discrimination cases",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "whistleblower_cases",
+          description: "Search whistleblower case databases",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "class_action_lawsuits",
+          description: "Search class action lawsuit databases",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "securities_litigation",
+          description: "Search securities fraud and litigation",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name or ticker" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "insider_trading",
+          description: "Search insider trading records",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company ticker or executive name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "hedge_fund_holdings",
+          description: "Search 13F hedge fund holdings",
+          parameters: {
+            type: "object",
+            properties: {
+              fund: { type: "string", description: "Fund name" }
+            },
+            required: ["fund"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "institutional_ownership",
+          description: "Analyze institutional ownership patterns",
+          parameters: {
+            type: "object",
+            properties: {
+              ticker: { type: "string", description: "Stock ticker" }
+            },
+            required: ["ticker"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "short_interest",
+          description: "Check short interest data",
+          parameters: {
+            type: "object",
+            properties: {
+              ticker: { type: "string", description: "Stock ticker" }
+            },
+            required: ["ticker"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dark_pool_activity",
+          description: "Analyze dark pool trading activity",
+          parameters: {
+            type: "object",
+            properties: {
+              ticker: { type: "string", description: "Stock ticker" }
+            },
+            required: ["ticker"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "options_flow",
+          description: "Analyze unusual options activity",
+          parameters: {
+            type: "object",
+            properties: {
+              ticker: { type: "string", description: "Stock ticker" }
+            },
+            required: ["ticker"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ftc_actions",
+          description: "Search FTC enforcement actions",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "antitrust_cases",
+          description: "Search antitrust and monopoly cases",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "merger_filings",
+          description: "Search merger and acquisition filings",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "beneficial_ownership",
+          description: "Search beneficial ownership filings",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "shell_company_check",
+          description: "Check for shell company indicators",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "offshore_entities",
+          description: "Search offshore entity databases",
+          parameters: {
+            type: "object",
+            properties: {
+              entity: { type: "string", description: "Person or company name" }
+            },
+            required: ["entity"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "panama_papers",
+          description: "Search Panama Papers leak database",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Name or entity to search" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "paradise_papers",
+          description: "Search Paradise Papers leak database",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Name or entity to search" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "offshore_leaks",
+          description: "Search ICIJ offshore leaks database",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Name or entity" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "money_laundering_check",
+          description: "Check anti-money laundering databases",
+          parameters: {
+            type: "object",
+            properties: {
+              entity: { type: "string", description: "Person or company" }
+            },
+            required: ["entity"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "pep_check",
+          description: "Check Politically Exposed Persons database",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Person name" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "adverse_media_search",
+          description: "Search negative news and adverse media",
+          parameters: {
+            type: "object",
+            properties: {
+              entity: { type: "string", description: "Person or company" }
+            },
+            required: ["entity"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "reputation_analysis",
+          description: "Comprehensive online reputation analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              entity: { type: "string", description: "Person or company" }
+            },
+            required: ["entity"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sentiment_analysis",
+          description: "Analyze sentiment across social media and news",
+          parameters: {
+            type: "object",
+            properties: {
+              topic: { type: "string", description: "Topic or entity" }
+            },
+            required: ["topic"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "influencer_analysis",
+          description: "Analyze social media influencer metrics",
+          parameters: {
+            type: "object",
+            properties: {
+              username: { type: "string", description: "Username" },
+              platform: { type: "string", description: "Social platform" }
+            },
+            required: ["username", "platform"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "bot_detection",
+          description: "Detect bot accounts and fake followers",
+          parameters: {
+            type: "object",
+            properties: {
+              account: { type: "string", description: "Account to analyze" },
+              platform: { type: "string", description: "Platform" }
+            },
+            required: ["account", "platform"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "astroturfing_detection",
+          description: "Detect coordinated inauthentic behavior",
+          parameters: {
+            type: "object",
+            properties: {
+              topic: { type: "string", description: "Topic or hashtag" }
+            },
+            required: ["topic"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "disinformation_tracking",
+          description: "Track disinformation campaigns",
+          parameters: {
+            type: "object",
+            properties: {
+              narrative: { type: "string", description: "Narrative or claim" }
+            },
+            required: ["narrative"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "deepfake_detection",
+          description: "Detect deepfake images and videos",
+          parameters: {
+            type: "object",
+            properties: {
+              media_url: { type: "string", description: "Media URL" }
+            },
+            required: ["media_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "phishing_detection",
+          description: "Detect phishing sites and emails",
+          parameters: {
+            type: "object",
+            properties: {
+              content: { type: "string", description: "URL or email content" }
+            },
+            required: ["content"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "malware_analysis",
+          description: "Analyze suspected malware samples",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "File hash (MD5/SHA256)" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ransomware_tracking",
+          description: "Track ransomware operations and payments",
+          parameters: {
+            type: "object",
+            properties: {
+              indicator: { type: "string", description: "Hash, wallet, or gang name" }
+            },
+            required: ["indicator"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "apt_tracking",
+          description: "Track Advanced Persistent Threat groups",
+          parameters: {
+            type: "object",
+            properties: {
+              apt_name: { type: "string", description: "APT group name or TTP" }
+            },
+            required: ["apt_name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "exploit_database",
+          description: "Search exploit databases",
+          parameters: {
+            type: "object",
+            properties: {
+              cve_or_product: { type: "string", description: "CVE ID or product" }
+            },
+            required: ["cve_or_product"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "zero_day_tracking",
+          description: "Track zero-day vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              product: { type: "string", description: "Product or vendor" }
+            },
+            required: ["product"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ioc_search",
+          description: "Search Indicators of Compromise (IoCs)",
+          parameters: {
+            type: "object",
+            properties: {
+              ioc: { type: "string", description: "IoC (IP, domain, hash)" }
+            },
+            required: ["ioc"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "threat_intelligence_feed",
+          description: "Query threat intelligence feeds",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Threat query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "darkweb_forum_monitor",
+          description: "Monitor dark web forums and marketplaces",
+          parameters: {
+            type: "object",
+            properties: {
+              keyword: { type: "string", description: "Search keyword" }
+            },
+            required: ["keyword"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "credential_market_search",
+          description: "Search credential markets on dark web",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Domain or company" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "stolen_data_search",
+          description: "Search for stolen data leaks",
+          parameters: {
+            type: "object",
+            properties: {
+              identifier: { type: "string", description: "Email, domain, or keyword" }
+            },
+            required: ["identifier"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ransomware_leak_sites",
+          description: "Monitor ransomware leak sites",
+          parameters: {
+            type: "object",
+            properties: {
+              company: { type: "string", description: "Company name" }
+            },
+            required: ["company"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "botnet_tracking",
+          description: "Track botnet C2 infrastructure",
+          parameters: {
+            type: "object",
+            properties: {
+              indicator: { type: "string", description: "IP, domain, or botnet name" }
+            },
+            required: ["indicator"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "c2_infrastructure",
+          description: "Map command and control infrastructure",
+          parameters: {
+            type: "object",
+            properties: {
+              indicator: { type: "string", description: "IP or domain" }
+            },
+            required: ["indicator"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "passive_dns",
+          description: "Query passive DNS databases",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Domain or IP" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ssl_certificate_transparency",
+          description: "Search SSL certificate transparency logs",
+          parameters: {
+            type: "object",
+            properties: {
+              domain: { type: "string", description: "Domain" }
+            },
+            required: ["domain"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "asn_lookup",
+          description: "Lookup Autonomous System Number info",
+          parameters: {
+            type: "object",
+            properties: {
+              asn: { type: "string", description: "ASN number or IP" }
+            },
+            required: ["asn"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "bgp_routing",
+          description: "Analyze BGP routing and hijacks",
+          parameters: {
+            type: "object",
+            properties: {
+              prefix: { type: "string", description: "IP prefix or ASN" }
+            },
+            required: ["prefix"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "network_topology",
+          description: "Map network topology and paths",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Target IP or domain" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "internet_census",
+          description: "Query internet-wide scan data",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Port, service, or pattern" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "censys_search",
+          description: "Search Censys internet scan database",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "binary_edge",
+          description: "Search BinaryEdge threat intelligence",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "zoomeye_search",
+          description: "Search ZoomEye cyberspace search engine",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "fofa_search",
+          description: "Search FOFA cyberspace search engine",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "onyphe_search",
+          description: "Search ONYPHE threat intelligence",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "greynoise_lookup",
+          description: "Check GreyNoise for internet scanner data",
+          parameters: {
+            type: "object",
+            properties: {
+              ip: { type: "string", description: "IP address" }
+            },
+            required: ["ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "alienvault_otx",
+          description: "Query AlienVault Open Threat Exchange",
+          parameters: {
+            type: "object",
+            properties: {
+              indicator: { type: "string", description: "IoC to query" }
+            },
+            required: ["indicator"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "virustotal_lookup",
+          description: "Query VirusTotal for file/URL/domain/IP intelligence",
+          parameters: {
+            type: "object",
+            properties: {
+              indicator: { type: "string", description: "Hash, URL, domain, or IP" }
+            },
+            required: ["indicator"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "hybrid_analysis",
+          description: "Query Hybrid Analysis malware sandbox",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "File hash" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "any_run_sandbox",
+          description: "Query ANY.RUN interactive malware sandbox",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "File hash" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "joe_sandbox",
+          description: "Query Joe Sandbox malware analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "File hash" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cuckoo_sandbox",
+          description: "Query Cuckoo Sandbox malware analysis",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "File hash" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "misp_query",
+          description: "Query MISP threat sharing platform",
+          parameters: {
+            type: "object",
+            properties: {
+              indicator: { type: "string", description: "IoC or event ID" }
+            },
+            required: ["indicator"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "stix_taxii_feed",
+          description: "Query STIX/TAXII threat intelligence feeds",
+          parameters: {
+            type: "object",
+            properties: {
+              collection: { type: "string", description: "Feed collection" }
+            },
+            required: ["collection"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "opencti_query",
+          description: "Query OpenCTI cyber threat intelligence",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "threatcrowd_lookup",
+          description: "Query ThreatCrowd threat intelligence",
+          parameters: {
+            type: "object",
+            properties: {
+              indicator: { type: "string", description: "Domain, IP, or email" }
+            },
+            required: ["indicator"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "urlscan_io",
+          description: "Scan and analyze URLs with urlscan.io",
+          parameters: {
+            type: "object",
+            properties: {
+              url: { type: "string", description: "URL to scan" }
+            },
+            required: ["url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "malware_bazaar",
+          description: "Query MalwareBazaar malware samples",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "File hash" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "abuse_ipdb",
+          description: "Check IP against AbuseIPDB",
+          parameters: {
+            type: "object",
+            properties: {
+              ip: { type: "string", description: "IP address" }
+            },
+            required: ["ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "spamhaus_lookup",
+          description: "Check Spamhaus blocklists",
+          parameters: {
+            type: "object",
+            properties: {
+              ip: { type: "string", description: "IP address or domain" }
+            },
+            required: ["ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "ssl_blacklist",
+          description: "Check SSL blacklist databases",
+          parameters: {
+            type: "object",
+            properties: {
+              hash: { type: "string", description: "Certificate hash" }
+            },
+            required: ["hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "threat_actor_profile",
+          description: "Profile threat actors and cybercriminals",
+          parameters: {
+            type: "object",
+            properties: {
+              actor: { type: "string", description: "Threat actor name or alias" }
+            },
+            required: ["actor"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cybercrime_forum_search",
+          description: "Search cybercrime forums and underground",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search term" }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "paste_site_monitor",
+          description: "Monitor paste sites (Pastebin, GhostBin, etc.)",
+          parameters: {
+            type: "object",
+            properties: {
+              keyword: { type: "string", description: "Keyword to monitor" }
+            },
+            required: ["keyword"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "code_repository_secrets",
+          description: "Scan code repositories for secrets",
+          parameters: {
+            type: "object",
+            properties: {
+              repo_url: { type: "string", description: "Repository URL" }
+            },
+            required: ["repo_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "docker_registry_scan",
+          description: "Scan Docker registries for exposed images",
+          parameters: {
+            type: "object",
+            properties: {
+              registry: { type: "string", description: "Registry URL or name" }
+            },
+            required: ["registry"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "kubernetes_security_audit",
+          description: "Audit Kubernetes cluster security",
+          parameters: {
+            type: "object",
+            properties: {
+              cluster: { type: "string", description: "Cluster identifier" }
+            },
+            required: ["cluster"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cloud_security_posture",
+          description: "Assess cloud security posture (AWS, Azure, GCP)",
+          parameters: {
+            type: "object",
+            properties: {
+              provider: { type: "string", enum: ["aws", "azure", "gcp"], description: "Cloud provider" }
+            },
+            required: ["provider"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "iam_policy_analysis",
+          description: "Analyze IAM policies for misconfigurations",
+          parameters: {
+            type: "object",
+            properties: {
+              policy: { type: "string", description: "Policy document or ARN" }
+            },
+            required: ["policy"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cloud_asset_inventory",
+          description: "Inventory cloud assets and resources",
+          parameters: {
+            type: "object",
+            properties: {
+              provider: { type: "string", description: "Cloud provider" }
+            },
+            required: ["provider"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "supply_chain_analysis",
+          description: "Analyze software supply chain risks",
+          parameters: {
+            type: "object",
+            properties: {
+              package: { type: "string", description: "Package or dependency" }
+            },
+            required: ["package"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sbom_analysis",
+          description: "Analyze Software Bill of Materials (SBOM)",
+          parameters: {
+            type: "object",
+            properties: {
+              sbom_url: { type: "string", description: "SBOM file URL" }
+            },
+            required: ["sbom_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dependency_check",
+          description: "Check dependencies for vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              manifest: { type: "string", description: "Package manifest file" }
+            },
+            required: ["manifest"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "license_compliance",
+          description: "Check open source license compliance",
+          parameters: {
+            type: "object",
+            properties: {
+              project: { type: "string", description: "Project or repository" }
+            },
+            required: ["project"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "code_quality_analysis",
+          description: "Analyze code quality and security",
+          parameters: {
+            type: "object",
+            properties: {
+              repo: { type: "string", description: "Repository URL" }
+            },
+            required: ["repo"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sast_scan",
+          description: "Static application security testing",
+          parameters: {
+            type: "object",
+            properties: {
+              code_path: { type: "string", description: "Code repository path" }
+            },
+            required: ["code_path"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "dast_scan",
+          description: "Dynamic application security testing",
+          parameters: {
+            type: "object",
+            properties: {
+              target_url: { type: "string", description: "Application URL" }
+            },
+            required: ["target_url"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "mobile_app_security",
+          description: "Analyze mobile app security (iOS/Android)",
+          parameters: {
+            type: "object",
+            properties: {
+              app_id: { type: "string", description: "App package or bundle ID" }
+            },
+            required: ["app_id"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "firmware_analysis",
+          description: "Analyze firmware for vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              firmware_hash: { type: "string", description: "Firmware file hash" }
+            },
+            required: ["firmware_hash"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "iot_security_scan",
+          description: "Scan IoT devices for security issues",
+          parameters: {
+            type: "object",
+            properties: {
+              device_ip: { type: "string", description: "Device IP or identifier" }
+            },
+            required: ["device_ip"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "scada_ics_scan",
+          description: "Scan SCADA/ICS systems (with authorization)",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Target IP or network" }
+            },
+            required: ["target"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "wireless_network_audit",
+          description: "Audit wireless network security",
+          parameters: {
+            type: "object",
+            properties: {
+              ssid: { type: "string", description: "Network SSID" }
+            },
+            required: ["ssid"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "bluetooth_security_scan",
+          description: "Scan Bluetooth devices and security",
+          parameters: {
+            type: "object",
+            properties: {
+              device_address: { type: "string", description: "Bluetooth MAC address" }
+            },
+            required: ["device_address"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "rfid_nfc_analysis",
+          description: "Analyze RFID/NFC security",
+          parameters: {
+            type: "object",
+            properties: {
+              tag_id: { type: "string", description: "Tag identifier" }
+            },
+            required: ["tag_id"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "vehicle_can_bus_analysis",
+          description: "Analyze vehicle CAN bus security",
+          parameters: {
+            type: "object",
+            properties: {
+              vehicle: { type: "string", description: "Vehicle make/model" }
+            },
+            required: ["vehicle"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "physical_security_audit",
+          description: "Audit physical security controls",
+          parameters: {
+            type: "object",
+            properties: {
+              location: { type: "string", description: "Location identifier" }
+            },
+            required: ["location"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "social_engineering_assessment",
+          description: "Assess social engineering vulnerabilities",
+          parameters: {
+            type: "object",
+            properties: {
+              target_org: { type: "string", description: "Target organization" }
+            },
+            required: ["target_org"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "osint_framework_search",
+          description: "Comprehensive OSINT framework search across all tools",
+          parameters: {
+            type: "object",
+            properties: {
+              target: { type: "string", description: "Target for OSINT gathering" },
+              scope: { type: "string", enum: ["person", "company", "domain", "ip", "email", "phone", "all"], description: "OSINT scope" }
+            },
+            required: ["target", "scope"]
+          }
+        }
       }
     ],
       }),
