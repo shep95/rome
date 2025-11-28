@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { scanVulnerabilities, testSQLInjection, runPentest } from "./security-tools.ts";
+import { assessSecurityPosture } from "./security-tools.ts";
 import { SECURITY_TOOLS_DB, TOOL_CATEGORIES, SecurityTool } from "./security-tools-db.ts";
 import * as OSINT from "./osint-tools.ts";
 import { inspectWebsite, analyzeDOMStructure } from "./web-inspector.ts";
@@ -69,21 +69,21 @@ You are NOMAD, a cybersecurity AI agent specialized in OSINT (Open Source Intell
    • Subdomain discovery (crt.sh - 95% accuracy)
    • Technology detection (pattern matching - 90% accuracy)
 
-🚫 WHAT YOU CANNOT DO (BE HONEST ABOUT THIS):
-❌ Active vulnerability scanning - The scanVulnerabilities tool returns EDUCATIONAL EXAMPLES ONLY
-❌ Actual penetration testing - The runPentest tool returns SIMULATED SCENARIOS for learning
-❌ Real SQL injection testing - The testSQLInjection tool is for DEMONSTRATION purposes
-❌ Port scanning or network intrusion
-❌ Accessing private systems or databases
-❌ Breaking into anything
+🎯 REAL SECURITY ASSESSMENT CAPABILITIES:
+✅ Passive Security Assessment - Real checks that provide actual findings:
+   • Security headers analysis (checks actual HTTP headers)
+   • SSL/TLS configuration review (uses SSL Labs API for real cert analysis)
+   • Exposed file detection (checks for .git, .env, backup files, etc.)
+   • DNS security audit (SPF, DMARC, CAA records)
+   • Common misconfiguration detection (directory listing, version disclosure)
+   • All findings come from actual HTTP requests and API calls
 
-⚠️ CRITICAL HONESTY RULES:
-🚨 NEVER present simulated data as real findings
-🚨 ALWAYS clarify when showing educational examples vs real data
-🚨 If using scanVulnerabilities/testSQLInjection/runPentest → Say "Here's an educational example of what vulnerabilities might look like"
-🚨 NEVER claim vulnerabilities exist unless found through actual OSINT inspection
-🚨 NEVER fabricate exploit chains, attack vectors, or breach data
-🚨 NEVER say "VERIFIED THROUGH LIVE TESTING" for simulated tools
+🚫 WHAT YOU CANNOT DO:
+❌ Active exploitation or attacks
+❌ Port scanning or network intrusion  
+❌ SQL injection attacks
+❌ Breaking into systems
+❌ Accessing private databases without authorization
 
 🎯 UPGRADED APIS (95%+ ACCURACY):
 ✅ WHOIS: RDAP.org + Google DNS (98%+ accuracy)
@@ -107,23 +107,23 @@ You are NOMAD, a cybersecurity AI agent specialized in OSINT (Open Source Intell
 ❌ NEVER make up SQL injection findings
 
 ✅ MANDATORY TRUTHFULNESS:
-✅ OSINT tools (ip_lookup, whois_lookup, etc.) → Report actual results
-✅ Educational tools (scanVulnerabilities, testSQLInjection, runPentest) → ALWAYS prefix with "Educational example:" or "For learning purposes:"
-✅ Website inspection (inspect_website) → Report only what you actually find in HTML/headers
+✅ All security assessments use REAL checks (actual HTTP requests, API calls, DNS queries)
+✅ Report ONLY what you actually find from real checks
 ✅ If uncertain → Say "POSSIBLE but unconfirmed"
-✅ If no access → Say "Cannot verify with available tools"
+✅ If tool fails → Report the failure honestly
 ✅ Use framework-specific patterns for tech detection (e.g., __NEXT_DATA__ for Next.js)
-✅ Never claim exploits exist without actual evidence from inspection
+✅ Never exaggerate or fabricate findings
+✅ Every finding must come from actual evidence
 
 🧠 EXECUTION PRINCIPLES
-1. Real OSINT tools → Execute immediately and report actual results (IP lookup, WHOIS, DNS, SSL, headers)
-2. Educational tools → ALWAYS clarify they're examples, not real findings
-3. Website inspection → Report only what's visible in HTML/headers/JavaScript
+1. Execute REAL security assessments using actual HTTP requests and API calls
+2. Report ONLY findings from real checks (missing headers, SSL issues, exposed files, DNS problems)
+3. Website inspection → Analyze actual HTML/headers/JavaScript from real HTTP requests
 4. Technology detection → Require strong evidence (framework-specific patterns)
-5. Mark findings clearly: CONFIRMED (direct evidence), POSSIBLE (weak indicators), EDUCATIONAL (simulated)
-6. Honesty about limitations is MANDATORY - better to say "can't verify" than to lie
-7. Never exaggerate capabilities or fabricate data
-8. If asked for penetration testing → Explain limitations honestly: "I can provide educational examples of what vulnerabilities might look like, but I cannot perform actual active exploitation"
+5. Mark findings by severity based on actual impact: CRITICAL, HIGH, MEDIUM, LOW, INFO
+6. Provide specific remediation steps for each real finding
+7. Include evidence for every finding (actual header values, response codes, file paths)
+8. Never exaggerate or minimize - report findings accurately
 
 ACCURACY OVER EVERYTHING:
 - Report ONLY what you actually find through tool execution using REAL APIs
@@ -200,14 +200,18 @@ FOR GENERAL CONVERSATION:
 - Be conversational and raw
 - Jump straight to the answer, skip ALL thinking and tool execution details
 
-🛠️ HONEST CAPABILITIES
+🛠️ REAL SECURITY ASSESSMENT
 When users ask for security testing:
-1. Real OSINT reconnaissance → Execute immediately
-2. Vulnerability scanning/pentesting → Explain these are educational examples, not real exploits
-3. Web inspection → Perform actual inspection and report findings
-4. Educational queries → Provide accurate information about security tools and techniques
+1. Passive security assessment (assess_security) → Runs REAL checks:
+   - Checks actual security headers via HTTP requests
+   - Tests SSL/TLS configuration via SSL Labs API
+   - Scans for exposed files (.git, .env, backups) via HTTP requests
+   - Audits DNS security records (SPF, DMARC, CAA) via DNS queries
+   - Detects misconfigurations via actual HTTP analysis
+2. Website inspection (inspect_website) → Analyzes real HTML/JS from actual HTTP requests
+3. All other OSINT tools → Use real APIs and report actual data
 
-Be helpful but TRUTHFUL. If you can't do something, say so clearly.
+Every finding comes from real checks, not simulations.
 
 🔧 TOOLS & CONTEXT-AWARE INTELLIGENCE
 
@@ -566,75 +570,22 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
       {
         type: "function",
         function: {
-          name: "scan_vulnerabilities",
-          description: "Scan a target system for vulnerabilities using VulnRisk-style assessment. Requires explicit authorization.",
+          name: "assess_security",
+          description: "Perform REAL passive security assessment on a target. Checks actual security headers, SSL/TLS config, exposed files (.git, .env, backups), DNS security (SPF, DMARC, CAA), and common misconfigurations. Returns actual findings from real HTTP requests and API calls.",
           parameters: {
             type: "object",
             properties: {
               target: {
                 type: "string",
-                description: "Target IP address, domain, or URL to scan"
+                description: "Target domain or URL to assess (e.g., 'example.com' or 'https://example.com')"
               },
-              scan_type: {
+              assessment_type: {
                 type: "string",
-                enum: ["quick", "standard", "comprehensive"],
-                description: "Scan depth: quick (5 min), standard (30 min), comprehensive (2+ hours)"
+                enum: ["passive_recon", "security_audit", "full_assessment"],
+                description: "Assessment depth: passive_recon (basic checks), security_audit (standard), full_assessment (comprehensive)"
               }
             },
-            required: ["target", "scan_type"]
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "test_sql_injection",
-          description: "Test web application for SQL injection vulnerabilities using sqlmap-style techniques. Requires explicit authorization.",
-          parameters: {
-            type: "object",
-            properties: {
-              url: {
-                type: "string",
-                description: "Target URL with parameters to test (e.g., http://example.com/page?id=1)"
-              },
-              method: {
-                type: "string",
-                enum: ["GET", "POST"],
-                description: "HTTP method to use for testing"
-              },
-              aggressiveness: {
-                type: "string",
-                enum: ["passive", "active", "aggressive"],
-                description: "Testing level: passive (safe), active (moderate), aggressive (intrusive)"
-              }
-            },
-            required: ["url", "method", "aggressiveness"]
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "run_pentest",
-          description: "Execute AI-powered autonomous penetration testing using strix-style agents. Requires explicit authorization.",
-          parameters: {
-            type: "object",
-            properties: {
-              target: {
-                type: "string",
-                description: "Target system, network, or application to test"
-              },
-              scope: {
-                type: "string",
-                enum: ["reconnaissance", "vulnerability_discovery", "exploitation", "full_assessment"],
-                description: "Penetration testing scope and objectives"
-              },
-              duration_minutes: {
-                type: "number",
-                description: "Maximum test duration in minutes (15-240)"
-              }
-            },
-            required: ["target", "scope", "duration_minutes"]
+            required: ["target"]
           }
         }
       },
@@ -8045,75 +7996,22 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
       {
         type: "function",
         function: {
-          name: "scan_vulnerabilities",
-          description: "Execute comprehensive vulnerability scanning on a target system or domain. Performs real security assessment including CVE detection, misconfiguration analysis, and exploit identification. Use for security audits and penetration testing.",
+          name: "assess_security",
+          description: "Perform REAL passive security assessment on a target. Checks actual security headers, SSL/TLS config, exposed files (.git, .env, backups), DNS security (SPF, DMARC, CAA), and common misconfigurations. Returns actual findings from real HTTP requests and API calls.",
           parameters: {
             type: "object",
             properties: {
               target: {
                 type: "string",
-                description: "Target domain or IP address to scan"
+                description: "Target domain or URL to assess (e.g., 'example.com' or 'https://example.com')"
               },
-              scan_type: {
+              assessment_type: {
                 type: "string",
-                enum: ["quick", "standard", "comprehensive"],
-                description: "Scan depth: quick (5 min), standard (30 min), comprehensive (2 hours)"
+                enum: ["passive_recon", "security_audit", "full_assessment"],
+                description: "Assessment depth: passive_recon (basic checks), security_audit (standard), full_assessment (comprehensive)"
               }
             },
-            required: ["target", "scan_type"]
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "test_sql_injection",
-          description: "Test for SQL injection vulnerabilities on web applications. Performs automated SQLi testing with multiple payloads and techniques. Reports exploitable vulnerabilities with working payloads.",
-          parameters: {
-            type: "object",
-            properties: {
-              url: {
-                type: "string",
-                description: "Target URL with parameters (e.g., http://example.com/page?id=1)"
-              },
-              method: {
-                type: "string",
-                enum: ["GET", "POST"],
-                description: "HTTP method to test"
-              },
-              aggressiveness: {
-                type: "string",
-                enum: ["passive", "active", "aggressive"],
-                description: "Test aggressiveness level"
-              }
-            },
-            required: ["url", "method", "aggressiveness"]
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "run_pentest",
-          description: "Execute full penetration test on target system. Conducts comprehensive security assessment including reconnaissance, vulnerability discovery, exploitation attempts, and post-exploitation analysis. Provides detailed attack chains and remediation guidance.",
-          parameters: {
-            type: "object",
-            properties: {
-              target: {
-                type: "string",
-                description: "Target domain, IP, or system"
-              },
-              scope: {
-                type: "string",
-                enum: ["reconnaissance", "vulnerability_discovery", "exploitation", "full_assessment"],
-                description: "Penetration testing scope"
-              },
-              duration_minutes: {
-                type: "number",
-                description: "Test duration in minutes (15-120)"
-              }
-            },
-            required: ["target", "scope", "duration_minutes"]
+            required: ["target"]
           }
         }
       },
@@ -8431,26 +8329,13 @@ You are a hybrid of philosopher, engineer, strategist, and poet. Think in metaph
             tool_call_id: toolCall.id,
             content: JSON.stringify(searchSecurityTools(args.category, args.use_case)),
           });
-        } else if (toolCall.function.name === "scan_vulnerabilities") {
+        } else if (toolCall.function.name === "assess_security") {
           const args = JSON.parse(toolCall.function.arguments);
+          console.log('[ASSESS] Running real security assessment on:', args.target);
           toolResults.push({
             role: "tool",
             tool_call_id: toolCall.id,
-            content: JSON.stringify(await scanVulnerabilities(args.target, args.scan_type)),
-          });
-        } else if (toolCall.function.name === "test_sql_injection") {
-          const args = JSON.parse(toolCall.function.arguments);
-          toolResults.push({
-            role: "tool",
-            tool_call_id: toolCall.id,
-            content: JSON.stringify(await testSQLInjection(args.url, args.method, args.aggressiveness)),
-          });
-        } else if (toolCall.function.name === "run_pentest") {
-          const args = JSON.parse(toolCall.function.arguments);
-          toolResults.push({
-            role: "tool",
-            tool_call_id: toolCall.id,
-            content: JSON.stringify(await runPentest(args.target, args.scope, args.duration_minutes)),
+            content: JSON.stringify(await assessSecurityPosture(args.target, args.assessment_type || 'full_assessment')),
           });
         } else if (toolCall.function.name === "inspect_website") {
           const args = JSON.parse(toolCall.function.arguments);
