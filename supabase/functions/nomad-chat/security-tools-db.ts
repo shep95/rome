@@ -2721,49 +2721,942 @@ export const SECURITY_TOOLS_DB: Record<string, SecurityTool> = {
     use_cases: ["Firmware extraction", "IoT analysis", "Embedded system testing"],
     documentation: "https://github.com/ReFirmLabs/binwalk/wiki",
     notes: ["Automatic extraction", "Signature database"]
+  },
+
+  // ========== BREACH & LEAK DATABASES ==========
+  haveibeenpwned: {
+    name: "HaveIBeenPwned CLI",
+    category: ["osint", "breach_data", "credentials"],
+    description: "Check if email/password has been in a data breach",
+    github: "https://github.com/plasticuproject/hibp",
+    stars: "500+",
+    license: "MIT",
+    government_approved: false,
+    installation: {
+      linux: "pip3 install hibp",
+      macos: "pip3 install hibp",
+      windows: "pip install hibp"
+    },
+    basic_usage: ["hibp <email>"],
+    advanced_usage: ["hibp --domain example.com"],
+    examples: [{command: "hibp test@example.com", description: "Check if email was breached"}],
+    use_cases: ["Breach detection", "Credential monitoring", "Security awareness"],
+    documentation: "https://haveibeenpwned.com/API/v3",
+    notes: ["Requires API key", "Rate limited"]
+  },
+
+  dehashed: {
+    name: "DeHashed",
+    category: ["osint", "breach_data", "credentials"],
+    description: "Search engine for leaked credentials",
+    github: "https://github.com/liquidsky/dehashed",
+    stars: "200+",
+    license: "MIT",
+    government_approved: false,
+    installation: {
+      linux: "pip3 install dehashed",
+      macos: "pip3 install dehashed",
+      windows: "pip install dehashed"
+    },
+    basic_usage: ["dehashed email:user@domain.com"],
+    advanced_usage: ["dehashed domain:target.com"],
+    examples: [{command: "dehashed username:admin", description: "Search for admin credentials"}],
+    use_cases: ["Credential discovery", "Breach investigation", "Identity theft prevention"],
+    documentation: "https://dehashed.com/docs",
+    notes: ["Paid service", "Massive database"]
+  },
+
+  // ========== DARK WEB MONITORING ==========
+  onionscan: {
+    name: "OnionScan",
+    category: ["osint", "dark_web", "tor"],
+    description: "Tor hidden service scanner",
+    github: "https://github.com/s-rah/onionscan",
+    stars: "3k+",
+    license: "MIT",
+    government_approved: false,
+    installation: {
+      linux: "go install github.com/s-rah/onionscan@latest",
+      macos: "go install github.com/s-rah/onionscan@latest",
+      windows: "go install github.com/s-rah/onionscan@latest"
+    },
+    basic_usage: ["onionscan http://example.onion"],
+    advanced_usage: ["onionscan --verbose http://example.onion"],
+    examples: [{command: "onionscan http://example.onion", description: "Scan onion service"}],
+    use_cases: ["Dark web monitoring", "Tor service analysis", "Threat intelligence"],
+    documentation: "https://github.com/s-rah/onionscan",
+    notes: ["Requires Tor", "Anonymous scanning"]
+  },
+
+  // ========== CRYPTOCURRENCY OSINT ==========
+  blockchain_explorer: {
+    name: "Blockchain Explorer CLI",
+    category: ["osint", "cryptocurrency", "blockchain"],
+    description: "Command-line blockchain analysis tool",
+    github: "https://github.com/blockchain/blockchain-cli",
+    stars: "1k+",
+    license: "MIT",
+    government_approved: false,
+    installation: {
+      linux: "pip3 install blockchain-cli",
+      macos: "pip3 install blockchain-cli",
+      windows: "pip install blockchain-cli"
+    },
+    basic_usage: ["blockchain address <address>"],
+    advanced_usage: ["blockchain tx <txhash>"],
+    examples: [{command: "blockchain address 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", description: "Analyze Bitcoin address"}],
+    use_cases: ["Cryptocurrency tracing", "Transaction analysis", "Fraud investigation"],
+    documentation: "https://blockchain.info/api",
+    notes: ["Multiple chains", "Real-time data"]
+  },
+
+  // ========== VEHICLE & TRANSPORTATION ==========
+  vehicle_tracking: {
+    name: "License Plate OSINT",
+    category: ["osint", "vehicle", "transportation"],
+    description: "Vehicle registration and license plate lookup",
+    github: "https://github.com/topics/license-plate-recognition",
+    stars: "500+",
+    license: "MIT",
+    government_approved: false,
+    installation: {
+      linux: "Various tools available",
+      macos: "Various tools available",
+      windows: "Various tools available"
+    },
+    basic_usage: ["Check public databases"],
+    advanced_usage: ["Use OCR for plate recognition"],
+    examples: [{command: "Manual lookup", description: "Check vehicle registration databases"}],
+    use_cases: ["Vehicle tracking", "Investigation", "Fleet analysis"],
+    documentation: "https://publicrecords.searchsystems.net/",
+    notes: ["Varies by jurisdiction", "Public records only"]
+  },
+
+  // ========== DOMAIN & INFRASTRUCTURE ==========
+  dnstwist: {
+    name: "dnstwist",
+    category: ["osint", "dns", "phishing"],
+    description: "Domain name permutation engine for detecting phishing",
+    github: "https://github.com/elceef/dnstwist",
+    stars: "4k+",
+    license: "Apache-2.0",
+    government_approved: true,
+    installation: {
+      linux: "pip3 install dnstwist",
+      macos: "pip3 install dnstwist",
+      windows: "pip install dnstwist"
+    },
+    basic_usage: ["dnstwist example.com"],
+    advanced_usage: ["dnstwist --registered example.com"],
+    examples: [{command: "dnstwist --registered google.com", description: "Find registered typosquatting domains"}],
+    use_cases: ["Phishing detection", "Brand protection", "Domain monitoring"],
+    documentation: "https://github.com/elceef/dnstwist",
+    notes: ["Multiple algorithms", "Registered domain checking"]
+  },
+
+  spyse: {
+    name: "Spyse",
+    category: ["osint", "infrastructure", "reconnaissance"],
+    description: "Internet assets registry and search engine",
+    github: "https://github.com/spyse-com/spyse-python",
+    stars: "1k+",
+    license: "MIT",
+    government_approved: false,
+    installation: {
+      linux: "pip3 install spyse-python",
+      macos: "pip3 install spyse-python",
+      windows: "pip install spyse-python"
+    },
+    basic_usage: ["spyse domain example.com"],
+    advanced_usage: ["spyse ssl-cert search"],
+    examples: [{command: "spyse domain target.com", description: "Get domain intelligence"}],
+    use_cases: ["Infrastructure mapping", "Attack surface discovery", "Certificate monitoring"],
+    documentation: "https://spyse.com/api",
+    notes: ["Requires API key", "Comprehensive data"]
+  },
+
+  // ========== PEOPLE SEARCH ==========
+  pipl: {
+    name: "Pipl",
+    category: ["osint", "people_search", "identity"],
+    description: "People search and identity resolution",
+    github: "https://github.com/piplcom/piplapis-python",
+    stars: "500+",
+    license: "MIT",
+    government_approved: false,
+    installation: {
+      linux: "pip3 install piplapis-python",
+      macos: "pip3 install piplapis-python",
+      windows: "pip install piplapis-python"
+    },
+    basic_usage: ["pipl search 'John Doe'"],
+    advanced_usage: ["pipl email user@example.com"],
+    examples: [{command: "pipl search 'Jane Smith' --location 'New York'", description: "Search for person"}],
+    use_cases: ["People search", "Background checks", "Identity verification"],
+    documentation: "https://pipl.com/api",
+    notes: ["Paid service", "Global coverage"]
+  },
+
+  spokeo: {
+    name: "Spokeo CLI",
+    category: ["osint", "people_search", "phone"],
+    description: "People search by name, phone, email, or address",
+    github: "https://github.com/topics/spokeo",
+    stars: "100+",
+    license: "Various",
+    government_approved: false,
+    installation: {
+      linux: "Web-based service",
+      macos: "Web-based service",
+      windows: "Web-based service"
+    },
+    basic_usage: ["Web interface"],
+    advanced_usage: ["API integration"],
+    examples: [{command: "spokeo search", description: "Search people records"}],
+    use_cases: ["People search", "Phone lookup", "Address verification"],
+    documentation: "https://www.spokeo.com/",
+    notes: ["Paid service", "US focused"]
+  },
+
+  // ========== BUSINESS INTELLIGENCE ==========
+  crunchbase: {
+    name: "Crunchbase CLI",
+    category: ["osint", "business_intelligence", "company"],
+    description: "Company and startup information database",
+    github: "https://github.com/topics/crunchbase",
+    stars: "200+",
+    license: "Various",
+    government_approved: false,
+    installation: {
+      linux: "pip3 install crunchbase-python",
+      macos: "pip3 install crunchbase-python",
+      windows: "pip install crunchbase-python"
+    },
+    basic_usage: ["crunchbase company <name>"],
+    advanced_usage: ["crunchbase search --filters"],
+    examples: [{command: "crunchbase company 'Acme Corp'", description: "Get company details"}],
+    use_cases: ["Company research", "Competitor analysis", "Investment intelligence"],
+    documentation: "https://data.crunchbase.com/docs",
+    notes: ["Requires API key", "Startup focus"]
+  },
+
+  opencorporates: {
+    name: "OpenCorporates",
+    category: ["osint", "business_intelligence", "company"],
+    description: "Largest open database of companies",
+    github: "https://github.com/openc/opencorporates",
+    stars: "500+",
+    license: "MIT",
+    government_approved: false,
+    installation: {
+      linux: "API access",
+      macos: "API access",
+      windows: "API access"
+    },
+    basic_usage: ["curl https://api.opencorporates.com/companies/search?q=company"],
+    advanced_usage: ["API with filters"],
+    examples: [{command: "opencorporates search 'Microsoft'", description: "Search company records"}],
+    use_cases: ["Company verification", "Corporate structure analysis", "Due diligence"],
+    documentation: "https://api.opencorporates.com/documentation",
+    notes: ["200M+ companies", "Global coverage"]
+  },
+
+  // ========== SATELLITE & IMAGERY ==========
+  sentinelsat: {
+    name: "Sentinelsat",
+    category: ["osint", "geospatial", "satellite"],
+    description: "Download Sentinel satellite images",
+    github: "https://github.com/sentinelsat/sentinelsat",
+    stars: "900+",
+    license: "GPL-3.0",
+    government_approved: true,
+    installation: {
+      linux: "pip3 install sentinelsat",
+      macos: "pip3 install sentinelsat",
+      windows: "pip install sentinelsat"
+    },
+    basic_usage: ["sentinelsat --user <user> --password <pass>"],
+    advanced_usage: ["sentinelsat --geometry area.geojson"],
+    examples: [{command: "sentinelsat --location 'London' --date 20230101", description: "Download satellite imagery"}],
+    use_cases: ["Satellite imagery", "Environmental monitoring", "Geospatial analysis"],
+    documentation: "https://sentinelsat.readthedocs.io/",
+    notes: ["ESA Copernicus", "Free imagery"]
+  },
+
+  // ========== AVIATION TRACKING ==========
+  flightaware: {
+    name: "FlightAware",
+    category: ["osint", "aviation", "tracking"],
+    description: "Flight tracking and aviation intelligence",
+    github: "https://github.com/topics/flight-tracking",
+    stars: "300+",
+    license: "Various",
+    government_approved: false,
+    installation: {
+      linux: "API access",
+      macos: "API access",
+      windows: "API access"
+    },
+    basic_usage: ["API calls"],
+    advanced_usage: ["Historical data queries"],
+    examples: [{command: "flightaware track UA123", description: "Track flight"}],
+    use_cases: ["Flight tracking", "Aviation OSINT", "Travel intelligence"],
+    documentation: "https://flightaware.com/commercial/flightxml/",
+    notes: ["Requires API key", "Real-time tracking"]
+  },
+
+  // ========== MARITIME TRACKING ==========
+  marinetraffic: {
+    name: "MarineTraffic",
+    category: ["osint", "maritime", "tracking"],
+    description: "Ship tracking and maritime intelligence",
+    github: "https://github.com/topics/marine-traffic",
+    stars: "200+",
+    license: "Various",
+    government_approved: false,
+    installation: {
+      linux: "API access",
+      macos: "API access",
+      windows: "API access"
+    },
+    basic_usage: ["API calls"],
+    advanced_usage: ["Historical vessel data"],
+    examples: [{command: "marinetraffic vessel <IMO>", description: "Track vessel"}],
+    use_cases: ["Ship tracking", "Maritime OSINT", "Supply chain intelligence"],
+    documentation: "https://www.marinetraffic.com/en/ais-api-services",
+    notes: ["Requires API key", "AIS data"]
+  },
+
+  // ========== DOCUMENT ANALYSIS ==========
+  pdfid: {
+    name: "PDFiD",
+    category: ["forensics", "document_analysis", "malware"],
+    description: "Scan PDF files for malicious content",
+    github: "https://github.com/mlodic/pdfid",
+    stars: "500+",
+    license: "Public Domain",
+    government_approved: true,
+    installation: {
+      linux: "pip3 install pdfid",
+      macos: "pip3 install pdfid",
+      windows: "pip install pdfid"
+    },
+    basic_usage: ["pdfid.py file.pdf"],
+    advanced_usage: ["pdfid.py --plugins file.pdf"],
+    examples: [{command: "pdfid.py suspicious.pdf", description: "Analyze PDF structure"}],
+    use_cases: ["PDF analysis", "Malware detection", "Document forensics"],
+    documentation: "https://blog.didierstevens.com/programs/pdf-tools/",
+    notes: ["Detects suspicious elements", "No execution"]
+  },
+
+  peepdf: {
+    name: "peepdf",
+    category: ["forensics", "document_analysis", "malware"],
+    description: "PDF analysis and forensics tool",
+    github: "https://github.com/jesparza/peepdf",
+    stars: "1k+",
+    license: "GPL-3.0",
+    government_approved: true,
+    installation: {
+      linux: "git clone https://github.com/jesparza/peepdf",
+      macos: "git clone https://github.com/jesparza/peepdf",
+      windows: "git clone https://github.com/jesparza/peepdf"
+    },
+    basic_usage: ["python peepdf.py file.pdf"],
+    advanced_usage: ["python peepdf.py -i file.pdf"],
+    examples: [{command: "python peepdf.py malicious.pdf", description: "Interactive PDF analysis"}],
+    use_cases: ["PDF forensics", "JavaScript extraction", "Exploit analysis"],
+    documentation: "https://github.com/jesparza/peepdf",
+    notes: ["Interactive mode", "JavaScript analysis"]
+  },
+
+  // ========== THREAT INTELLIGENCE ==========
+  misp: {
+    name: "MISP",
+    category: ["threat_intelligence", "ioc", "sharing"],
+    description: "Open Source Threat Intelligence Platform",
+    github: "https://github.com/MISP/MISP",
+    stars: "5k+",
+    license: "AGPL-3.0",
+    government_approved: true,
+    installation: {
+      linux: "git clone https://github.com/MISP/MISP",
+      macos: "Docker recommended",
+      windows: "Docker recommended"
+    },
+    basic_usage: ["Install and configure"],
+    advanced_usage: ["API integration"],
+    examples: [{command: "misp-modules", description: "Run MISP modules"}],
+    use_cases: ["Threat sharing", "IOC management", "Incident response"],
+    documentation: "https://www.misp-project.org/documentation/",
+    notes: ["EU funded", "Global community"]
+  },
+
+  opencti: {
+    name: "OpenCTI",
+    category: ["threat_intelligence", "cyber_threat"],
+    description: "Open Cyber Threat Intelligence Platform",
+    github: "https://github.com/OpenCTI-Platform/opencti",
+    stars: "5k+",
+    license: "Apache-2.0",
+    government_approved: true,
+    installation: {
+      linux: "Docker compose recommended",
+      macos: "Docker compose recommended",
+      windows: "Docker compose recommended"
+    },
+    basic_usage: ["docker-compose up"],
+    advanced_usage: ["API integration with connectors"],
+    examples: [{command: "opencti", description: "Launch threat intelligence platform"}],
+    use_cases: ["Threat intelligence", "Knowledge management", "Threat hunting"],
+    documentation: "https://docs.opencti.io/",
+    notes: ["STIX 2.1", "GraphQL API"]
+  },
+
+  // ========== MALWARE REPOSITORIES ==========
+  malwarebazaar: {
+    name: "MalwareBazaar",
+    category: ["malware_analysis", "threat_intelligence", "samples"],
+    description: "Malware sample sharing platform",
+    github: "https://github.com/abuse-ch/MalwareBazaar",
+    stars: "1k+",
+    license: "CC0-1.0",
+    government_approved: true,
+    installation: {
+      linux: "API access",
+      macos: "API access",
+      windows: "API access"
+    },
+    basic_usage: ["curl API endpoint"],
+    advanced_usage: ["Query by hash/tag"],
+    examples: [{command: "curl https://mb-api.abuse.ch/api/v1/", description: "Query malware database"}],
+    use_cases: ["Malware samples", "IOC extraction", "Threat research"],
+    documentation: "https://bazaar.abuse.ch/api/",
+    notes: ["Free access", "Daily updates"]
+  },
+
+  virustotal: {
+    name: "VirusTotal CLI",
+    category: ["malware_analysis", "antivirus", "threat_intelligence"],
+    description: "Multi-antivirus file and URL scanner",
+    github: "https://github.com/VirusTotal/vt-cli",
+    stars: "1k+",
+    license: "Apache-2.0",
+    government_approved: true,
+    installation: {
+      linux: "Download from releases",
+      macos: "brew install virustotal-cli",
+      windows: "Download from releases"
+    },
+    basic_usage: ["vt scan file suspicious.exe"],
+    advanced_usage: ["vt url https://example.com"],
+    examples: [{command: "vt scan file malware.exe", description: "Scan file with 70+ AVs"}],
+    use_cases: ["Malware detection", "URL scanning", "Hash lookup"],
+    documentation: "https://developers.virustotal.com/",
+    notes: ["Requires API key", "70+ engines"]
+  },
+
+  // ========== SOCIAL ENGINEERING ==========
+  setoolkit: {
+    name: "Social Engineering Toolkit",
+    category: ["social_engineering", "phishing", "pentesting"],
+    description: "Framework for social engineering attacks",
+    github: "https://github.com/trustedsec/social-engineer-toolkit",
+    stars: "10k+",
+    license: "BSD-3-Clause",
+    government_approved: true,
+    installation: {
+      linux: "git clone https://github.com/trustedsec/social-engineer-toolkit && cd social-engineer-toolkit && python setup.py install",
+      macos: "git clone https://github.com/trustedsec/social-engineer-toolkit",
+      windows: "Not recommended"
+    },
+    basic_usage: ["sudo setoolkit"],
+    advanced_usage: ["Phishing campaigns", "Credential harvesting"],
+    examples: [{command: "sudo setoolkit", description: "Launch SET menu"}],
+    use_cases: ["Phishing tests", "Awareness training", "Security assessment"],
+    documentation: "https://github.com/trustedsec/social-engineer-toolkit",
+    notes: ["Requires authorization", "Training purposes"]
+  },
+
+  // ========== RADIO & SIGINT ==========
+  gqrx: {
+    name: "GQRX",
+    category: ["sigint", "radio", "sdr"],
+    description: "Software defined radio receiver",
+    github: "https://github.com/gqrx-sdr/gqrx",
+    stars: "3k+",
+    license: "GPL-3.0",
+    government_approved: false,
+    installation: {
+      linux: "sudo apt install gqrx-sdr",
+      macos: "brew install gqrx",
+      windows: "Download installer"
+    },
+    basic_usage: ["gqrx"],
+    advanced_usage: ["With RTL-SDR or HackRF"],
+    examples: [{command: "gqrx", description: "Launch SDR receiver"}],
+    use_cases: ["Radio monitoring", "SIGINT", "Frequency analysis"],
+    documentation: "https://gqrx.dk/",
+    notes: ["Requires SDR hardware", "Wide frequency support"]
+  },
+
+  rtl_433: {
+    name: "rtl_433",
+    category: ["sigint", "radio", "iot"],
+    description: "Decode wireless sensor data",
+    github: "https://github.com/merbanan/rtl_433",
+    stars: "6k+",
+    license: "GPL-2.0",
+    government_approved: false,
+    installation: {
+      linux: "sudo apt install rtl-433",
+      macos: "brew install rtl_433",
+      windows: "Download from releases"
+    },
+    basic_usage: ["rtl_433"],
+    advanced_usage: ["rtl_433 -f 433.92M"],
+    examples: [{command: "rtl_433 -f 433.92M", description: "Monitor 433MHz sensors"}],
+    use_cases: ["IoT monitoring", "Sensor interception", "Smart home analysis"],
+    documentation: "https://github.com/merbanan/rtl_433",
+    notes: ["Requires RTL-SDR", "200+ protocols"]
+  },
+
+  // ========== STEGANOGRAPHY ==========
+  steghide: {
+    name: "Steghide",
+    category: ["steganography", "forensics", "data_hiding"],
+    description: "Hide data in image and audio files",
+    github: "https://github.com/StefanoDeVuono/steghide",
+    stars: "500+",
+    license: "GPL-2.0",
+    government_approved: false,
+    installation: {
+      linux: "sudo apt install steghide",
+      macos: "brew install steghide",
+      windows: "Download from sourceforge"
+    },
+    basic_usage: ["steghide embed -cf image.jpg -ef secret.txt"],
+    advanced_usage: ["steghide extract -sf image.jpg"],
+    examples: [{command: "steghide embed -cf cover.jpg -ef data.txt -p password", description: "Hide data in image"}],
+    use_cases: ["Data hiding", "CTF challenges", "Forensics"],
+    documentation: "http://steghide.sourceforge.net/documentation.php",
+    notes: ["JPEG/WAV support", "Password protection"]
+  },
+
+  stegseek: {
+    name: "StegSeek",
+    category: ["steganography", "forensics", "password_cracking"],
+    description: "Lightning fast steghide cracker",
+    github: "https://github.com/RickdeJager/stegseek",
+    stars: "2k+",
+    license: "GPL-3.0",
+    government_approved: false,
+    installation: {
+      linux: "wget https://github.com/RickdeJager/stegseek/releases/download/v0.6/stegseek_0.6-1.deb && sudo dpkg -i stegseek_0.6-1.deb",
+      macos: "brew install stegseek",
+      windows: "Download from releases"
+    },
+    basic_usage: ["stegseek image.jpg wordlist.txt"],
+    advanced_usage: ["stegseek image.jpg -xf output.txt"],
+    examples: [{command: "stegseek hidden.jpg rockyou.txt", description: "Crack steghide password"}],
+    use_cases: ["Password cracking", "Hidden data extraction", "CTF"],
+    documentation: "https://github.com/RickdeJager/stegseek",
+    notes: ["Very fast", "Multi-threaded"]
+  },
+
+  // ========== NETWORK TRAFFIC ANALYSIS ==========
+  tcpdump: {
+    name: "tcpdump",
+    category: ["network_analysis", "packet_capture", "forensics"],
+    description: "Command-line packet analyzer",
+    github: "https://github.com/the-tcpdump-group/tcpdump",
+    stars: "2k+",
+    license: "BSD-3-Clause",
+    government_approved: true,
+    installation: {
+      linux: "sudo apt install tcpdump",
+      macos: "brew install tcpdump",
+      windows: "Use WinDump"
+    },
+    basic_usage: ["sudo tcpdump -i eth0"],
+    advanced_usage: ["sudo tcpdump -i eth0 'tcp port 80'"],
+    examples: [{command: "sudo tcpdump -i eth0 -w capture.pcap", description: "Capture packets to file"}],
+    use_cases: ["Network analysis", "Traffic monitoring", "Incident response"],
+    documentation: "https://www.tcpdump.org/manpages/tcpdump.1.html",
+    notes: ["Industry standard", "BPF filters"]
+  },
+
+  tshark: {
+    name: "TShark",
+    category: ["network_analysis", "packet_capture", "forensics"],
+    description: "Terminal-based Wireshark",
+    github: "https://github.com/wireshark/wireshark",
+    stars: "7k+",
+    license: "GPL-2.0",
+    government_approved: true,
+    installation: {
+      linux: "sudo apt install tshark",
+      macos: "brew install wireshark",
+      windows: "Included with Wireshark"
+    },
+    basic_usage: ["tshark -i eth0"],
+    advanced_usage: ["tshark -r capture.pcap -Y 'http.request'"],
+    examples: [{command: "tshark -i eth0 -Y 'dns' -w dns_traffic.pcap", description: "Capture DNS traffic"}],
+    use_cases: ["Packet analysis", "Protocol debugging", "Network forensics"],
+    documentation: "https://www.wireshark.org/docs/man-pages/tshark.html",
+    notes: ["Wireshark CLI", "Display filters"]
+  },
+
+  // ========== LOG ANALYSIS ==========
+  goaccess: {
+    name: "GoAccess",
+    category: ["log_analysis", "web_analytics", "monitoring"],
+    description: "Real-time web log analyzer",
+    github: "https://github.com/allinurl/goaccess",
+    stars: "18k+",
+    license: "MIT",
+    government_approved: true,
+    installation: {
+      linux: "sudo apt install goaccess",
+      macos: "brew install goaccess",
+      windows: "Cygwin or WSL"
+    },
+    basic_usage: ["goaccess /var/log/nginx/access.log"],
+    advanced_usage: ["goaccess /var/log/nginx/access.log -o report.html"],
+    examples: [{command: "goaccess access.log --log-format=COMBINED", description: "Analyze Apache logs"}],
+    use_cases: ["Web analytics", "Log analysis", "Traffic monitoring"],
+    documentation: "https://goaccess.io/man",
+    notes: ["Real-time updates", "HTML reports"]
+  },
+
+  // ========== DATABASE SECURITY ==========
+  sqlmate: {
+    name: "SQLMate",
+    category: ["database_security", "sql_injection", "pentesting"],
+    description: "Friend of sqlmap that identifies SQLi vulnerabilities",
+    github: "https://github.com/s0md3v/sqlmate",
+    stars: "500+",
+    license: "GPL-3.0",
+    government_approved: false,
+    installation: {
+      linux: "git clone https://github.com/s0md3v/sqlmate",
+      macos: "git clone https://github.com/s0md3v/sqlmate",
+      windows: "git clone https://github.com/s0md3v/sqlmate"
+    },
+    basic_usage: ["python3 sqlmate.py -u http://example.com/page?id=1"],
+    advanced_usage: ["python3 sqlmate.py -u URL --crawl"],
+    examples: [{command: "python3 sqlmate.py -u http://example.com/page?id=1", description: "Find SQL injection"}],
+    use_cases: ["SQL injection detection", "Web security", "Penetration testing"],
+    documentation: "https://github.com/s0md3v/sqlmate",
+    notes: ["SQLMap companion", "Automatic detection"]
+  },
+
+  // ========== API SECURITY ==========
+  postman: {
+    name: "Newman (Postman CLI)",
+    category: ["api_security", "testing", "automation"],
+    description: "Command-line collection runner for Postman",
+    github: "https://github.com/postmanlabs/newman",
+    stars: "7k+",
+    license: "Apache-2.0",
+    government_approved: false,
+    installation: {
+      linux: "npm install -g newman",
+      macos: "npm install -g newman",
+      windows: "npm install -g newman"
+    },
+    basic_usage: ["newman run collection.json"],
+    advanced_usage: ["newman run collection.json -e environment.json"],
+    examples: [{command: "newman run api_tests.json", description: "Run API test collection"}],
+    use_cases: ["API testing", "Security testing", "CI/CD integration"],
+    documentation: "https://learning.postman.com/docs/collections/using-newman-cli/command-line-integration-with-newman/",
+    notes: ["Postman CLI", "Automation friendly"]
+  },
+
+  // ========== CONTAINER SECURITY (Additional) ==========
+  anchore: {
+    name: "Anchore Engine",
+    category: ["container_security", "docker", "vulnerability_scanning"],
+    description: "Docker container image inspection and analysis",
+    github: "https://github.com/anchore/anchore-engine",
+    stars: "2k+",
+    license: "Apache-2.0",
+    government_approved: true,
+    installation: {
+      linux: "Docker compose",
+      macos: "Docker compose",
+      windows: "Docker compose"
+    },
+    basic_usage: ["anchore-cli image add docker.io/library/nginx"],
+    advanced_usage: ["anchore-cli image vuln nginx all"],
+    examples: [{command: "anchore-cli image vuln nginx:latest all", description: "Scan for vulnerabilities"}],
+    use_cases: ["Container scanning", "Vulnerability detection", "Compliance checking"],
+    documentation: "https://docs.anchore.com/",
+    notes: ["Policy enforcement", "CVE detection"]
+  },
+
+  // ========== KUBERNETES SECURITY ==========
+  kubesec: {
+    name: "kubesec",
+    category: ["kubernetes", "container_security", "policy"],
+    description: "Security risk analysis for Kubernetes resources",
+    github: "https://github.com/controlplaneio/kubesec",
+    stars: "1k+",
+    license: "Apache-2.0",
+    government_approved: false,
+    installation: {
+      linux: "wget -O kubesec https://github.com/controlplaneio/kubesec/releases/download/v2.13.0/kubesec_linux_amd64 && chmod +x kubesec",
+      macos: "brew install kubesec",
+      windows: "Download from releases"
+    },
+    basic_usage: ["kubesec scan pod.yaml"],
+    advanced_usage: ["kubesec scan deployment.yaml -o json"],
+    examples: [{command: "kubesec scan pod.yaml", description: "Analyze K8s security"}],
+    use_cases: ["Kubernetes security", "Policy validation", "Best practices"],
+    documentation: "https://kubesec.io/",
+    notes: ["Scoring system", "Best practices check"]
+  },
+
+  kube_hunter: {
+    name: "kube-hunter",
+    category: ["kubernetes", "pentesting", "vulnerability_scanning"],
+    description: "Hunt for security weaknesses in Kubernetes clusters",
+    github: "https://github.com/aquasecurity/kube-hunter",
+    stars: "5k+",
+    license: "Apache-2.0",
+    government_approved: true,
+    installation: {
+      linux: "pip3 install kube-hunter",
+      macos: "pip3 install kube-hunter",
+      windows: "pip install kube-hunter"
+    },
+    basic_usage: ["kube-hunter"],
+    advanced_usage: ["kube-hunter --active"],
+    examples: [{command: "kube-hunter --remote <cluster-ip>", description: "Scan remote cluster"}],
+    use_cases: ["Cluster security", "Penetration testing", "Misconfiguration detection"],
+    documentation: "https://github.com/aquasecurity/kube-hunter",
+    notes: ["Active and passive modes", "Multiple attack vectors"]
+  },
+
+  // ========== CI/CD SECURITY ==========
+  gitleaks: {
+    name: "Gitleaks (Enhanced)",
+    category: ["cicd_security", "secrets", "devsecops"],
+    description: "Protect git repos from secrets in commits",
+    github: "https://github.com/gitleaks/gitleaks",
+    stars: "16k+",
+    license: "MIT",
+    government_approved: true,
+    installation: {
+      linux: "brew install gitleaks",
+      macos: "brew install gitleaks",
+      windows: "Download from releases"
+    },
+    basic_usage: ["gitleaks detect"],
+    advanced_usage: ["gitleaks protect --staged"],
+    examples: [{command: "gitleaks detect --source . --verbose", description: "Scan repo for secrets"}],
+    use_cases: ["Secret detection", "Pre-commit hooks", "CI/CD security"],
+    documentation: "https://github.com/gitleaks/gitleaks",
+    notes: ["Fast scanning", "Custom rules"]
+  },
+
+  // ========== INCIDENT RESPONSE ==========
+  thehive: {
+    name: "TheHive",
+    category: ["incident_response", "case_management", "soc"],
+    description: "Scalable Security Incident Response Platform",
+    github: "https://github.com/TheHive-Project/TheHive",
+    stars: "3k+",
+    license: "AGPL-3.0",
+    government_approved: true,
+    installation: {
+      linux: "Docker or DEB packages",
+      macos: "Docker",
+      windows: "Docker"
+    },
+    basic_usage: ["Docker deployment"],
+    advanced_usage: ["Cortex integration"],
+    examples: [{command: "thehive", description: "Launch incident response platform"}],
+    use_cases: ["Incident response", "Case management", "SOC operations"],
+    documentation: "https://docs.thehive-project.org/",
+    notes: ["Cortex integration", "MISP compatible"]
+  },
+
+  // ========== NETWORK FORENSICS ==========
+  networkMiner: {
+    name: "NetworkMiner",
+    category: ["network_forensics", "pcap_analysis", "forensics"],
+    description: "Network forensic analysis tool for PCAP files",
+    github: "https://www.netresec.com/?page=NetworkMiner",
+    stars: "N/A",
+    license: "Proprietary/Free version",
+    government_approved: true,
+    installation: {
+      linux: "Mono runtime required",
+      macos: "Not supported",
+      windows: "Download installer"
+    },
+    basic_usage: ["Load PCAP file"],
+    advanced_usage: ["Extract files, credentials"],
+    examples: [{command: "NetworkMiner.exe", description: "Analyze network capture"}],
+    use_cases: ["Network forensics", "File extraction", "Credential recovery"],
+    documentation: "https://www.netresec.com/?page=NetworkMiner",
+    notes: ["Windows focused", "File carving"]
+  },
+
+  // ========== MOBILE FORENSICS ==========
+  androidqf: {
+    name: "Android Quick Forensics",
+    category: ["mobile_forensics", "android", "incident_response"],
+    description: "Quick forensic acquisition for Android devices",
+    github: "https://github.com/botherder/androidqf",
+    stars: "300+",
+    license: "MIT",
+    government_approved: false,
+    installation: {
+      linux: "pip3 install androidqf",
+      macos: "pip3 install androidqf",
+      windows: "pip install androidqf"
+    },
+    basic_usage: ["androidqf"],
+    advanced_usage: ["androidqf --full"],
+    examples: [{command: "androidqf", description: "Acquire Android device data"}],
+    use_cases: ["Mobile forensics", "Evidence collection", "Incident response"],
+    documentation: "https://github.com/botherder/androidqf",
+    notes: ["Root not required", "Quick acquisition"]
+  },
+
+  // ========== MEMORY FORENSICS (Additional) ==========
+  rekall: {
+    name: "Rekall",
+    category: ["memory_forensics", "incident_response", "forensics"],
+    description: "Advanced memory forensics framework",
+    github: "https://github.com/google/rekall",
+    stars: "2k+",
+    license: "GPL-2.0",
+    government_approved: true,
+    installation: {
+      linux: "pip install rekall",
+      macos: "pip install rekall",
+      windows: "pip install rekall"
+    },
+    basic_usage: ["rekall -f memory.dmp"],
+    advanced_usage: ["rekall -f memory.dmp pslist"],
+    examples: [{command: "rekall -f memory.dmp malfind", description: "Find injected code"}],
+    use_cases: ["Memory analysis", "Malware forensics", "Incident investigation"],
+    documentation: "http://www.rekall-forensic.com/documentation-1",
+    notes: ["Google project", "Multiple OS support"]
+  },
+
+  // ========== REGISTRY FORENSICS ==========
+  regripper: {
+    name: "RegRipper",
+    category: ["forensics", "windows", "registry"],
+    description: "Windows Registry forensics tool",
+    github: "https://github.com/keydet89/RegRipper3.0",
+    stars: "1k+",
+    license: "MIT",
+    government_approved: true,
+    installation: {
+      linux: "perl script",
+      macos: "perl script",
+      windows: "Download exe"
+    },
+    basic_usage: ["rip.pl -r NTUSER.DAT -f ntuser"],
+    advanced_usage: ["rip.pl -r SAM -f sam"],
+    examples: [{command: "rip.pl -r SYSTEM -f system", description: "Parse system registry"}],
+    use_cases: ["Registry analysis", "Windows forensics", "Artifact extraction"],
+    documentation: "https://github.com/keydet89/RegRipper3.0",
+    notes: ["Plugin-based", "Extensive artifact support"]
+  },
+
+  // ========== EMAIL ANALYSIS ==========
+  emailheaderanalyzer: {
+    name: "Email Header Analyzer",
+    category: ["osint", "email", "phishing"],
+    description: "Analyze email headers for investigation",
+    github: "https://github.com/topics/email-header-analysis",
+    stars: "Various",
+    license: "Various",
+    government_approved: false,
+    installation: {
+      linux: "Web-based tools",
+      macos: "Web-based tools",
+      windows: "Web-based tools"
+    },
+    basic_usage: ["Paste headers into analyzer"],
+    advanced_usage: ["Trace email path"],
+    examples: [{command: "mxtoolbox.com", description: "Analyze email headers"}],
+    use_cases: ["Phishing investigation", "Email forensics", "Spam analysis"],
+    documentation: "https://mxtoolbox.com/emailheaders.aspx",
+    notes: ["Multiple services available", "Free tools"]
   }
-};
+}
 
 // Tool categories mapping
 export const TOOL_CATEGORIES = {
   network_scanning: ["nmap", "masscan", "netdiscover"],
-  web_security: ["owasp-zap", "nuclei", "sqlmap", "ffuf", "dirsearch", "feroxbuster", "gobuster", "wpscan", "joomscan"],
-  vulnerability_assessment: ["openvas", "trivy", "nuclei"],
-  pentesting: ["metasploit", "sqlmap", "hydra", "sn1per"],
-  osint: ["sherlock", "socialscan", "maigret", "theharvester", "holehe", "phoneinfoga", "blackbird", "whatsmyname", "namechk"],
+  web_security: ["owasp-zap", "nuclei", "sqlmap", "ffuf", "dirsearch", "feroxbuster", "gobuster", "wpscan", "joomscan", "sqlmate"],
+  vulnerability_assessment: ["openvas", "trivy", "nuclei", "anchore"],
+  pentesting: ["metasploit", "sqlmap", "hydra", "sn1per", "kube_hunter"],
+  osint: ["sherlock", "socialscan", "maigret", "theharvester", "holehe", "phoneinfoga", "blackbird", "whatsmyname", "namechk", "pipl", "spokeo", "onionscan", "blockchain_explorer", "vehicle_tracking", "dnstwist", "spyse", "crunchbase", "opencorporates", "flightaware", "marinetraffic", "sentinelsat", "emailheaderanalyzer"],
   username_search: ["sherlock", "socialscan", "maigret", "blackbird", "whatsmyname", "namechk"],
   social_media: ["twint", "instagramosint"],
   subdomain_enumeration: ["subfinder", "assetfinder", "amass"],
-  dns: ["dnsrecon", "dnsx"],
-  email: ["holehe", "theharvester", "emailrepIO"],
-  phone: ["phoneinfoga"],
+  dns: ["dnsrecon", "dnsx", "dnstwist"],
+  email: ["holehe", "theharvester", "emailrepIO", "emailheaderanalyzer"],
+  phone: ["phoneinfoga", "spokeo"],
   ip: ["ipinfo"],
   github: ["gitrob", "truffleHog", "gitLeaks", "githound"],
-  credentials: ["gitrob", "truffleHog", "gitLeaks", "githound"],
-  reconnaissance: ["reconftw", "sn1per", "gospider", "hakrawler", "waymore", "paramspider", "httpx", "aquatone", "wappalyzer", "waybackurls", "gau", "unfurl"],
-  password_testing: ["hydra", "medusa", "john", "hashcat", "aircrack-ng"],
+  credentials: ["gitrob", "truffleHog", "gitLeaks", "githound", "haveibeenpwned", "dehashed"],
+  breach_data: ["haveibeenpwned", "dehashed"],
+  dark_web: ["onionscan"],
+  tor: ["onionscan"],
+  cryptocurrency: ["blockchain_explorer"],
+  blockchain: ["blockchain_explorer"],
+  vehicle: ["vehicle_tracking"],
+  transportation: ["vehicle_tracking", "flightaware", "marinetraffic"],
+  aviation: ["flightaware"],
+  maritime: ["marinetraffic"],
+  geospatial: ["sentinelsat", "exiftool", "geoCreepy"],
+  satellite: ["sentinelsat"],
+  people_search: ["pipl", "spokeo"],
+  identity: ["pipl"],
+  business_intelligence: ["crunchbase", "opencorporates"],
+  company: ["crunchbase", "opencorporates"],
+  phishing: ["dnstwist", "emailheaderanalyzer"],
+  infrastructure: ["spyse", "dnstwist"],
+  reconnaissance: ["reconftw", "sn1per", "gospider", "hakrawler", "waymore", "paramspider", "httpx", "aquatone", "wappalyzer", "waybackurls", "gau", "unfurl", "spyse"],
+  password_testing: ["hydra", "medusa", "john", "hashcat", "aircrack-ng", "stegseek"],
   hash_cracking: ["john", "hashcat"],
   bruteforce: ["hydra", "medusa"],
-  forensics: ["autopsy", "volatility", "exiftool"],
-  memory_analysis: ["volatility"],
+  forensics: ["autopsy", "volatility", "exiftool", "pdfid", "peepdf", "tcpdump", "tshark", "networkMiner", "androidqf", "rekall", "regripper"],
+  memory_analysis: ["volatility", "rekall"],
+  memory_forensics: ["volatility", "rekall"],
   metadata: ["exiftool"],
   geolocation: ["exiftool", "geoCreepy"],
   network_monitoring: ["snort", "wireshark", "bettercap"],
   network_security: ["bettercap", "mitmproxy"],
+  network_analysis: ["tcpdump", "tshark"],
+  network_forensics: ["networkMiner", "tcpdump", "tshark"],
+  packet_capture: ["tcpdump", "tshark"],
   mitm: ["bettercap"],
   ids: ["snort"],
   wireless: ["aircrack-ng", "wifite"],
   wireless_security: ["wifite"],
-  container_security: ["trivy", "dockle"],
-  docker: ["dockle"],
+  container_security: ["trivy", "dockle", "anchore"],
+  docker: ["dockle", "anchore"],
+  kubernetes: ["kubesec", "kube_hunter"],
   cloud_security: ["cloudmapper", "prowler", "scoutsuite", "cloudfox", "s3scanner", "bucketstream"],
   aws: ["cloudmapper", "prowler", "cloudfox", "s3scanner", "bucketstream"],
   multi_cloud: ["scoutsuite"],
   compliance: ["prowler"],
   crypto: ["btcrecover"],
   password_recovery: ["btcrecover"],
-  api_security: ["mitmproxy", "arjun"],
-  mobile_security: ["mobsf"],
+  api_security: ["mitmproxy", "arjun", "postman"],
+  mobile_security: ["mobsf", "androidqf"],
+  mobile_forensics: ["androidqf"],
+  android: ["androidqf"],
   static_analysis: ["mobsf", "semgrep", "bandit"],
   code_analysis: ["semgrep", "bandit"],
   sast: ["semgrep"],
@@ -2774,11 +3667,20 @@ export const TOOL_CATEGORIES = {
   ctf: ["pwntools"],
   reverse_engineering: ["ghidra", "radare2"],
   binary_analysis: ["radare2"],
-  malware_analysis: ["volatility", "ghidra"],
-  iot_security: ["firmwalker", "binwalk"],
+  malware_analysis: ["volatility", "ghidra", "pdfid", "peepdf", "virustotal", "malwarebazaar"],
+  malware: ["pdfid", "peepdf"],
+  document_analysis: ["pdfid", "peepdf"],
+  threat_intelligence: ["misp", "opencti", "virustotal", "malwarebazaar"],
+  ioc: ["misp"],
+  sharing: ["misp"],
+  cyber_threat: ["opencti"],
+  samples: ["malwarebazaar"],
+  antivirus: ["virustotal"],
+  iot_security: ["firmwalker", "binwalk", "rtl_433"],
   firmware_analysis: ["firmwalker", "binwalk"],
   xss: ["xsser", "dalfox"],
-  sql_injection: ["sqlmap"],
+  sql_injection: ["sqlmap", "sqlmate"],
+  database_security: ["sqlmate"],
   ssl_tls: ["testssl", "sslscan"],
   directory_bruteforce: ["dirsearch", "feroxbuster", "gobuster"],
   fuzzing: ["ffuf"],
@@ -2794,5 +3696,29 @@ export const TOOL_CATEGORIES = {
   collaboration: ["dradis"],
   system_security: ["lynis"],
   auditing: ["lynis"],
-  automation: ["reconftw"]
+  automation: ["reconftw"],
+  social_engineering: ["setoolkit"],
+  sigint: ["gqrx", "rtl_433"],
+  radio: ["gqrx", "rtl_433"],
+  sdr: ["gqrx"],
+  iot: ["rtl_433"],
+  steganography: ["steghide", "stegseek"],
+  data_hiding: ["steghide"],
+  password_cracking: ["stegseek", "john", "hashcat"],
+  log_analysis: ["goaccess"],
+  web_analytics: ["goaccess"],
+  monitoring: ["goaccess"],
+  testing: ["postman"],
+  vulnerability_scanning: ["anchore", "kube_hunter"],
+  policy: ["kubesec"],
+  secrets: ["gitleaks"],
+  devsecops: ["gitleaks"],
+  cicd_security: ["gitleaks"],
+  incident_response: ["thehive", "rekall", "androidqf"],
+  case_management: ["thehive"],
+  soc: ["thehive"],
+  pcap_analysis: ["networkMiner"],
+  windows: ["regripper"],
+  registry: ["regripper"],
+  tracking: ["flightaware", "marinetraffic"]
 };
