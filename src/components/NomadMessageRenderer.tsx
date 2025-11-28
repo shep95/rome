@@ -1,4 +1,5 @@
 import { LocationMap } from './LocationMap';
+import { EnhancedMessageContent } from './EnhancedMessageContent';
 
 interface NomadMessageRendererProps {
   content: string;
@@ -52,9 +53,7 @@ export const NomadMessageRenderer = ({ content }: NomadMessageRendererProps) => 
   if (locationData) {
     return (
       <div className="space-y-3">
-        <div className="text-sm leading-relaxed whitespace-pre-wrap">
-          {content}
-        </div>
+        <EnhancedMessageContent content={content} isSender={false} />
         <LocationMap
           latitude={locationData.lat}
           longitude={locationData.lon}
@@ -66,10 +65,6 @@ export const NomadMessageRenderer = ({ content }: NomadMessageRendererProps) => 
     );
   }
 
-  // Default: just render text
-  return (
-    <div className="text-sm leading-relaxed whitespace-pre-wrap">
-      {content}
-    </div>
-  );
+  // Default: render with enhanced formatting
+  return <EnhancedMessageContent content={content} isSender={false} />;
 };
