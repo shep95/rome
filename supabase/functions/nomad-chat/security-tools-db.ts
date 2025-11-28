@@ -866,7 +866,7 @@ export const SECURITY_TOOLS_DB: Record<string, SecurityTool> = {
   },
 
   // ========== WIRELESS SECURITY ==========
-  aircrack-ng: {
+  "aircrack-ng": {
     name: "Aircrack-ng",
     category: ["wireless", "password_testing"],
     description: "Complete suite for assessing WiFi network security. Includes packet capture, WEP/WPA/WPA2 cracking, and fake access point creation.",
