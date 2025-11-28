@@ -64,29 +64,116 @@ export async function shodanSearch(query: string) {
 
 export async function checkSecurityHeaders(url: string) {
   try {
-    const response = await fetch(url, { method: 'HEAD' });
+    // Fetch full response to check both HTTP headers AND meta tags
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+    
+    const html = await response.text();
     const headers = Object.fromEntries(response.headers.entries());
     
-    const securityHeaders = {
-      'strict-transport-security': headers['strict-transport-security'] || 'Missing',
-      'content-security-policy': headers['content-security-policy'] || 'Missing',
-      'x-frame-options': headers['x-frame-options'] || 'Missing',
-      'x-content-type-options': headers['x-content-type-options'] || 'Missing',
-      'x-xss-protection': headers['x-xss-protection'] || 'Missing',
-      'referrer-policy': headers['referrer-policy'] || 'Missing'
+    // Check HTTP Response Headers (Server-level - STRONGEST protection)
+    const httpHeaders = {
+      'strict-transport-security': headers['strict-transport-security'] || null,
+      'content-security-policy': headers['content-security-policy'] || null,
+      'x-frame-options': headers['x-frame-options'] || null,
+      'x-content-type-options': headers['x-content-type-options'] || null,
+      'x-xss-protection': headers['x-xss-protection'] || null,
+      'referrer-policy': headers['referrer-policy'] || null
     };
     
-    const score = Object.values(securityHeaders).filter(v => v !== 'Missing').length;
+    // Extract Meta Tags from HTML (Second-line defense - activates after HTML parsing)
+    const metaTags = {
+      'strict-transport-security': null as string | null,
+      'content-security-policy': null as string | null,
+      'x-frame-options': null as string | null,
+      'x-content-type-options': null as string | null,
+      'x-xss-protection': null as string | null,
+      'referrer-policy': null as string | null
+    };
+    
+    // Parse meta tags with http-equiv attributes
+    const cspMatch = html.match(/<meta\s+http-equiv=["']Content-Security-Policy["']\s+content=["']([^"']+)["']/i);
+    if (cspMatch) metaTags['content-security-policy'] = cspMatch[1];
+    
+    const xfoMatch = html.match(/<meta\s+http-equiv=["']X-Frame-Options["']\s+content=["']([^"']+)["']/i);
+    if (xfoMatch) metaTags['x-frame-options'] = xfoMatch[1];
+    
+    const xctoMatch = html.match(/<meta\s+http-equiv=["']X-Content-Type-Options["']\s+content=["']([^"']+)["']/i);
+    if (xctoMatch) metaTags['x-content-type-options'] = xctoMatch[1];
+    
+    const xssMatch = html.match(/<meta\s+http-equiv=["']X-XSS-Protection["']\s+content=["']([^"']+)["']/i);
+    if (xssMatch) metaTags['x-xss-protection'] = xssMatch[1];
+    
+    const refMatch = html.match(/<meta\s+http-equiv=["']Referrer-Policy["']\s+content=["']([^"']+)["']/i);
+    if (refMatch) metaTags['referrer-policy'] = refMatch[1];
+    
+    // Calculate scores
+    const httpScore = Object.values(httpHeaders).filter(v => v !== null).length;
+    const metaScore = Object.values(metaTags).filter(v => v !== null).length;
+    const totalScore = Math.max(httpScore, metaScore); // Best protection level
+    
+    // Build detailed report
+    const report = {
+      'strict-transport-security': {
+        http: httpHeaders['strict-transport-security'] || '❌ Missing',
+        meta: metaTags['strict-transport-security'] || '❌ Missing',
+        protection: httpHeaders['strict-transport-security'] ? '🛡️ SERVER-LEVEL' : 
+                   metaTags['strict-transport-security'] ? '⚠️ META-TAG (weaker)' : '🚨 MISSING'
+      },
+      'content-security-policy': {
+        http: httpHeaders['content-security-policy'] || '❌ Missing',
+        meta: metaTags['content-security-policy'] ? '✅ Present' : '❌ Missing',
+        protection: httpHeaders['content-security-policy'] ? '🛡️ SERVER-LEVEL' : 
+                   metaTags['content-security-policy'] ? '⚠️ META-TAG (weaker)' : '🚨 MISSING'
+      },
+      'x-frame-options': {
+        http: httpHeaders['x-frame-options'] || '❌ Missing',
+        meta: metaTags['x-frame-options'] || '❌ Missing',
+        protection: httpHeaders['x-frame-options'] ? '🛡️ SERVER-LEVEL' : 
+                   metaTags['x-frame-options'] ? '⚠️ META-TAG (weaker)' : '🚨 MISSING'
+      },
+      'x-content-type-options': {
+        http: httpHeaders['x-content-type-options'] || '❌ Missing',
+        meta: metaTags['x-content-type-options'] || '❌ Missing',
+        protection: httpHeaders['x-content-type-options'] ? '🛡️ SERVER-LEVEL' : 
+                   metaTags['x-content-type-options'] ? '⚠️ META-TAG (weaker)' : '🚨 MISSING'
+      },
+      'x-xss-protection': {
+        http: httpHeaders['x-xss-protection'] || '❌ Missing',
+        meta: metaTags['x-xss-protection'] || '❌ Missing',
+        protection: httpHeaders['x-xss-protection'] ? '🛡️ SERVER-LEVEL' : 
+                   metaTags['x-xss-protection'] ? '⚠️ META-TAG (weaker)' : '🚨 MISSING'
+      },
+      'referrer-policy': {
+        http: httpHeaders['referrer-policy'] || '❌ Missing',
+        meta: metaTags['referrer-policy'] || '❌ Missing',
+        protection: httpHeaders['referrer-policy'] ? '🛡️ SERVER-LEVEL' : 
+                   metaTags['referrer-policy'] ? '⚠️ META-TAG (weaker)' : '🚨 MISSING'
+      }
+    };
+    
+    const grade = totalScore >= 5 ? 'A' : totalScore >= 4 ? 'B' : totalScore >= 3 ? 'C' : 'F';
     
     return {
       success: true,
       url,
-      headers: securityHeaders,
-      score: `${score}/6`,
-      grade: score >= 5 ? 'A' : score >= 4 ? 'B' : score >= 3 ? 'C' : 'F'
+      summary: {
+        http_headers_score: `${httpScore}/6`,
+        meta_tags_score: `${metaScore}/6`,
+        total_score: `${totalScore}/6`,
+        grade,
+        recommendation: httpScore < metaScore ? 
+          '⚠️ SECURITY GAP: Using meta tags instead of HTTP headers. Configure server-level headers at Cloudflare for maximum protection.' :
+          httpScore === 6 ? '✅ All security headers properly configured at server level.' :
+          '🚨 CRITICAL: Missing security headers. Configure at Cloudflare immediately.'
+      },
+      detailed_headers: report
     };
   } catch (error) {
-    return { success: false, error: 'Failed to check security headers' };
+    return { success: false, error: `Failed to check security headers: ${error.message}` };
   }
 }
 
