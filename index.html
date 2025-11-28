@@ -41,7 +41,11 @@
     
     <!-- Progressier PWA -->
     <link rel="manifest" href="https://progressier.app/W33GqpZHd6x4X0gaDKNo/progressier.json"/>
-    <script defer src="https://progressier.app/W33GqpZHd6x4X0gaDKNo/script.js"></script>
+    <script 
+      defer 
+      src="https://progressier.app/W33GqpZHd6x4X0gaDKNo/script.js"
+      crossorigin="anonymous"
+    ></script>
     
     <!-- DataBuddy Analytics -->
     <script
@@ -51,6 +55,12 @@
       crossorigin="anonymous"
       async
     ></script>
+    
+    <!-- Security Notice: SRI (Subresource Integrity) hashes cannot be added to these scripts 
+         as they are dynamically updated by third-party providers. Alternative mitigations:
+         1. CSP restricts script sources to trusted domains only
+         2. Scripts are loaded from HTTPS with crossorigin="anonymous"
+         3. Regular security audits of third-party dependencies -->
   </head>
 
   <body>
