@@ -380,10 +380,12 @@ function detectVulnerabilities(html: string, headers: any): any[] {
 function detectTechnologies(html: string, headers: any): any {
   const tech: any = {
     server: headers['server'] || 'Unknown',
+    hosting: [],
     frameworks: [],
     cms: null,
     analytics: [],
-    libraries: []
+    libraries: [],
+    backend: []
   };
   
   // Server identification
@@ -391,37 +393,88 @@ function detectTechnologies(html: string, headers: any): any {
     tech.frameworks.push(headers['x-powered-by']);
   }
   
+  // Hosting platform detection (accurate indicators)
+  if (headers['x-vercel-id'] || headers['x-vercel-cache']) {
+    tech.hosting.push('Vercel');
+  }
+  if (headers['server']?.includes('cloudflare')) {
+    tech.hosting.push('Cloudflare');
+  }
+  if (html.includes('herokuapp.com')) {
+    tech.hosting.push('Heroku');
+  }
+  if (headers['x-amz-cf-id'] || headers['x-amz-request-id']) {
+    tech.hosting.push('AWS CloudFront');
+  }
+  
+  // Framework detection (ONLY with strong evidence)
+  // Next.js specific
+  if (html.includes('__NEXT_DATA__') || html.includes('_next/static/')) {
+    tech.frameworks.push('Next.js');
+  }
+  // Vite specific
+  if (html.includes('/@vite/') || html.includes('type="module"') && html.includes('/assets/')) {
+    tech.frameworks.push('Vite');
+  }
+  // Nuxt.js specific
+  if (html.includes('__NUXT__')) {
+    tech.frameworks.push('Nuxt.js');
+  }
+  
+  // Backend/Database detection
+  if (html.includes('supabase.co') || html.includes('supabase-js')) {
+    tech.backend.push('Supabase');
+  }
+  if (html.includes('firebaseapp.com') || html.includes('firebase.js')) {
+    tech.backend.push('Firebase');
+  }
+  if (html.includes('amplifyapp.com') || html.includes('aws-amplify')) {
+    tech.backend.push('AWS Amplify');
+  }
+  
   // CMS detection
-  if (html.includes('wp-content') || html.includes('wordpress')) {
+  if (html.includes('wp-content') || html.includes('wp-includes')) {
     tech.cms = 'WordPress';
-  } else if (html.includes('joomla')) {
+  } else if (html.includes('/components/com_')) {
     tech.cms = 'Joomla';
-  } else if (html.includes('drupal')) {
+  } else if (html.includes('Drupal.settings')) {
     tech.cms = 'Drupal';
   }
   
   // Analytics
-  if (html.includes('google-analytics') || html.includes('gtag')) {
+  if (html.includes('google-analytics.com') || html.includes('gtag.js') || html.includes('ga.js')) {
     tech.analytics.push('Google Analytics');
   }
-  if (html.includes('facebook.com/tr')) {
+  if (html.includes('facebook.com/tr') || html.includes('fbevents.js')) {
     tech.analytics.push('Facebook Pixel');
   }
-  
-  // JavaScript libraries
-  if (html.includes('jquery')) {
-    const versionMatch = html.match(/jquery[.-](\d+\.\d+\.\d+)/i);
-    tech.libraries.push(`jQuery ${versionMatch ? versionMatch[1] : 'Unknown version'}`);
+  if (html.includes('plausible.io')) {
+    tech.analytics.push('Plausible');
   }
-  if (html.includes('react')) {
+  if (html.includes('matomo')) {
+    tech.analytics.push('Matomo');
+  }
+  
+  // JavaScript libraries (ONLY with clear evidence)
+  if (html.includes('jquery.min.js') || html.includes('jquery.js')) {
+    const versionMatch = html.match(/jquery[.-](\d+\.\d+\.\d+)/i);
+    tech.libraries.push(`jQuery ${versionMatch ? versionMatch[1] : '(version unknown)'}`);
+  }
+  // React - look for React-specific bundle patterns
+  if (html.includes('react-dom') || html.includes('ReactDOM') || html.match(/\/_react[.-]/)) {
     tech.libraries.push('React');
   }
-  if (html.includes('vue')) {
+  // Vue - look for Vue-specific patterns
+  if (html.includes('vue.js') || html.includes('vue.runtime') || html.includes('v-app')) {
     tech.libraries.push('Vue.js');
   }
-  if (html.includes('angular')) {
+  // Angular - look for Angular-specific patterns
+  if (html.includes('ng-version') || html.includes('angular.js') || html.includes('ng-app')) {
     tech.libraries.push('Angular');
   }
+  
+  // Add confidence note
+  tech.note = 'Technologies detected based on visible indicators. Some may be undetectable or hidden.';
   
   return tech;
 }
