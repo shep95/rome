@@ -706,6 +706,42 @@ export type Database = {
         }
         Relationships: []
       }
+      nomad_conversations: {
+        Row: {
+          conversation_id: string
+          created_at: string | null
+          encryption_salt: string
+          id: string
+          last_message_preview: string | null
+          messages_encrypted: string
+          title_encrypted: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string | null
+          encryption_salt: string
+          id?: string
+          last_message_preview?: string | null
+          messages_encrypted: string
+          title_encrypted: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string | null
+          encryption_salt?: string
+          id?: string
+          last_message_preview?: string | null
+          messages_encrypted?: string
+          title_encrypted?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       nomad_team_access: {
         Row: {
           approved: boolean

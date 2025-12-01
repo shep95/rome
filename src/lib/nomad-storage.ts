@@ -18,7 +18,17 @@ interface Message {
 }
 
 export const nomadStorage = {
-  // Get all conversations
+  // Check if user prefers cloud storage
+  isCloudSyncEnabled(): boolean {
+    return localStorage.getItem('nomad-cloud-sync-enabled') === 'true';
+  },
+
+  // Enable/disable cloud sync
+  setCloudSyncEnabled(enabled: boolean): void {
+    localStorage.setItem('nomad-cloud-sync-enabled', enabled ? 'true' : 'false');
+  },
+
+  // Get all conversations (from localStorage for now, cloud loading handled separately)
   getConversations(): NomadConversation[] {
     try {
       const stored = localStorage.getItem('nomad-conversations');

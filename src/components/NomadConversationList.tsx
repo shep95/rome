@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, MessageSquare, Trash2 } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 interface NomadConversation {
   id: string;
@@ -25,11 +26,16 @@ export const NomadConversationList: React.FC<NomadConversationListProps> = ({
   onNewConversation,
   onConversationsChange,
 }) => {
+  const { user } = useAuth();
   const [conversations, setConversations] = useState<NomadConversation[]>([]);
+  const [cloudSyncEnabled, setCloudSyncEnabled] = useState(false);
 
   useEffect(() => {
     loadConversations();
-  }, []);
+    // Check cloud sync status
+    const syncEnabled = localStorage.getItem('nomad-cloud-sync-enabled') === 'true';
+    setCloudSyncEnabled(syncEnabled && !!user);
+  }, [user]);
   
   // Reload when external changes occur
   useEffect(() => {
@@ -104,7 +110,7 @@ export const NomadConversationList: React.FC<NomadConversationListProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-background/50 backdrop-blur-sm border-r border-border">
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border space-y-2">
         <Button
           onClick={onNewConversation}
           className="w-full"
@@ -113,6 +119,22 @@ export const NomadConversationList: React.FC<NomadConversationListProps> = ({
           <Plus className="w-4 h-4 mr-2" />
           New Chat
         </Button>
+        
+        {user && (
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            {cloudSyncEnabled ? (
+              <>
+                <Cloud className="w-3 h-3 text-primary" />
+                <span>Cloud sync enabled</span>
+              </>
+            ) : (
+              <>
+                <CloudOff className="w-3 h-3" />
+                <span>Local storage only</span>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <ScrollArea className="flex-1">
