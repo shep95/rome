@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download, Search, Users, Bell, Copy, Check, Shield, History } from 'lucide-react';
+import { Paperclip, Send, X, File, Image as ImageIcon, Video, Trash2, MoreVertical, ArrowLeft, Reply, Languages, Settings, Download, Search, Users, Bell, Copy, Check, Shield, History, Brain } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { TypingIndicator } from './TypingIndicator';
 import { MediaModal } from './MediaModal';
@@ -2011,6 +2011,22 @@ if (!append && user && conversationId) {
             <GroupCallButton conversationId={conversationId} />
           )}
           
+          {/* Brain button (only for NOMAD) */}
+          {conversationId === 'nomad-ai-agent' && (
+            <Button
+              onClick={() => {
+                setBrainConversationId(nomadConversationId);
+                setShowBrainDialog(true);
+              }}
+              variant="ghost"
+              size="sm"
+              className="p-1.5 sm:p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+              title="Upload data for pattern analysis"
+            >
+              <Brain className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
+          )}
+          
           {/* Search button */}
           <Button
             onClick={() => setShowAdvancedSearch(true)}
@@ -2135,6 +2151,20 @@ if (!append && user && conversationId) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            
+            {/* Brain */}
+            <Button
+              onClick={() => {
+                setBrainConversationId(nomadConversationId);
+                setShowBrainDialog(true);
+              }}
+              variant="ghost"
+              size="sm"
+              className="p-2 h-auto flex-shrink-0 hover:bg-primary/10"
+              title="Upload data for pattern analysis"
+            >
+              <Brain className="h-4 w-4" />
+            </Button>
             
             {/* Search */}
             <Button

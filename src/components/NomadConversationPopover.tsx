@@ -166,9 +166,9 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
         align="end"
         sideOffset={8}
       >
-        <div className="flex flex-col max-h-[500px]">
+        <div className="flex flex-col h-[500px]">
           {/* Header */}
-          <div className="p-3 border-b border-border bg-card/50">
+          <div className="p-3 border-b border-border bg-card/50 flex-shrink-0">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-sm text-foreground">Chat History</h3>
@@ -192,7 +192,7 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
           </div>
 
           {/* Conversation List */}
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 h-full">
             <div className="p-2 space-y-1">
               {conversations.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8 px-4">
