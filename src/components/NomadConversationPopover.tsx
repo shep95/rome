@@ -144,6 +144,10 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
     return title.length > 8 ? title.slice(0, 8) + '...' : title;
   };
 
+  const truncateDescription = (description: string) => {
+    return description.length > 8 ? description.slice(0, 8) + '...' : description;
+  };
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -257,8 +261,8 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
                             {truncateTitle(conv.title)}
                           </h4>
                         )}
-                        <p className="text-xs text-muted-foreground truncate mt-1">
-                          {conv.lastMessage}
+                        <p className="text-xs text-muted-foreground truncate mt-1" title={conv.lastMessage}>
+                          {truncateDescription(conv.lastMessage)}
                         </p>
                         <p className="text-xs text-muted-foreground/60 mt-1">
                           {formatTimestamp(conv.timestamp)}
