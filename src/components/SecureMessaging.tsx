@@ -34,6 +34,8 @@ import { NomadConversationPopover } from './NomadConversationPopover';
 import { nomadStorage } from '@/lib/nomad-storage';
 import { cn } from '@/lib/utils';
 import { EnhancedMessageContent } from './EnhancedMessageContent';
+import { NomadPinDialog } from './NomadPinDialog';
+import { useNomadCloudStorage } from '@/hooks/useNomadCloudStorage';
 
 interface Message {
   id: string;
@@ -172,9 +174,51 @@ const [showSettings, setShowSettings] = useState(false);
   } | null>(null);
   const [hasNomadAccess, setHasNomadAccess] = useState<boolean>(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
+  
+  // Cloud storage for NOMAD
+  const { saveConversation, loadConversations, syncFromLocal, isSyncing } = useNomadCloudStorage();
+  const [showPinDialog, setShowPinDialog] = useState(false);
+  const [nomadSecurityPin, setNomadSecurityPin] = useState<string | null>(null);
+  const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState(false);
 
   // Enforce live anti-screenshot while viewing messages (mobile: true blocking, web: best-effort)
   useScreenshotProtection(true);
+
+  // Handle PIN verification for cloud storage
+  const handlePinVerified = async (pin: string) => {
+    setNomadSecurityPin(pin);
+    setShowPinDialog(false);
+    
+    // Load conversations from cloud
+    const cloudData = await loadConversations(pin);
+    if (cloudData && cloudData.conversations.length > 0) {
+      // Merge cloud data with localStorage
+      localStorage.setItem('nomad-conversations', JSON.stringify(cloudData.conversations));
+      cloudData.messagesMap.forEach((messages, convId) => {
+        localStorage.setItem(`nomad-conversation-${convId}`, JSON.stringify(messages));
+      });
+      
+      // Enable cloud sync
+      localStorage.setItem('nomad-cloud-sync-enabled', 'true');
+      toast.success(`Loaded ${cloudData.conversations.length} conversation(s) from cloud`);
+      
+      // Reload current conversation
+      await loadNomadMessages();
+    } else {
+      // No cloud data, offer to sync from local
+      const localConvs = nomadStorage.getConversations();
+      if (localConvs.length > 0) {
+        toast.info('Syncing local conversations to cloud...');
+        await syncFromLocal(pin);
+        localStorage.setItem('nomad-cloud-sync-enabled', 'true');
+      } else {
+        localStorage.setItem('nomad-cloud-sync-enabled', 'true');
+        toast.success('Cloud sync enabled');
+      }
+    }
+    
+    setHasLoadedFromCloud(true);
+  };
 
   // NOMAD AI Agent functions
   const loadNomadMessages = async (conversationIdOverride?: string) => {
@@ -325,6 +369,21 @@ const [showSettings, setShowSettings] = useState(false);
         // Store in localStorage for persistence
         nomadStorage.saveMessages(nomadConversationId, finalMessages);
         
+        // Save to cloud if sync is enabled and PIN is available
+        if (nomadSecurityPin && nomadStorage.isCloudSyncEnabled()) {
+          const conversations = nomadStorage.getConversations();
+          const currentConv = conversations.find(c => c.id === nomadConversationId);
+          if (currentConv) {
+            await saveConversation(
+              nomadConversationId,
+              finalMessages,
+              currentConv.title,
+              currentConv.lastMessage,
+              nomadSecurityPin
+            );
+          }
+        }
+        
         // Refresh conversation list to show updated lastMessage
         window.dispatchEvent(new Event('storage'));
         
@@ -404,10 +463,31 @@ const [showSettings, setShowSettings] = useState(false);
             setHasNomadAccess(data || false);
             setCheckingAccess(false);
 
-            // If user has access, load messages
+            // If user has access, check if cloud sync should be enabled
             if (data) {
-              await loadNomadMessages();
-              setHasLoadedMessages(true);
+              const cloudSyncEnabled = nomadStorage.isCloudSyncEnabled();
+              const hasPin = localStorage.getItem('nomad_security_code');
+              
+              // If cloud sync enabled but not loaded yet, prompt for PIN
+              if (cloudSyncEnabled && hasPin && !hasLoadedFromCloud) {
+                setShowPinDialog(true);
+              } else if (!cloudSyncEnabled && !hasLoadedFromCloud) {
+                // First time - offer to enable cloud sync
+                const hasLocalData = nomadStorage.getConversations().length > 0;
+                if (hasLocalData) {
+                  toast.info('Enable cloud sync to access conversations across devices', {
+                    action: {
+                      label: 'Enable',
+                      onClick: () => setShowPinDialog(true),
+                    },
+                  });
+                }
+                await loadNomadMessages();
+                setHasLoadedMessages(true);
+              } else {
+                await loadNomadMessages();
+                setHasLoadedMessages(true);
+              }
             }
           } catch (error) {
             console.error('Error checking NOMAD access:', error);
@@ -2733,6 +2813,20 @@ editingMessageId === message.id ? (
         fileType={filePreviewModal.fileType}
         fileSize={filePreviewModal.fileSize}
       />
+
+      {/* NOMAD PIN Dialog for Cloud Sync */}
+      {conversationId === 'nomad-ai-agent' && (
+        <NomadPinDialog
+          isOpen={showPinDialog}
+          onVerified={handlePinVerified}
+          onCancel={() => {
+            setShowPinDialog(false);
+            // Load messages locally if user cancels
+            loadNomadMessages();
+            setHasLoadedMessages(true);
+          }}
+        />
+      )}
 
       {/* Typing Indicator */}
       <TypingIndicator conversationId={conversationId} currentUserId={user?.id} />
