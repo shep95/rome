@@ -36,6 +36,7 @@ import { cn } from '@/lib/utils';
 import { EnhancedMessageContent } from './EnhancedMessageContent';
 import { NomadPinDialog } from './NomadPinDialog';
 import { useNomadCloudStorage } from '@/hooks/useNomadCloudStorage';
+import { NomadBrainDialog } from './NomadBrainDialog';
 
 interface Message {
   id: string;
@@ -180,9 +181,33 @@ const [showSettings, setShowSettings] = useState(false);
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [nomadSecurityPin, setNomadSecurityPin] = useState<string | null>(null);
   const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState(false);
+  
+  // Brain data for pattern analysis
+  const [showBrainDialog, setShowBrainDialog] = useState(false);
+  const [brainConversationId, setBrainConversationId] = useState<string>('');
+  const [brainData, setBrainData] = useState<Map<string, string>>(new Map());
 
   // Enforce live anti-screenshot while viewing messages (mobile: true blocking, web: best-effort)
   useScreenshotProtection(true);
+
+  // Load brain data from localStorage on mount
+  useEffect(() => {
+    if (conversationId === 'nomad-ai-agent') {
+      const storedBrainData = localStorage.getItem('nomad-brain-data');
+      if (storedBrainData) {
+        try {
+          const parsed = JSON.parse(storedBrainData) as Record<string, string>;
+          const brainMap = new Map<string, string>();
+          Object.entries(parsed).forEach(([key, value]) => {
+            brainMap.set(key, value);
+          });
+          setBrainData(brainMap);
+        } catch (error) {
+          console.error('Error loading brain data:', error);
+        }
+      }
+    }
+  }, [conversationId]);
 
   // Handle PIN verification for cloud storage
   const handlePinVerified = async (pin: string) => {
@@ -328,13 +353,17 @@ const [showSettings, setShowSettings] = useState(false);
       setIsNomadTyping(true);
 
       try {
-        // Call NOMAD chat API
+        // Get brain data for this conversation if it exists
+        const conversationBrainData = brainData.get(nomadConversationId);
+        
+        // Call NOMAD chat API with optional brain data
         const { data, error } = await supabase.functions.invoke('nomad-chat', {
           body: { 
             messages: updatedMessages.map(msg => ({
               role: msg.sender_id === user.id ? 'user' : 'assistant',
               content: msg.content
-            }))
+            })),
+            brainData: conversationBrainData || null
           }
         });
 
@@ -1952,6 +1981,10 @@ if (!append && user && conversationId) {
                 setNomadPopoverKey(prev => prev + 1);
               }}
               onConversationsChange={() => setNomadPopoverKey(prev => prev + 1)}
+              onOpenBrain={(convId) => {
+                setBrainConversationId(convId);
+                setShowBrainDialog(true);
+              }}
             />
           )}
           
@@ -2071,6 +2104,10 @@ if (!append && user && conversationId) {
                 setNomadPopoverKey(prev => prev + 1);
               }}
               onConversationsChange={() => setNomadPopoverKey(prev => prev + 1)}
+              onOpenBrain={(convId) => {
+                setBrainConversationId(convId);
+                setShowBrainDialog(true);
+              }}
             />
             
             {/* Download Conversation */}
@@ -2825,6 +2862,30 @@ editingMessageId === message.id ? (
             loadNomadMessages();
             setHasLoadedMessages(true);
           }}
+        />
+      )}
+
+      {/* NOMAD Brain Dialog for Pattern Analysis */}
+      {conversationId === 'nomad-ai-agent' && (
+        <NomadBrainDialog
+          isOpen={showBrainDialog}
+          onClose={() => setShowBrainDialog(false)}
+          onDataSubmit={(data) => {
+            // Store brain data for this conversation
+            setBrainData(new Map(brainData.set(brainConversationId, data)));
+            toast.success('Brain data uploaded. NOMAD will analyze patterns in your next message.');
+            
+            // Store in localStorage for persistence
+            const storedBrainData: Record<string, string> = {};
+            brainData.forEach((value, key) => {
+              storedBrainData[key] = value;
+            });
+            storedBrainData[brainConversationId] = data;
+            localStorage.setItem('nomad-brain-data', JSON.stringify(storedBrainData));
+          }}
+          conversationTitle={
+            nomadStorage.getConversations().find(c => c.id === brainConversationId)?.title || 'New Chat'
+          }
         />
       )}
 
