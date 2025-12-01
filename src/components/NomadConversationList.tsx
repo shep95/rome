@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, MessageSquare, Trash2, Cloud, CloudOff } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, Cloud, CloudOff, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ interface NomadConversationListProps {
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
   onConversationsChange?: () => void;
+  onOpenBrain?: (conversationId: string) => void;
 }
 
 export const NomadConversationList: React.FC<NomadConversationListProps> = ({
@@ -25,6 +26,7 @@ export const NomadConversationList: React.FC<NomadConversationListProps> = ({
   onSelectConversation,
   onNewConversation,
   onConversationsChange,
+  onOpenBrain,
 }) => {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<NomadConversation[]>([]);
@@ -108,6 +110,10 @@ export const NomadConversationList: React.FC<NomadConversationListProps> = ({
     return date.toLocaleDateString();
   };
 
+  const truncateTitle = (title: string): string => {
+    return title.length > 8 ? title.slice(0, 8) + '...' : title;
+  };
+
   return (
     <div className="flex flex-col h-full bg-background/50 backdrop-blur-sm border-r border-border">
       <div className="p-4 border-b border-border space-y-2">
@@ -157,7 +163,7 @@ export const NomadConversationList: React.FC<NomadConversationListProps> = ({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium truncate">{conv.title}</h3>
+                    <h3 className="text-sm font-medium truncate">{truncateTitle(conv.title)}</h3>
                     <p className="text-xs text-muted-foreground truncate mt-1">
                       {conv.lastMessage}
                     </p>
@@ -165,14 +171,28 @@ export const NomadConversationList: React.FC<NomadConversationListProps> = ({
                       {formatTimestamp(conv.timestamp)}
                     </p>
                   </div>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 shrink-0"
-                    onClick={(e) => deleteConversation(conv.id, e)}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenBrain?.(conv.id);
+                      }}
+                      title="Brain - Upload data for pattern analysis"
+                    >
+                      <Brain className="w-3 h-3 text-primary" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={(e) => deleteConversation(conv.id, e)}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, MessageSquare, Trash2, History, Edit2, Check, X } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, History, Edit2, Check, X, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -19,6 +19,7 @@ interface NomadConversationPopoverProps {
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
   onConversationsChange?: () => void;
+  onOpenBrain?: (conversationId: string) => void;
 }
 
 export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> = ({
@@ -26,6 +27,7 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
   onSelectConversation,
   onNewConversation,
   onConversationsChange,
+  onOpenBrain,
 }) => {
   const [conversations, setConversations] = useState<NomadConversation[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -139,7 +141,7 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
   };
 
   const truncateTitle = (title: string) => {
-    return title.length > 25 ? title.slice(0, 25) + '...' : title;
+    return title.length > 8 ? title.slice(0, 8) + '...' : title;
   };
 
   return (
@@ -269,14 +271,29 @@ export const NomadConversationPopover: React.FC<NomadConversationPopoverProps> =
                             variant="ghost"
                             className="h-6 w-6 hover:bg-primary/20 hover:text-primary"
                             onClick={(e) => startEditing(conv.id, conv.title, e)}
+                            title="Rename"
                           >
                             <Edit2 className="w-3 h-3" />
                           </Button>
                           <Button
                             size="icon"
                             variant="ghost"
+                            className="h-6 w-6 hover:bg-primary/20 hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenBrain?.(conv.id);
+                              setIsOpen(false);
+                            }}
+                            title="Brain - Upload data for pattern analysis"
+                          >
+                            <Brain className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
                             className="h-6 w-6 hover:bg-destructive/20 hover:text-destructive"
                             onClick={(e) => deleteConversation(conv.id, e)}
+                            title="Delete"
                           >
                             <Trash2 className="w-3 h-3" />
                           </Button>
