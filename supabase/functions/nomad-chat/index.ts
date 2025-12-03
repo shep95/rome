@@ -16,7 +16,7 @@ const corsHeaders = {
 
 // Sanitize response to remove any leaked tool call syntax
 function sanitizeResponse(content: string): string {
-  if (!content) return content;
+  if (!content) return "I apologize, I wasn't able to generate a response. Please try again.";
   
   // Remove <think> tags and their content
   content = content.replace(/<think>[\s\S]*?<\/think>/gi, '');
@@ -33,7 +33,14 @@ function sanitizeResponse(content: string): string {
   // Clean up multiple newlines
   content = content.replace(/\n{3,}/g, '\n\n');
   
-  return content.trim();
+  const trimmed = content.trim();
+  
+  // If after sanitization content is empty, return a helpful message
+  if (!trimmed) {
+    return "I tried to use a tool that isn't fully implemented yet. Let me try a different approach - what specific information are you looking for?";
+  }
+  
+  return trimmed;
 }
 
 serve(async (req) => {
