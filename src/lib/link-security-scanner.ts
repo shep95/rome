@@ -58,6 +58,11 @@ const SUSPICIOUS_PATTERNS = [
 
 // Safe domains (whitelist of known safe domains)
 const SAFE_DOMAINS = [
+  // App domains - highest trust
+  'therome.app',
+  'lovable.app',
+  'lovable.dev',
+  // Common trusted services
   'google.com',
   'youtube.com',
   'facebook.com',
@@ -80,6 +85,7 @@ const SAFE_DOMAINS = [
   'paypal.com',
   'stripe.com',
   'supabase.com',
+  'supabase.co',
   'vercel.com',
   'cloudflare.com',
   'mozilla.org',
