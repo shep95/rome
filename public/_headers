@@ -1,24 +1,31 @@
 /*
-  # Security Headers for Production Deployment
-  # Add these headers at your hosting provider (Vercel, Netlify, etc.)
+  # Security Headers for Rome App - Maximum XSS & Injection Protection
   
   # HTTP Strict Transport Security (HSTS) - Prevents SSL stripping attacks
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   
-  # Content Security Policy - Already set in HTML meta tag, reinforced here
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://progressier.app https://cdn.databuddy.cc https://oss.maxcdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://mnijromffaalvpadojbj.supabase.co wss://mnijromffaalvpadojbj.supabase.co https://progressier.app https://cdn.databuddy.cc; frame-src https://www.openstreetmap.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;
+  # Content Security Policy - Strict policy to prevent XSS and injection attacks
+  Content-Security-Policy: default-src 'self' https://therome.app https://*.lovable.app https://*.lovable.dev; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://progressier.app https://cdn.databuddy.cc https://oss.maxcdn.com https://therome.app https://*.lovable.app https://*.lovable.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://mnijromffaalvpadojbj.supabase.co wss://mnijromffaalvpadojbj.supabase.co https://progressier.app https://cdn.databuddy.cc https://therome.app https://*.lovable.app https://*.lovable.dev; frame-src https://www.openstreetmap.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://therome.app https://*.lovable.app; upgrade-insecure-requests; block-all-mixed-content; require-trusted-types-for 'script';
   
-  # Prevent MIME type sniffing
+  # Prevent MIME type sniffing - blocks content type confusion attacks
   X-Content-Type-Options: nosniff
   
   # Prevent clickjacking
   X-Frame-Options: DENY
   
-  # XSS Protection (deprecated but still useful for older browsers)
+  # XSS Protection with blocking mode
   X-XSS-Protection: 1; mode=block
   
-  # Referrer Policy
+  # Strict Referrer Policy - prevents information leakage
   Referrer-Policy: strict-origin-when-cross-origin
   
-  # Permissions Policy (formerly Feature-Policy)
-  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  # Permissions Policy - disable unnecessary browser features
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()
+  
+  # Cross-Origin policies for additional isolation
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  
+  # Cache control for security-sensitive content
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate

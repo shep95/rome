@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Shield, ExternalLink, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, Shield, ExternalLink, X, ChevronDown, ChevronUp, Ban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LinkSecurityScanner, LinkSecurityResult } from '@/lib/link-security-scanner';
+import { detectXSS, logSecurityEvent } from '@/lib/xss-protection';
 import { cn } from '@/lib/utils';
 
 interface LinkWarningProps {
@@ -21,9 +22,19 @@ export const LinkWarning: React.FC<LinkWarningProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
+  const [xssDetected, setXssDetected] = useState(false);
+
+  // First check for XSS attacks in the message
+  const xssCheck = detectXSS(message);
+  if (xssCheck.isXSS && !xssDetected) {
+    logSecurityEvent('XSS_ATTACK_IN_MESSAGE', { patterns: xssCheck.patterns });
+    setXssDetected(true);
+  }
+
   const scanResult = LinkSecurityScanner.scanMessage(message);
 
-  if (!scanResult.hasLinks || !scanResult.hasSuspiciousLinks || dismissed) {
+  // Show warning if XSS detected or suspicious links found
+  if (dismissed || (!xssDetected && (!scanResult.hasLinks || !scanResult.hasSuspiciousLinks))) {
     return null;
   }
 
@@ -52,28 +63,35 @@ export const LinkWarning: React.FC<LinkWarningProps> = ({
   };
 
   const suspiciousLinks = scanResult.linkAnalysis.filter(link => !link.isSafe);
+  const overallRisk = xssDetected ? 'high' : scanResult.overallRisk;
 
   return (
     <Card className={cn(
       "border-l-4 mb-3",
-      getRiskColor(scanResult.overallRisk),
+      xssDetected ? 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/30 border-red-500' : getRiskColor(scanResult.overallRisk),
       className
     )}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
             <div className="p-1">
-              {getRiskIcon(scanResult.overallRisk)}
+              {xssDetected ? <Ban className="h-4 w-4 text-red-600" /> : getRiskIcon(overallRisk)}
             </div>
             <div className="flex-1 min-w-0">
               <CardTitle className="text-sm font-medium">
-                {scanResult.overallRisk === 'high' ? 'Dangerous Link Detected' : 'Suspicious Link Warning'}
+                {xssDetected 
+                  ? '🚫 XSS Attack Blocked' 
+                  : overallRisk === 'high' 
+                    ? 'Dangerous Link Detected' 
+                    : 'Suspicious Link Warning'}
               </CardTitle>
               <p className="text-xs mt-1 opacity-90">
-                {suspiciousLinks.length === 1 
-                  ? 'This message contains a potentially unsafe link.'
-                  : `This message contains ${suspiciousLinks.length} potentially unsafe links.`
-                } Click to review details.
+                {xssDetected 
+                  ? 'This message contains malicious code that has been blocked.'
+                  : suspiciousLinks.length === 1 
+                    ? 'This message contains a potentially unsafe link.'
+                    : `This message contains ${suspiciousLinks.length} potentially unsafe links.`
+                } {!xssDetected && 'Click to review details.'}
               </p>
             </div>
           </div>
