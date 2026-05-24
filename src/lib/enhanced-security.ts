@@ -356,7 +356,7 @@ class EnhancedSecurityManager {
       bytes.fill(0);
     } else {
       // Overwrite with random data then zero
-      crypto.getRandomValues(data);
+      crypto.getRandomValues(data as Uint8Array<ArrayBuffer>);
       data.fill(0);
     }
   }

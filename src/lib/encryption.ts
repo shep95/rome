@@ -528,7 +528,7 @@ class MilitaryEncryption {
   secureCleanup(...arrays: Uint8Array[]) {
     arrays.forEach(arr => {
       if (arr) {
-        crypto.getRandomValues(arr); // Overwrite with random data
+        crypto.getRandomValues(arr as Uint8Array<ArrayBuffer>); // Overwrite with random data
         arr.fill(0); // Then zero out
       }
     });
