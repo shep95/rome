@@ -274,15 +274,6 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
           const directConvs = allConvs.filter((c: any) => c.type === 'direct');
           const groupConvs = allConvs.filter((c: any) => c.type === 'group');
           
-          // Add NOMAD AI Agent as a special conversation
-          const nomadConversation: Conversation = {
-            id: 'nomad-ai-agent',
-            type: 'direct',
-            name: 'NOMAD',
-            avatar_url: nomadLogo,
-            updated_at: new Date().toISOString(),
-          };
-
           const directConvIds = directConvs.map((c: any) => c.id);
 
           // Fetch counterparties for all direct chats in ONE RPC call (bypasses profile RLS safely)
@@ -327,13 +318,12 @@ export const LiveMainContent: React.FC<LiveMainContentProps> = ({ activeSection,
                 } as Conversation;
               });
 
-              // Add NOMAD AI Agent at the top of direct messages
-              setConversations([nomadConversation, ...directChats]);
+              setConversations(directChats);
             }
           } else {
-            // Only NOMAD if no other conversations
-            setConversations([nomadConversation]);
+            setConversations([]);
           }
+
 
           // Build groups without extra queries
           const groups: Conversation[] = groupConvs.map((conv: any) => ({
