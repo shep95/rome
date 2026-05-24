@@ -208,7 +208,7 @@ export const useSecureFileOperations = () => {
           .update({ 
             [field]: currentCount + 1,
             last_accessed: new Date().toISOString()
-          })
+          } as any)
           .eq('id', fileId)
           .eq('user_id', user.id);
       }
