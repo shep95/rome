@@ -20,7 +20,7 @@ export const GlassmorphismHeader: React.FC<GlassmorphismHeaderProps> = ({ onSign
         {/* Mobile: Single container */}
         <div className="md:hidden relative bg-background/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg">
           <div className="flex items-center justify-between gap-4 px-6 py-3">
-            <span className="text-xl font-light tracking-wider text-white">ROME</span>
+            <span className="text-xl font-light tracking-[0.3em] text-white" style={{ fontFamily: 'Geist, Inter, sans-serif' }}>ARVOR</span>
             <Button 
               onClick={onSignUpClick}
               variant="outline"
@@ -36,7 +36,7 @@ export const GlassmorphismHeader: React.FC<GlassmorphismHeaderProps> = ({ onSign
           {/* Logo section - separate container */}
           <div className="relative bg-background/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg">
             <div className="px-6 py-3">
-              <span className="text-xl font-light tracking-wider text-white">ROME</span>
+              <span className="text-xl font-light tracking-[0.3em] text-white" style={{ fontFamily: 'Geist, Inter, sans-serif' }}>ARVOR</span>
             </div>
           </div>
 
