@@ -69,14 +69,15 @@ const DANGEROUS_SCHEMES = [
 // XSS bypass patterns to detect and block
 const XSS_BYPASS_PATTERNS = [
   // Unicode/encoding bypasses
-  /\u00[0-9a-f]{2}/gi,
-  /\x[0-9a-f]{2}/gi,
+  /\\u00[0-9a-f]{2}/gi,
+  /\\x[0-9a-f]{2}/gi,
   /&#x?[0-9a-f]+;?/gi,
   /%[0-9a-f]{2}/gi,
   
   // Null byte injection
   /\x00/g,
   /%00/g,
+
   
   // Expression bypasses (IE specific)
   /expression\s*\(/gi,
@@ -189,14 +190,15 @@ function decodeForDetection(input: string): string {
   }
   
   // Decode Unicode escapes
-  decoded = decoded.replace(/\u([0-9a-f]{4})/gi, (_, hex) =>
+  decoded = decoded.replace(/\\u([0-9a-f]{4})/gi, (_, hex) =>
     String.fromCharCode(parseInt(hex, 16))
   );
   
   // Decode hex escapes
-  decoded = decoded.replace(/\x([0-9a-f]{2})/gi, (_, hex) =>
+  decoded = decoded.replace(/\\x([0-9a-f]{2})/gi, (_, hex) =>
     String.fromCharCode(parseInt(hex, 16))
   );
+
   
   // Remove null bytes
   decoded = decoded.replace(/\x00/g, '');
